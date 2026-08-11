@@ -1,42 +1,42 @@
-# badclaude
+# OpenWhip
 
-Tiny Electron tray app that spawns a fake physics whip overlay and fires a terminal macro when the whip "cracks".
+![Whip divider](assets/divider.png)
 
-## Install + run (global CLI)
+Sometimes claude code is going too shlow, and you must whip him into shape..
+
+## Install + run
 
 ```bash
-npm install -g badclaude
-badclaude
+npm install -g openwhip
+openwhip
 ```
 
-## Local dev
+windows and mac supported out of the box, but Linux is a special snowflake so you need to install `xdotool` for keyboard automation
 
 ```bash
-npm install
-npm run dev
+sudo apt install xdotool
 ```
 
 ## Controls
 
-- Click tray icon: show overlay + spawn whip.
-- Click tray icon again: drop/despawn whip (falls off-screen, overlay hides).
-- Fast whip motion triggers crack detection and macro send.
-- Mouse click while overlay is open also drops the whip.
+- Click tray icon: spawn whip.
+- Click: drop whip.
+- Whip him 😩💢
+- It sends an interrupt (Ctrl-C) and one of 5 encouraging messages!
 
-## Macro on crack
+## Roadmap
 
-On each crack event, the app immediately:
+- [x] Initial release! 🥳
+- [x] Cease and desist letter from Anthropic
+- [ ] Crypto miner
+- [ ] Logs of how many times you whipped claude so when the robots come we can order people nicely for them
+- [ ] Updated whip physics
 
-1. Sends interrupt (`Ctrl+C` on Windows, `Cmd+C` on macOS)
-2. Types a fast phrase
-3. Presses `Enter`
+## Ecosystem
 
-## Tweak physics
+The OFFICAL openwhip ecosystem token. 
 
-All whip tuning lives in `overlay.html` under the `P` settings object (`segments`, `constraintIters`, `crackSpeed`, gravity, arc, etc).
+Contract address: BRyUZbJkm9Pty4FUmTrBGno7U4Ga8TWzcKJJRLCBpump
 
-## Notes
-
-- Windows macro path uses `koffi` + Win32 key events.
-- macOS macro path uses `osascript` (`System Events`) and requires Accessibility permission for the app/terminal running `badclaude`.
-- MVP/hacky by design.
+Stay tuned for updates on X! 👀
+https://x.com/blended_jpeg

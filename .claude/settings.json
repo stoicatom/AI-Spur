@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo test*)",
+      "Bash(cargo clippy*)",
+      "Bash(cargo fmt*)",
+      "Bash(cargo build*)",
+      "Bash(npm run test*)",
+      "Bash(npm run typecheck*)",
+      "Bash(npm run ci*)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=\"$HOOK_TOOL_INPUT_CMD\"; if echo \"$cmd\" | grep -qE \"git (commit|push)\"; then echo \"[hook] 提交前检查：运行 cargo clippy + cargo test + npm run typecheck + npm run test\"; (cd \"$(git rev-parse --show-toplevel)\" && cargo clippy -- -D warnings 2>&1 | tail -5 && cargo test 2>&1 | tail -10 && npm run typecheck 2>&1 | tail -5 && npm run test -- --run 2>&1 | tail -10) || { echo \"[hook] 检查失败，提交被阻止\"; exit 2; }; fi'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"$HOOK_TOOL_INPUT_FILE_PATH\"; if echo \"$file\" | grep -qE \"\\.rs$\"; then echo \"[hook] Rust 文件变更，运行 cargo clippy\"; (cd \"$(git rev-parse --show-toplevel)\" && cargo clippy -- -D warnings 2>&1 | tail -20); elif echo \"$file\" | grep -qE \"\\.(ts|tsx)$\"; then echo \"[hook] TS 文件变更，运行 typecheck\"; (cd \"$(git rev-parse --show-toplevel)\" && npm run typecheck 2>&1 | tail -20); fi'"
+          }
+        ]
+      }
+    ]
+  }
+}

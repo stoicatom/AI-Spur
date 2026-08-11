@@ -1,6 +1,6 @@
 {
   "name": "openwhip",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "description": "Whip Claude into shape",
   "license": "MIT",
   "main": "main.js",

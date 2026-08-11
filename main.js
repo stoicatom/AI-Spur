@@ -1,6 +1,5 @@
 const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, screen } = require('electron');
 const path = require('path');
-const zlib = require('zlib');
 const fs = require('fs');
 const os = require('os');
 const { execFile } = require('child_process');
@@ -26,49 +25,97 @@ let spawnQueued = false;
 const VK_CONTROL = 0x11;
 const VK_RETURN  = 0x0D;
 const VK_C       = 0x43;
+const VK_MENU    = 0x12; // Alt
+const VK_TAB     = 0x09;
 const KEYUP      = 0x0002;
 
-// ── Tiny PNG encoder (for tray icon, no deps) ──────────────────────────────
-function makePNG(w, h, rgba) {
-  const tbl = new Int32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    tbl[n] = c;
-  }
-  const crc32 = buf => { let c = -1; for (let i = 0; i < buf.length; i++) c = tbl[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ -1) >>> 0; };
-  const chunk = (type, data) => {
-    const t = Buffer.from(type), len = Buffer.alloc(4), crc = Buffer.alloc(4);
-    len.writeUInt32BE(data.length);
-    crc.writeUInt32BE(crc32(Buffer.concat([t, data])));
-    return Buffer.concat([len, t, data, crc]);
+/** One Alt+Tab / Cmd+Tab so focus returns to the previously active app after tray click. */
+function refocusPreviousApp() {
+  const delayMs = 80;
+  const run = () => {
+    if (process.platform === 'win32') {
+      if (!keybd_event) return;
+      keybd_event(VK_MENU, 0, 0, 0);
+      keybd_event(VK_TAB, 0, 0, 0);
+      keybd_event(VK_TAB, 0, KEYUP, 0);
+      keybd_event(VK_MENU, 0, KEYUP, 0);
+    } else if (process.platform === 'darwin') {
+      const script = [
+        'tell application "System Events"',
+        '  key down command',
+        '  key code 48', // Tab
+        '  key up command',
+        'end tell',
+      ].join('\n');
+      execFile('osascript', ['-e', script], err => {
+        if (err) {
+          console.warn('refocus previous app (Cmd+Tab) failed:', err.message);
+        }
+      });
+    } else if (process.platform === 'linux') {
+      execFile('xdotool', ['key', '--clearmodifiers', 'alt+Tab'], err => {
+        if (err) {
+          console.warn('refocus previous app (Alt+Tab) failed. Install xdotool:', err.message);
+        }
+      });
+    }
   };
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
-  const raw = Buffer.alloc(h * (1 + w * 4));
-  for (let y = 0; y < h; y++) { raw[y * (1 + w * 4)] = 0; rgba.copy(raw, y * (1 + w * 4) + 1, y * w * 4, (y + 1) * w * 4); }
-  return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+  setTimeout(run, delayMs);
 }
 
 function createTrayIconFallback() {
-  const s = 16, px = Buffer.alloc(s * s * 4);
-  for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
-    const i = (y * s + x) * 4, d = Math.hypot(x - 7.5, y - 7.5);
-    if (d < 6.5) { px[i] = 200; px[i+1] = 40; px[i+2] = 40; px[i+3] = 255; }
+  const p = path.join(__dirname, 'icon', 'Template.png');
+  if (fs.existsSync(p)) {
+    const img = nativeImage.createFromPath(p);
+    if (!img.isEmpty()) {
+      if (process.platform === 'darwin') img.setTemplateImage(true);
+      return img;
+    }
   }
-  const tmp = path.join(os.tmpdir(), 'badclaude-icon.png');
-  fs.writeFileSync(tmp, makePNG(s, s, px));
-  return nativeImage.createFromPath(tmp);
+  console.warn('openwhip: icon/Template.png missing or invalid');
+  return nativeImage.createEmpty();
 }
 
-function getTrayIcon() {
+async function tryIcnsTrayImage(icnsPath) {
+  const size = { width: 64, height: 64 };
+  const thumb = await nativeImage.createThumbnailFromPath(icnsPath, size);
+  if (!thumb.isEmpty()) return thumb;
+  return null;
+}
+
+// macOS: createFromPath does not decode .icns (Electron only loads PNG/JPEG there, ICO on Windows).
+// Quick Look thumbnails handle .icns; copy to temp if the file is inside ASAR (QL needs a real path).
+async function getTrayIcon() {
   const iconDir = path.join(__dirname, 'icon');
-  const file =
-    process.platform === 'win32' ? path.join(iconDir, 'icon.ico')
-    : process.platform === 'darwin' ? path.join(iconDir, 'AppIcon.icns')
-    : null;
-  if (file && fs.existsSync(file)) {
-    const img = nativeImage.createFromPath(file);
-    if (!img.isEmpty()) return img;
+  if (process.platform === 'win32') {
+    const file = path.join(iconDir, 'icon.ico');
+    if (fs.existsSync(file)) {
+      const img = nativeImage.createFromPath(file);
+      if (!img.isEmpty()) return img;
+    }
+    return createTrayIconFallback();
+  }
+  if (process.platform === 'darwin') {
+    const file = path.join(iconDir, 'AppIcon.icns');
+    if (fs.existsSync(file)) {
+      const fromPath = nativeImage.createFromPath(file);
+      if (!fromPath.isEmpty()) return fromPath;
+      try {
+        const t = await tryIcnsTrayImage(file);
+        if (t) return t;
+      } catch (e) {
+        console.warn('AppIcon.icns Quick Look thumbnail failed:', e?.message || e);
+      }
+      const tmp = path.join(os.tmpdir(), 'openwhip-tray.icns');
+      try {
+        fs.copyFileSync(file, tmp);
+        const t = await tryIcnsTrayImage(tmp);
+        if (t) return t;
+      } catch (e) {
+        console.warn('AppIcon.icns temp copy + thumbnail failed:', e?.message || e);
+      }
+    }
+    return createTrayIconFallback();
   }
   return createTrayIconFallback();
 }
@@ -98,6 +145,7 @@ function createOverlay() {
     if (spawnQueued && overlay && overlay.isVisible()) {
       spawnQueued = false;
       overlay.webContents.send('spawn-whip');
+      refocusPreviousApp();
     }
   });
   overlay.on('closed', () => {
@@ -116,6 +164,7 @@ function toggleOverlay() {
   overlay.show();
   if (overlayReady) {
     overlay.webContents.send('spawn-whip');
+    refocusPreviousApp();
   } else {
     spawnQueued = true;
   }
@@ -149,6 +198,8 @@ function sendMacro() {
     sendMacroWindows(chosen);
   } else if (process.platform === 'darwin') {
     sendMacroMac(chosen);
+  } else if (process.platform === 'linux') {
+    sendMacroLinux(chosen);
   }
 }
 
@@ -180,26 +231,54 @@ function sendMacroWindows(text) {
 
 function sendMacroMac(text) {
   const escaped = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  const script = [
+  const interruptScript = [
     'tell application "System Events"',
-    '  key code 8 using {command down}', // Cmd+C
-    '  delay 0.03',
+    '  key code 8 using {control down}', // Ctrl+C interrupt
+    'end tell'
+  ].join('\n');
+  const typeAndEnterScript = [
+    'tell application "System Events"',
     `  keystroke "${escaped}"`,
     '  key code 36', // Enter
     'end tell'
   ].join('\n');
 
-  execFile('osascript', ['-e', script], err => {
+  execFile('osascript', ['-e', interruptScript], err => {
     if (err) {
       console.warn('mac macro failed (enable Accessibility for terminal/app):', err.message);
+      return;
     }
+
+    setTimeout(() => {
+      execFile('osascript', ['-e', typeAndEnterScript], err2 => {
+        if (err2) {
+          console.warn('mac macro failed (enable Accessibility for terminal/app):', err2.message);
+        }
+      });
+    }, 300);
   });
 }
 
+function sendMacroLinux(text) {
+  execFile(
+    'xdotool',
+    [
+      'key', '--clearmodifiers', 'ctrl+c',
+      'type', '--delay', '1', '--clearmodifiers', '--', text,
+      'key', 'Return',
+    ],
+    err => {
+      if (err) {
+        console.warn('linux macro failed. Install xdotool:', err.message);
+      }
+    }
+  );
+}
+
 // ── App lifecycle ───────────────────────────────────────────────────────────
-app.whenReady().then(() => {
-  tray = new Tray(getTrayIcon());
-  tray.setToolTip('Bad Claude – click for whip');
+app.whenReady().then(async () => {
+  tray = new Tray(await getTrayIcon());
+  tray.setToolTip('OpenWhip - click for whip');
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Quit', click: () => app.quit() },
