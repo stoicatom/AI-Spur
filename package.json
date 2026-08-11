@@ -1,6 +1,6 @@
 {
   "name": "openwhip",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Whip Claude into shape",
   "license": "MIT",
   "main": "main.js",
@@ -41,12 +41,29 @@
     "README.md"
   ],
   "scripts": {
-    "start": "electron .",
-    "dev": "electron .",
-    "pack": "npm pack"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "tauri": "tauri",
+    "ci": "npm run typecheck && npm run test && cd src-tauri && cargo clippy -- -D warnings && cargo test"
   },
   "dependencies": {
-    "electron": "^33.0.0",
-    "koffi": "^2.9.0"
+    "framer-motion": "^13.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/cli": "^2.11.4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vitest": "^2.1.9"
   }
 }
