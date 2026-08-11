@@ -2,6 +2,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { Config, ConfigSchema } from './config';
 
+const PartialConfigSchema = ConfigSchema.partial();
+
 // ============ Commands (TS → Rust) ============
 
 export async function getConfig(): Promise<Config> {
@@ -51,7 +53,7 @@ export function onModeChanged(fn: (mode: string) => void): Promise<UnlistenFn> {
 
 export function onConfigUpdated(fn: (config: Partial<Config>) => void): Promise<UnlistenFn> {
   return listen<unknown>(Events.CONFIG_UPDATED, (event) => {
-    // Partial validation: 允许部分字段
-    fn(event.payload as Partial<Config>);
+    const validated = PartialConfigSchema.parse(event.payload);
+    fn(validated);
   });
 }
