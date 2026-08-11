@@ -1,7 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod config;
 mod commands;
+mod config;
+mod macro_sender;
 
 use commands::AppState;
 use std::sync::Mutex;

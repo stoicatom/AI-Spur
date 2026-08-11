@@ -1,6 +1,6 @@
 use crate::config::{self, Config};
-use tauri::State;
 use std::sync::Mutex;
+use tauri::State;
 
 pub struct AppState {
     pub config: Mutex<Config>,

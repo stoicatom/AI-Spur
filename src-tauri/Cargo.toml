@@ -8,6 +8,10 @@ repository = "https://github.com/stoicatom/AI-Spur"
 edition = "2024"
 rust-version = "1.85.0"
 
+[lib]
+name = "openwhip"
+crate-type = ["lib", "cdylib"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 
@@ -20,3 +24,4 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "2.11.3", features = [] }
 thiserror = "2.0"
 dirs = "5.0"
+enigo = "0.6"

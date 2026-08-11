@@ -76,8 +76,11 @@ fn config_path() -> Result<PathBuf, ConfigError> {
     // since we don't have access to AppHandle in these standalone functions.
     // Use platform-specific config directories.
     let config_dir = if cfg!(target_os = "macos") {
-        dirs::home_dir()
-            .map(|h| h.join("Library").join("Application Support").join("com.openwhip.app"))
+        dirs::home_dir().map(|h| {
+            h.join("Library")
+                .join("Application Support")
+                .join("com.openwhip.app")
+        })
     } else if cfg!(target_os = "windows") {
         dirs::config_dir().map(|c| c.join("com.openwhip.app"))
     } else {
@@ -87,8 +90,7 @@ fn config_path() -> Result<PathBuf, ConfigError> {
     let config_dir = config_dir
         .ok_or_else(|| ConfigError::ReadError("Cannot determine config dir".to_string()))?;
 
-    std::fs::create_dir_all(&config_dir)
-        .map_err(|e| ConfigError::WriteError(e.to_string()))?;
+    std::fs::create_dir_all(&config_dir).map_err(|e| ConfigError::WriteError(e.to_string()))?;
 
     Ok(config_dir.join("config.json"))
 }
@@ -99,20 +101,18 @@ pub fn load_config() -> Result<Config, ConfigError> {
     if !path.exists() {
         return Ok(Config::default());
     }
-    let contents = fs::read_to_string(&path)
-        .map_err(|e| ConfigError::ReadError(e.to_string()))?;
-    let config: Config = serde_json::from_str(&contents)
-        .map_err(|e| ConfigError::ParseError(e.to_string()))?;
+    let contents = fs::read_to_string(&path).map_err(|e| ConfigError::ReadError(e.to_string()))?;
+    let config: Config =
+        serde_json::from_str(&contents).map_err(|e| ConfigError::ParseError(e.to_string()))?;
     Ok(config)
 }
 
 #[allow(dead_code)]
 pub fn save_config(config: &Config) -> Result<(), ConfigError> {
     let path = config_path()?;
-    let json = serde_json::to_string_pretty(config)
-        .map_err(|e| ConfigError::WriteError(e.to_string()))?;
-    fs::write(&path, json)
-        .map_err(|e| ConfigError::WriteError(e.to_string()))?;
+    let json =
+        serde_json::to_string_pretty(config).map_err(|e| ConfigError::WriteError(e.to_string()))?;
+    fs::write(&path, json).map_err(|e| ConfigError::WriteError(e.to_string()))?;
     Ok(())
 }
 
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn default_config_has_phrases() {
         let cfg = Config::default();
-        assert!(cfg.phrases.len() >= 1);
+        assert!(!cfg.phrases.is_empty());
         assert_eq!(cfg.phrases[0], "FASTER");
     }
 
