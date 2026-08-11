@@ -29,7 +29,7 @@ OpenWhip 是一个跨平台（macOS / Windows / Linux）桌面托盘应用，用
 | 桌面框架 | **Tauri v2** | `tauri = "2"` |
 | 前端 | **TypeScript + Vite** | TypeScript `^5.4`, strict mode |
 | 前端测试 | **Vitest + Testing Library** | `vitest ^2` |
-| 后端语言 | **Rust** | edition 2021, stable |
+| 后端语言 | **Rust** | edition 2024, stable |
 | 输入合成 | **enigo** | `0.2.*` |
 | 全局快捷键 | **tauri-plugin-global-shortcut** | `2.*` |
 | 配置验证（前端） | **Zod** | `^3` |
