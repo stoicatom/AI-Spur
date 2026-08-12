@@ -1,0 +1,121 @@
+import { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import type { Config } from '../shared/config';
+import { getConfig, onConfigUpdated } from '../shared/ipc';
+import { Sidebar } from './components/Sidebar';
+import { DEFAULT_PANEL, findPanel, type PanelId } from './panels';
+import './settings.css';
+
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'ready'; config: Config }
+  | { status: 'error'; message: string };
+
+export function App() {
+  const [active, setActive] = useState<PanelId>(DEFAULT_PANEL);
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const reduceMotion = useReducedMotion();
+
+  const loadConfig = useCallback(async () => {
+    setLoad({ status: 'loading' });
+    try {
+      const config = await getConfig();
+      setLoad({ status: 'ready', config });
+    } catch (error) {
+      // Surfaced in the UI rather than only logged — CLAUDE.md §4.2 forbids
+      // swallowing IPC failures into the console.
+      setLoad({
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadConfig();
+  }, [loadConfig]);
+
+  // Keep the view in sync when Rust mutates config behind our back
+  // (usage counters, skin activation from the tray, etc.).
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+
+    onConfigUpdated((partial) => {
+      setLoad((prev) =>
+        prev.status === 'ready'
+          ? { status: 'ready', config: { ...prev.config, ...partial } }
+          : prev
+      );
+    })
+      .then((fn) => {
+        // The listener may resolve after unmount; drop it immediately if so.
+        if (cancelled) fn();
+        else unlisten = fn;
+      })
+      .catch(() => {
+        // A failed subscription only costs live updates; the panel still works
+        // from the config we already loaded, so this is not surfaced.
+      });
+
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, []);
+
+  const panel = findPanel(active);
+
+  return (
+    <div className="settings-root">
+      <Sidebar active={active} onSelect={setActive} />
+
+      <main className="content" aria-live="polite">
+        {load.status === 'loading' && (
+          <div className="state-block">
+            <p className="state-block__text">正在读取配置…</p>
+          </div>
+        )}
+
+        {load.status === 'error' && (
+          <div className="state-block state-block--error" role="alert">
+            <p className="state-block__title font-display">配置读取失败</p>
+            <p className="state-block__text font-mono">{load.message}</p>
+            <button type="button" className="btn btn--primary" onClick={() => void loadConfig()}>
+              重试
+            </button>
+          </div>
+        )}
+
+        {load.status === 'ready' && (
+          <AnimatePresence mode="wait">
+            <motion.section
+              key={active}
+              id={`panel-${active}`}
+              role="tabpanel"
+              aria-labelledby={`nav-${active}`}
+              tabIndex={-1}
+              className="panel"
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
+              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
+              transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
+            >
+              <header className="panel__header">
+                <h1 className="panel__title font-display">{panel.label}</h1>
+              </header>
+
+              {/* Panel bodies land in Task 4.3; the frame and transitions are
+                  what this task delivers. */}
+              <div className="panel__body" data-panel={active}>
+                <p className="panel__placeholder">
+                  <span className="font-mono">{panel.id}</span> 面板内容待实现
+                </p>
+              </div>
+            </motion.section>
+          </AnimatePresence>
+        )}
+      </main>
+    </div>
+  );
+}

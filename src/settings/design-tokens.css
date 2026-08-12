@@ -114,7 +114,13 @@
  * Deep forged-carbon background with furnace-glow accent.
  * Accents are slightly desaturated and brighter so they read on dark.
  */
-[data-theme="dark"],
+/*
+ * Two separate triggers, deliberately duplicated and kept in sync:
+ *   1. this @media block — the OS preference, when no explicit theme is set
+ *   2. the [data-theme="dark"] block below — an explicit in-app override
+ * CSS cannot combine a media query and a selector in one rule, so editing the
+ * dark palette means editing both blocks.
+ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     /* Surfaces */
