@@ -5,6 +5,9 @@ mod config;
 mod macro_sender;
 mod shortcut;
 mod tray;
+// `skins` is declared in lib.rs only until Task 3.2 adds the commands that
+// consume it — declaring it here too would compile it into the binary as
+// dead code.
 
 use commands::AppState;
 use std::sync::Mutex;

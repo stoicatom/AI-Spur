@@ -1,0 +1,19 @@
+{
+  "specVersion": "1",
+  "id": "neon",
+  "name": "Neon",
+  "description": "Retro neon glow.",
+  "author": "OpenWhip",
+  "visuals": {
+    "handleColor": "#FF00FF",
+    "bodyGradient": ["#FF00FF", "#00FFFF"],
+    "tipGlow": true,
+    "particleEffect": "stars",
+    "outlineColor": "#ff00ff",
+    "bgAlpha": 0.011
+  },
+  "sounds": {
+    "crack": ["A.mp3", "B.mp3", "C.mp3", "D.mp3", "E.mp3"],
+    "whoosh": []
+  }
+}

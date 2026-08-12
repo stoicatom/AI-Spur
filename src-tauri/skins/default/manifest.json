@@ -1,0 +1,19 @@
+{
+  "specVersion": "1",
+  "id": "default",
+  "name": "Classic",
+  "description": "The original OpenWhip look.",
+  "author": "OpenWhip",
+  "visuals": {
+    "handleColor": "#111111",
+    "bodyGradient": ["#111111", "#333333"],
+    "tipGlow": false,
+    "particleEffect": "none",
+    "outlineColor": "#ffffff",
+    "bgAlpha": 0.011
+  },
+  "sounds": {
+    "crack": ["A.mp3", "B.mp3", "C.mp3", "D.mp3", "E.mp3"],
+    "whoosh": []
+  }
+}
