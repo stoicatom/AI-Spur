@@ -4,6 +4,7 @@ mod commands;
 mod config;
 mod macro_sender;
 mod shortcut;
+mod tray;
 
 use commands::AppState;
 use std::sync::Mutex;
@@ -40,6 +41,10 @@ fn main() {
             commands::check_hotkey_conflict,
             commands::trigger_macro,
         ])
+        .setup(|app| {
+            tray::setup_tray(app.handle())?;
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
