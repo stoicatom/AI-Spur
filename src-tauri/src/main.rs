@@ -22,6 +22,8 @@ fn main() {
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
+                    // OpenWhip registers at most one global shortcut at a time,
+                    // so we don't need to match on `shortcut` identity here.
                     if event.state() == ShortcutState::Pressed {
                         if let Some(w) = app.get_webview_window("overlay") {
                             let _ = w.emit("spawn-whip", ());

@@ -23,22 +23,43 @@ pub fn generate_alternatives(hotkey: &str) -> [String; 2] {
         format!("{}+", modifiers.join("+"))
     };
 
-    let (alt1, alt2) = adjacent_keys(key);
+    let [alt1, alt2] = adjacent_keys(key);
     [format!("{prefix}{alt1}"), format!("{prefix}{alt2}")]
 }
 
-/// Returns (next, prev) letter substitutes for a key token.
-/// For single ASCII letters, wraps at A/Z. Falls back to "<key>1"/"<key>2".
-fn adjacent_keys(key: &str) -> (String, String) {
+/// Returns [next, prev] substitutes for a key token.
+/// - Single ASCII letters: wraps at A/Z.
+/// - F-keys (F1–F24): uses adjacent F-key numbers, clamped to [1, 24].
+/// - Single digits: uses adjacent digit values, clamped to [0, 9].
+/// - Anything else: safe fallback of ["F1", "F2"].
+fn adjacent_keys(key: &str) -> [String; 2] {
+    // Single letter
     if key.len() == 1 {
         let c = key.chars().next().unwrap().to_ascii_uppercase();
         if c.is_ascii_alphabetic() {
             let next = if c == 'Z' { b'A' } else { c as u8 + 1 } as char;
             let prev = if c == 'A' { b'Z' } else { c as u8 - 1 } as char;
-            return (next.to_string(), prev.to_string());
+            return [next.to_string(), prev.to_string()];
+        }
+        if c.is_ascii_digit() {
+            let n = c as u8 - b'0';
+            let next = (b'0' + if n < 9 { n + 1 } else { n - 1 }) as char;
+            let prev = (b'0' + if n > 0 { n - 1 } else { n + 1 }) as char;
+            return [next.to_string(), prev.to_string()];
         }
     }
-    (format!("{key}1"), format!("{key}2"))
+    // F-key: F1���F24
+    if let Some(n_str) = key.strip_prefix('F') {
+        if let Ok(n) = n_str.parse::<u8>() {
+            if (1..=24).contains(&n) {
+                let next = if n < 24 { n + 1 } else { n - 1 };
+                let prev = if n > 1 { n - 1 } else { n + 1 };
+                return [format!("F{next}"), format!("F{prev}")];
+            }
+        }
+    }
+    // Safe fallback
+    ["F1".to_string(), "F2".to_string()]
 }
 
 /// Validate that a hotkey string is non-empty and well-formed.
@@ -59,10 +80,17 @@ pub fn unregister_all(app: &AppHandle) -> Result<(), tauri_plugin_global_shortcu
 
 /// Check whether `hotkey` is already taken by another application.
 ///
-/// Strategy: attempt to register; if that succeeds the key is free (unregister
-/// immediately and return `None`); if it fails the key is conflicted and we
-/// return `Some(ConflictInfo)` with two suggested alternatives.
+/// Strategy: if this app already owns the hotkey, it's not a conflict — return
+/// `None` immediately without touching the registration. Otherwise probe by
+/// attempting to register; if that succeeds the key is free (unregister
+/// immediately and return `None`); if it fails the key is held by another app
+/// and we return `Some(ConflictInfo)` with two suggested alternatives.
 pub fn check_conflict(app: &AppHandle, hotkey: &str) -> Option<ConflictInfo> {
+    // If we already own this hotkey, it's not a conflict.
+    if app.global_shortcut().is_registered(hotkey) {
+        return None;
+    }
+
     match app.global_shortcut().register(hotkey) {
         Ok(()) => {
             // Available — clean up and report no conflict.
@@ -147,10 +175,11 @@ mod tests {
 
     #[test]
     fn alternatives_fallback_for_non_letter_key() {
-        // Function keys are not single ASCII letters
+        // F5 ��� F6 / F4 (adjacent valid F-key names)
         let alts = generate_alternatives("CommandOrControl+F5");
-        assert_eq!(alts[0], "CommandOrControl+F51");
-        assert_eq!(alts[1], "CommandOrControl+F52");
+        assert!(alts[0].ends_with("F6") || alts[0].ends_with("F4"));
+        assert!(alts[1].ends_with("F4") || alts[1].ends_with("F6"));
+        assert_ne!(alts[0], alts[1]);
     }
 
     #[test]
