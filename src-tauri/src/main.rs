@@ -18,7 +18,8 @@ fn main() {
         config: Mutex::new(config),
     };
 
-    tauri::Builder::default()
+    #[allow(unused_mut)]
+    let mut builder = tauri::Builder::default()
         .manage(app_state)
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -40,11 +41,20 @@ fn main() {
             commands::register_hotkey,
             commands::check_hotkey_conflict,
             commands::trigger_macro,
+            // Debug-only test backdoor commands (compiled in debug builds only)
+            #[cfg(debug_assertions)]
+            commands::__test_trigger_shortcut,
+            #[cfg(debug_assertions)]
+            commands::__test_click_tray,
+            #[cfg(debug_assertions)]
+            commands::__test_send_macro,
         ])
         .setup(|app| {
             tray::setup_tray(app.handle())?;
             Ok(())
-        })
+        });
+
+    builder
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
