@@ -23,6 +23,26 @@ export default defineConfig({
         overlay: path.resolve(__dirname, 'overlay.html'),
         settings: path.resolve(__dirname, 'settings.html'),
       },
+      output: {
+        // Split heavy runtime dependencies into their own chunks so the main
+        // bundle can be re-downloaded without pulling React/Framer Motion along.
+        manualChunks: {
+          'react-runtime': ['react', 'react-dom'],
+          'framer-motion': ['framer-motion'],
+        },
+      },
     },
+  },
+  test: {
+    // Only scan unit and component tests; E2E specs need the live Tauri driver
+    // and bench files use `vitest bench`, so both are excluded.
+    include: ['src/__tests__/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/*.bench.ts',
+    ],
+    environment: 'jsdom',
+    globals: true,
   },
 });
