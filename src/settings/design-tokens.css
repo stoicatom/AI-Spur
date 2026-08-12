@@ -1,0 +1,364 @@
+/*
+ * OpenWhip v2 — Design Tokens
+ *
+ * 设计方���：锻���美���（Forged Metal × Kinetic Energy）
+ * 品牌定位：���味效率工具，���是 SaaS 仪表板���
+ *
+ * 字���加���说明���
+ *   Chakra Petch  — ���示字体���工业/运���感标题
+ *   DM Mono       — ���宽标签，快捷键���示，统计���字
+ *   两者���从 Google Fonts 自托管加���，见 settings.html 的 <link> 标���。
+ *   Tauri CSP 已���许 style-src 'self' unsafe-inline，���需额外���置���
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+/* ─���─ Raw color ramps ─────���──���───���───���───���───────────���────────────────────── */
+/*
+ * Brand: Forge Orange — 锻造���，从���红到炉光
+ * Neutral: Carbon — 碳黑到云���，金属质感的���性轴
+ * Semantic: 语义色保持与品牌色���和���非标准 red/green
+ */
+
+:root {
+  /* ─ Brand ramp (OKLCH) ��� */
+  --brand-50:  oklch(97%  0.04  50);   /* near-white warm tint */
+  --brand-100: oklch(93%  0.06  48);
+  --brand-200: oklch(86%  0.10  46);
+  --brand-300: oklch(77%  0.14  44);
+  --brand-400: oklch(68%  0.18  42);   /* ★ primary accent — forged orange */
+  --brand-500: oklch(58%  0.20  38);   /* pressed / active */
+  --brand-600: oklch(47%  0.19  34);   /* deep ember */
+  --brand-700: oklch(36%  0.16  30);   /* iron-hot */
+  --brand-800: oklch(26%  0.12  28);
+  --brand-900: oklch(17%  0.08  26);   /* near-black ember */
+
+  /* ─ Carbon ramp ��� */
+  --carbon-0:   oklch(99%  0.003 220); /* off-white with a breath of cool */
+  --carbon-50:  oklch(97%  0.004 220);
+  --carbon-100: oklch(93%  0.005 220);
+  --carbon-200: oklch(85%  0.006 220);
+  --carbon-300: oklch(74%  0.008 220);
+  --carbon-400: oklch(60%  0.009 220);
+  --carbon-500: oklch(47%  0.010 220);
+  --carbon-600: oklch(35%  0.010 220);
+  --carbon-700: oklch(26%  0.010 220);
+  --carbon-800: oklch(19%  0.009 220);
+  --carbon-850: oklch(16%  0.008 220);
+  --carbon-900: oklch(13%  0.007 220); /* forged carbon — NOT pure black */
+  --carbon-950: oklch(10%  0.005 220);
+
+  /* ─ Semantic ─ */
+  --semantic-success: oklch(64%  0.16  145); /* muted green-steel */
+  --semantic-warning: oklch(72%  0.16   72); /* amber — adjacent to brand */
+  --semantic-danger:  oklch(58%  0.20   22); /* brick red */
+  --semantic-info:    oklch(62%  0.14  230); /* cool steel blue */
+}
+
+/* ──��� Light mode (default) ──���─���──���──────���────���─���───���───���─���──────���──���────���─── */
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --surface-page:        var(--carbon-50);
+  --surface-base:        var(--carbon-0);
+  --surface-raised:      var(--carbon-0);
+  --surface-overlay:     var(--carbon-0);
+  --surface-sidebar:     var(--carbon-100);
+  --surface-hover:       var(--carbon-100);
+  --surface-active:      var(--carbon-200);
+  --surface-nav-active:  var(--brand-400);
+
+  /* Borders */
+  --border-subtle:       var(--carbon-200);
+  --border-default:      var(--carbon-300);
+  --border-strong:       var(--carbon-500);
+  --border-focus:        var(--brand-400);
+
+  /* Text */
+  --text-primary:        var(--carbon-900);
+  --text-secondary:      var(--carbon-600);
+  --text-muted:          var(--carbon-400);
+  --text-placeholder:    var(--carbon-300);
+  --text-on-accent:      var(--carbon-0);
+  --text-on-nav-active:  #ffffff;
+  --text-link:           var(--brand-500);
+  --text-link-hover:     var(--brand-600);
+
+  /* Accent */
+  --accent:              var(--brand-400);
+  --accent-hover:        var(--brand-500);
+  --accent-active:       var(--brand-600);
+  --accent-subtle:       var(--brand-100);
+
+  /* Semantic text */
+  --text-success:  var(--semantic-success);
+  --text-warning:  var(--semantic-warning);
+  --text-danger:   var(--semantic-danger);
+  --text-info:     var(--semantic-info);
+
+  /* Shadows ��� border + depth, not heavy blur */
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.06), 0 0 0 1px var(--border-subtle);
+  --shadow-md: 0 4px 8px oklch(0% 0 0 / 0.08), 0 0 0 1px var(--border-subtle);
+  --shadow-lg: 0 8px 24px oklch(0% 0 0 / 0.10), 0 0 0 1px var(--border-default);
+  --shadow-focus: 0 0 0 3px oklch(from var(--brand-400) l c h / 0.35);
+
+  /* Keycap (shortcut display) */
+  --keycap-bg:        var(--carbon-100);
+  --keycap-border:    var(--carbon-300);
+  --keycap-text:      var(--carbon-700);
+}
+
+/* ─── Dark mode ──���──���───────────���───────���──���─���────────────���────────���──────── */
+/*
+ * Independently designed ��� NOT inverted light.
+ * Deep forged-carbon background with furnace-glow accent.
+ * Accents are slightly desaturated and brighter so they read on dark.
+ */
+[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Surfaces */
+    --surface-page:        var(--carbon-950);
+    --surface-base:        var(--carbon-900);
+    --surface-raised:      var(--carbon-850);
+    --surface-overlay:     var(--carbon-800);
+    --surface-sidebar:     var(--carbon-950);
+    --surface-hover:       var(--carbon-850);
+    --surface-active:      var(--carbon-800);
+    --surface-nav-active:  var(--brand-500);   /* slightly deeper on dark */
+
+    /* Borders */
+    --border-subtle:       var(--carbon-800);
+    --border-default:      var(--carbon-700);
+    --border-strong:       var(--carbon-500);
+    --border-focus:        var(--brand-300);   /* brighter ring on dark */
+
+    /* Text */
+    --text-primary:        var(--carbon-50);
+    --text-secondary:      var(--carbon-300);
+    --text-muted:          var(--carbon-500);
+    --text-placeholder:    var(--carbon-600);
+    --text-on-accent:      var(--carbon-900);
+    --text-on-nav-active:  #ffffff;
+    --text-link:           var(--brand-300);
+    --text-link-hover:     var(--brand-200);
+
+    /* Accent — same hue, lighter + slightly less chroma for dark surface */
+    --accent:              oklch(72%  0.17  42);
+    --accent-hover:        oklch(78%  0.16  44);
+    --accent-active:       oklch(65%  0.18  40);
+    --accent-subtle:       oklch(22%  0.08  42);
+
+    /* Semantic text (brighter on dark) */
+    --text-success: oklch(72%  0.15  145);
+    --text-warning: oklch(78%  0.14   72);
+    --text-danger:  oklch(68%  0.18   22);
+    --text-info:    oklch(70%  0.12  230);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.40), 0 0 0 1px var(--border-subtle);
+    --shadow-md: 0 4px 12px oklch(0% 0 0 / 0.50), 0 0 0 1px var(--border-subtle);
+    --shadow-lg: 0 8px 32px oklch(0% 0 0 / 0.60), 0 0 0 1px var(--border-default);
+    --shadow-focus: 0 0 0 3px oklch(72% 0.17 42 / 0.40);
+
+    /* Keycap */
+    --keycap-bg:        var(--carbon-800);
+    --keycap-border:    var(--carbon-600);
+    --keycap-text:      var(--carbon-200);
+  }
+}
+
+/* Force dark even when media prefers light */
+[data-theme="dark"] {
+  --surface-page:        var(--carbon-950);
+  --surface-base:        var(--carbon-900);
+  --surface-raised:      var(--carbon-850);
+  --surface-overlay:     var(--carbon-800);
+  --surface-sidebar:     var(--carbon-950);
+  --surface-hover:       var(--carbon-850);
+  --surface-active:      var(--carbon-800);
+  --surface-nav-active:  var(--brand-500);
+  --border-subtle:       var(--carbon-800);
+  --border-default:      var(--carbon-700);
+  --border-strong:       var(--carbon-500);
+  --border-focus:        var(--brand-300);
+  --text-primary:        var(--carbon-50);
+  --text-secondary:      var(--carbon-300);
+  --text-muted:          var(--carbon-500);
+  --text-placeholder:    var(--carbon-600);
+  --text-on-accent:      var(--carbon-900);
+  --text-on-nav-active:  #ffffff;
+  --text-link:           var(--brand-300);
+  --text-link-hover:     var(--brand-200);
+  --accent:              oklch(72%  0.17  42);
+  --accent-hover:        oklch(78%  0.16  44);
+  --accent-active:       oklch(65%  0.18  40);
+  --accent-subtle:       oklch(22%  0.08  42);
+  --text-success:        oklch(72%  0.15  145);
+  --text-warning:        oklch(78%  0.14   72);
+  --text-danger:         oklch(68%  0.18   22);
+  --text-info:           oklch(70%  0.12  230);
+  --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.40), 0 0 0 1px var(--border-subtle);
+  --shadow-md: 0 4px 12px oklch(0% 0 0 / 0.50), 0 0 0 1px var(--border-subtle);
+  --shadow-lg: 0 8px 32px oklch(0% 0 0 / 0.60), 0 0 0 1px var(--border-default);
+  --shadow-focus: 0 0 0 3px oklch(72% 0.17 42 / 0.40);
+  --keycap-bg:           var(--carbon-800);
+  --keycap-border:       var(--carbon-600);
+  --keycap-text:         var(--carbon-200);
+}
+
+/* ─���─ Spacing ───���──���───���──���──���───���──────────���──���─────���──���─────���─────���───���──��� */
+/* 4px base unit, strict rhythm */
+:root {
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Named roles */
+  --gap-xs:  var(--space-1);
+  --gap-sm:  var(--space-2);
+  --gap-md:  var(--space-4);
+  --gap-lg:  var(--space-6);
+  --gap-xl:  var(--space-8);
+
+  --pad-input:    var(--space-2) var(--space-3);  /* 8px 12px */
+  --pad-button:   var(--space-2) var(--space-4);  /* 8px 16px */
+  --pad-card:     var(--space-6);                 /* 24px */
+  --pad-sidebar:  var(--space-4) var(--space-3);  /* 16px 12px */
+  --pad-panel:    var(--space-6) var(--space-8);  /* 24px 32px */
+}
+
+/* ─── Radii ────���──���───���────────���───────────────────���──���─────────���─���───���──���── */
+/* Industrial aesthetic: very small radii, not the AI-slop rounded-lg */
+:root {
+  --radius-xs: 2px;   /* chip, badge, keycap */
+  --radius-sm: 3px;   /* input, button */
+  --radius-md: 4px;   /* card, panel */
+  --radius-lg: 6px;   /* modal, floating */
+}
+
+/* ─── Typography ──���─���──���──���─────���───���───���─���───���────────���──────���──────���─────��� */
+:root {
+  /* Font families */
+  --font-display: 'Chakra Petch', 'DIN Alternate', system-ui, sans-serif;
+  --font-body:    -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Cascadia Code', 'Menlo', monospace;
+
+  /* Type scale — minor third ratio (×1.25) */
+  --text-xs:   0.64rem;   /* 10.2px — nav group label */
+  --text-sm:   0.80rem;   /* 12.8px — caption, label */
+  --text-base: 1.00rem;   /* 16px */
+  --text-md:   1.125rem;  /* 18px */
+  --text-lg:   1.25rem;   /* 20px — panel section heading */
+  --text-xl:   1.563rem;  /* 25px ��� sidebar section title */
+  --text-2xl:  1.953rem;  /* 31px ��� onboarding step heading */
+
+  /* Line heights */
+  --leading-tight:  1.25;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.625;
+
+  /* Letter spacing */
+  --tracking-tight:  -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-wider:   0.08em;  /* nav group labels, all-caps contexts */
+
+  /* Font weights */
+  --weight-normal:  400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+}
+
+/* ─���─ Motion & Easing ───���───────���─���────────���───���──���─���──────────���──���───���──── */
+:root {
+  /* The signature OpenWhip easing ��� whip-snap with overshoot */
+  --ease-whip:        cubic-bezier(0.22, 1.2, 0.36, 1);
+  /* Smooth deceleration for panels sliding in */
+  --ease-out-expo:    cubic-bezier(0.16, 1, 0.30, 1);
+  /* Standard UI ease */
+  --ease-in-out:      cubic-bezier(0.45, 0, 0.55, 1);
+  /* Gentle ease for fades */
+  --ease-fade:        cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Duration scale */
+  --duration-fast:    80ms;
+  --duration-normal:  160ms;
+  --duration-panel:   220ms;
+  --duration-onboard: 320ms;
+
+  /* Reduced-motion overrides ��� layout feedback only, no transforms */
+  --duration-reduced: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast:    0ms;
+    --duration-normal:  0ms;
+    --duration-panel:   0ms;
+    --duration-onboard: 0ms;
+  }
+}
+
+/* ─── Z-index ─���───���──���──���───���────���────────���──���──────���──���──────���───────���──���── */
+:root {
+  --z-base:     0;
+  --z-raised:   10;
+  --z-sticky:   100;
+  --z-dropdown: 200;
+  --z-modal:    300;
+  --z-toast:    400;
+}
+
+/* ─���─ Sidebar dimensions ──���──���────���───���───────���────────���───────���───���──���───── */
+:root {
+  --sidebar-width:        200px;
+  --sidebar-item-height:  36px;
+
+  /* Settings window fixed dimensions */
+  --settings-min-width:   640px;
+  --settings-min-height:  480px;
+
+  /* Input/button hit targets ≥44px on all touchable surfaces */
+  --input-height:  36px;
+  --button-height: 36px;
+  --touch-min:     44px;
+}
+
+/* ─���─ Base resets (scoped to settings window) ───���────────���──���──────���──���───── */
+/*
+ * Applied to #settings-root (or :root for the settings window).
+ * Does not affect the overlay window.
+ */
+.settings-root,
+#settings-root {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display font utility — used for headings, keycap text, usage stats */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Monospaced utility ��� used for shortcut display, counts */
+.font-mono {
+  font-family: var(--font-mono);
+}
