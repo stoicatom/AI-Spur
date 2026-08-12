@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getConfig, saveConfig, incrementUsage, onSpawnWhip, onConfigUpdated } from '../shared/ipc';
+import {
+  getConfig,
+  saveConfig,
+  incrementUsage,
+  registerHotkey,
+  listSkins,
+  activateSkin,
+  onSpawnWhip,
+  onConfigUpdated,
+  onSkinChanged,
+} from '../shared/ipc';
 import { DEFAULT_CONFIG } from '../shared/config';
 
 // Mock @tauri-apps/api/core
@@ -14,6 +24,22 @@ vi.mock('@tauri-apps/api/event', () => ({
 
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+
+/** A manifest that satisfies SkinManifestSchema, used as a list_skins fixture. */
+const validSkin = {
+  specVersion: '1' as const,
+  id: 'default',
+  name: 'Classic',
+  visuals: {
+    handleColor: '#111111',
+    bodyGradient: ['#111111', '#333333'] as [string, string],
+    tipGlow: false,
+    particleEffect: 'none' as const,
+    outlineColor: '#ffffff',
+    bgAlpha: 0.011,
+  },
+  sounds: { crack: ['A.mp3'], whoosh: [] },
+};
 
 describe('IPC layer', () => {
   beforeEach(() => {
@@ -90,6 +116,70 @@ describe('IPC layer', () => {
     // Invalid payload: usageCount is a string instead of number
     expect(() => {
       listenerFn({ payload: { usageCount: 'invalid' } } as any);
+    }).toThrow();
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  // The Rust command returns Result<(), String>, so a successful call resolves
+  // to undefined. Reading a property off that value would throw — this guards
+  // against reintroducing a success-flag check.
+  it('registerHotkey should resolve when the command succeeds', async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await expect(registerHotkey('CommandOrControl+Shift+W')).resolves.toBeUndefined();
+    expect(invoke).toHaveBeenCalledWith('register_hotkey', {
+      hotkey: 'CommandOrControl+Shift+W',
+    });
+  });
+
+  it('registerHotkey should reject when the command errors', async () => {
+    vi.mocked(invoke).mockRejectedValue('Invalid hotkey format: bogus');
+    await expect(registerHotkey('bogus')).rejects.toBeDefined();
+  });
+
+  it('listSkins should invoke list_skins and parse each manifest', async () => {
+    vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, id: 'fire' }]);
+    const skins = await listSkins();
+    expect(invoke).toHaveBeenCalledWith('list_skins');
+    expect(skins.map((s) => s.id)).toEqual(['default', 'fire']);
+  });
+
+  it('listSkins should throw if any manifest fails validation', async () => {
+    vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, specVersion: '2' }]);
+    await expect(listSkins()).rejects.toThrow();
+  });
+
+  it('activateSkin should invoke activate_skin with skinId', async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await activateSkin('neon');
+    expect(invoke).toHaveBeenCalledWith('activate_skin', { skinId: 'neon' });
+  });
+
+  it('onSkinChanged should parse payload and pass the skin id', async () => {
+    const mockUnlisten = vi.fn();
+    vi.mocked(listen).mockResolvedValue(mockUnlisten);
+    const callback = vi.fn();
+
+    await onSkinChanged(callback);
+
+    expect(listen).toHaveBeenCalledWith('skin-changed', expect.any(Function));
+
+    const listenerFn = vi.mocked(listen).mock.calls[0][1];
+    listenerFn({ payload: { skinId: 'electric' } } as any);
+
+    expect(callback).toHaveBeenCalledWith('electric');
+  });
+
+  it('onSkinChanged should reject a payload without skinId', async () => {
+    const mockUnlisten = vi.fn();
+    vi.mocked(listen).mockResolvedValue(mockUnlisten);
+    const callback = vi.fn();
+
+    await onSkinChanged(callback);
+
+    const listenerFn = vi.mocked(listen).mock.calls[0][1];
+    expect(() => {
+      listenerFn({ payload: { wrongKey: 'electric' } } as any);
     }).toThrow();
 
     expect(callback).not.toHaveBeenCalled();

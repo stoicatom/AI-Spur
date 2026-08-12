@@ -1,5 +1,7 @@
 use crate::config::{self, Config};
 use crate::shortcut::{self, ConflictInfo};
+use crate::skins::{self, SkinManifest};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -65,6 +67,69 @@ pub async fn check_hotkey_conflict(
 #[tauri::command]
 pub async fn trigger_macro(_phrase: Option<String>) -> Result<(), String> {
     // Placeholder: full implementation in Phase 2.2 (MacroSender wiring)
+    Ok(())
+}
+
+// ── Skins ───────────────────────────────────────────────────────────────────
+
+/// Directory holding the bundled skins.
+///
+/// In a packaged app they live under the Tauri resource dir; in `tauri dev`
+/// that directory does not carry them, so fall back to the crate's own
+/// `skins/` folder.
+fn builtin_skins_dir(app: &AppHandle) -> PathBuf {
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let bundled = resource_dir.join("skins");
+        if bundled.is_dir() {
+            return bundled;
+        }
+    }
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("skins")
+}
+
+/// Directory holding user-installed skins: `app_data_dir()/skins/`.
+///
+/// Returns `None` when the path cannot be resolved or does not exist yet —
+/// a user with no custom skins is the normal case, not an error.
+fn user_skins_dir(app: &AppHandle) -> Option<PathBuf> {
+    let dir = app.path().app_data_dir().ok()?.join("skins");
+    dir.is_dir().then_some(dir)
+}
+
+#[tauri::command]
+pub async fn list_skins(app: AppHandle) -> Result<Vec<SkinManifest>, String> {
+    let builtin = builtin_skins_dir(&app);
+    let user = user_skins_dir(&app);
+    Ok(skins::list_skins(&builtin, user.as_deref()))
+}
+
+#[tauri::command]
+pub async fn activate_skin(
+    skin_id: String,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    // Verify the skin exists before persisting it as the active one.
+    let builtin = builtin_skins_dir(&app);
+    let user = user_skins_dir(&app);
+    skins::load_skin(&skin_id, &builtin, user.as_deref()).map_err(|e| e.to_string())?;
+
+    // Persist first, then commit to in-memory state (see increment_usage).
+    let mut guard = state
+        .config
+        .lock()
+        .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
+    let mut updated = guard.clone();
+    updated.active_skin = skin_id.clone();
+    config::save_config(&updated).map_err(|e| e.to_string())?;
+    *guard = updated;
+    drop(guard);
+
+    // Notify the overlay so it can re-render with the new skin.
+    if let Some(w) = app.get_webview_window("overlay") {
+        w.emit("skin-changed", serde_json::json!({ "skinId": skin_id }))
+            .map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 

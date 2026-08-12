@@ -4,10 +4,8 @@ mod commands;
 mod config;
 mod macro_sender;
 mod shortcut;
+mod skins;
 mod tray;
-// `skins` is declared in lib.rs only until Task 3.2 adds the commands that
-// consume it — declaring it here too would compile it into the binary as
-// dead code.
 
 use commands::AppState;
 use std::sync::Mutex;
@@ -44,6 +42,8 @@ fn main() {
             commands::register_hotkey,
             commands::check_hotkey_conflict,
             commands::trigger_macro,
+            commands::list_skins,
+            commands::activate_skin,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]
             commands::__test_trigger_shortcut,
