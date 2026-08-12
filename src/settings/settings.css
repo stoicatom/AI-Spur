@@ -29,6 +29,11 @@ body {
   min-height: var(--settings-min-height);
 }
 
+/* Onboarding owns the full window — no sidebar column. */
+.settings-root--onboarding {
+  grid-template-columns: 1fr;
+}
+
 /* Below the compact breakpoint the sidebar collapses to a glyph rail. */
 @media (max-width: 720px) {
   .settings-root {

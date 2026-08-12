@@ -4,8 +4,10 @@ import type { Config } from '../shared/config';
 import { getConfig, onConfigUpdated, saveConfig } from '../shared/ipc';
 import { Sidebar } from './components/Sidebar';
 import { PanelBody } from './components/PanelBody';
+import { OnboardingFlow } from '../onboarding/OnboardingFlow';
 import { DEFAULT_PANEL, findPanel, type PanelId } from './panels';
 import './settings.css';
+import '../onboarding/onboarding.css';
 
 type LoadState =
   | { status: 'loading' }
@@ -113,7 +115,38 @@ export function App() {
     };
   }, []);
 
+  /**
+   * Persist onboarding results immediately rather than through the debounce —
+   * the user is leaving the wizard, so the choices must be durable before the
+   * view switches. Errors propagate so the wizard can surface them.
+   */
+  const finishOnboarding = useCallback(
+    async (patch: Partial<Config>) => {
+      if (load.status !== 'ready') return;
+      const merged = { ...load.config, ...patch };
+      await saveConfig(merged);
+      setLoad({ status: 'ready', config: merged });
+    },
+    [load]
+  );
+
   const panel = findPanel(active);
+
+  // First launch takes over the whole window: no sidebar to wander off into
+  // before the essentials are set.
+  if (load.status === 'ready' && load.config.firstLaunch) {
+    return (
+      <div className="settings-root settings-root--onboarding">
+        <main className="content">
+          <OnboardingFlow
+            config={load.config}
+            onComplete={finishOnboarding}
+            onSkip={() => finishOnboarding({ firstLaunch: false })}
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="settings-root">

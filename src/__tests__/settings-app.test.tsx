@@ -19,9 +19,16 @@ import { getConfig, saveConfig, onConfigUpdated, listSkins } from '../shared/ipc
 import { App } from '../settings/App';
 import { NAV_GROUPS, PANEL_IDS } from '../settings/panels';
 
+/**
+ * Config for the settings shell. `firstLaunch` must be false — App shows the
+ * onboarding wizard instead of the sidebar while it is true, and these tests
+ * are about the shell. Onboarding has its own suite.
+ */
+const SETTLED_CONFIG = { ...DEFAULT_CONFIG, firstLaunch: false };
+
 /** Default happy-path mocks; individual tests override as needed. */
 function primeIpc() {
-  vi.mocked(getConfig).mockResolvedValue(DEFAULT_CONFIG);
+  vi.mocked(getConfig).mockResolvedValue(SETTLED_CONFIG);
   vi.mocked(saveConfig).mockResolvedValue(undefined);
   vi.mocked(onConfigUpdated).mockResolvedValue(vi.fn());
   // The skins panel fetches on mount; an empty list keeps it quiet.
@@ -158,7 +165,7 @@ describe('settings App', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
 
-    vi.mocked(getConfig).mockResolvedValue(DEFAULT_CONFIG);
+    vi.mocked(getConfig).mockResolvedValue(SETTLED_CONFIG);
     await user.click(screen.getByRole('button', { name: '重试' }));
 
     await waitFor(() => {
