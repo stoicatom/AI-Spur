@@ -35,6 +35,8 @@ fn main() {
                 })
                 .build(),
         )
+        // Embedded WebDriver server for @wdio/tauri-service ��� compiled and
+        // registered in debug builds only (Cargo.toml gates the crate).
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
@@ -74,6 +76,11 @@ fn main() {
             }
             Ok(())
         });
+
+    // Register the embedded WebDriver server in debug builds only;
+    // the Cargo.toml guard ensures this crate is absent from release binaries.
+    #[cfg(debug_assertions)]
+    let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
 
     builder
         .run(tauri::generate_context!())

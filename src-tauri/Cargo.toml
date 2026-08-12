@@ -26,3 +26,9 @@ tauri-plugin-global-shortcut = "2.3"
 thiserror = "2.0"
 dirs = "5.0"
 enigo = "0.6"
+# WebdriverIO embedded server for @wdio/tauri-service (E2E Phase 5).
+# Guarded by #[cfg(debug_assertions)] at the call site in main.rs.
+# Note: Cargo does not support debug_assertions as a target filter, so
+# this crate is compiled in all profiles; the call site guard ensures it
+# is not reached in release binaries.
+tauri-plugin-wdio-webdriver = "1.3"
