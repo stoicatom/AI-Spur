@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs on the same branch so a new push does not wait
+# behind a stale one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ────���──���───���───���──────���─���───���─���─���───���─────────���────���─���───���───���────────────
+  # TypeScript + Vitest
+  # ─���─────────���──���──���───────────────���───���──────���─���───────���───���───���─────���─────
+  frontend:
+    name: Frontend (typecheck + unit tests + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Build frontend bundles
+        run: npx vite build
+
+  # ──────���──���────���─���──���───────���─���────���─���─���──���──────���──────────────���──���────���──
+  # Rust: clippy + tests + fmt
+  # ─���─���───���──���────���────���─���─���──���───���──���────���──���──���─���──���───���──���──���───���──���───���─���
+  rust:
+    name: Rust (clippy + tests + fmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies (Tauri on Linux)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            libssl-dev \
+            pkg-config \
+            libxdo-dev
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: rustfmt check
+        working-directory: src-tauri
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        working-directory: src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Cargo tests
+        working-directory: src-tauri
+        run: cargo test
+
+  # ���─���──────────────────���─���──���────���──���───���────────���──���─────���───���─���─���────────���
+  # Tauri build verification (macOS only — matches the target platform)
+  #
+  # E2E tests (WebdriverIO + tauri-plugin-wdio-webdriver) are intentionally
+  # excluded from CI: they require a real display and a connected Tauri app.
+  # Run them locally with: npx wdio run wdio.conf.ts
+  # ───���──���──���───────���───���─���─────���──���───���─���─���───────────���───────���──────���─���──���─
+  tauri-build:
+    name: Tauri build (macOS)
+    runs-on: macos-latest
+    needs: [frontend, rust]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build Vite bundles
+        run: npx vite build
+
+      - name: Build Tauri debug binary
+        run: npx tauri build --debug
