@@ -1,6 +1,7 @@
 use crate::config::{self, Config};
+use crate::shortcut::{self, ConflictInfo};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 pub struct AppState {
     pub config: Mutex<Config>,
@@ -41,10 +42,24 @@ pub async fn increment_usage(state: State<'_, AppState>) -> Result<u32, String> 
     Ok(new_count)
 }
 
-// 占位命令（Phase 2 实现）
 #[tauri::command]
-pub async fn register_hotkey(_hotkey: String) -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({ "success": true }))
+pub async fn register_hotkey(hotkey: String, app: AppHandle) -> Result<(), String> {
+    if !shortcut::validate_hotkey(&hotkey) {
+        return Err(format!("无效的快捷键格式: {hotkey}"));
+    }
+    shortcut::unregister_all(&app).map_err(|e| e.to_string())?;
+    shortcut::register(&app, &hotkey).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn check_hotkey_conflict(
+    hotkey: String,
+    app: AppHandle,
+) -> Result<Option<ConflictInfo>, String> {
+    if !shortcut::validate_hotkey(&hotkey) {
+        return Err(format!("无效的快捷键格式: {hotkey}"));
+    }
+    Ok(shortcut::check_conflict(&app, &hotkey))
 }
 
 #[tauri::command]
