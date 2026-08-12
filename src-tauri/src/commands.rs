@@ -19,13 +19,33 @@ pub async fn get_config(state: State<'_, AppState>) -> Result<Config, String> {
 }
 
 #[tauri::command]
-pub async fn save_config(config: Config, state: State<'_, AppState>) -> Result<(), String> {
+pub async fn save_config(
+    config: Config,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     config::save_config(&config).map_err(|e| e.to_string())?;
-    let mut current = state
-        .config
-        .lock()
-        .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-    *current = config;
+
+    let previous_hotkey = {
+        let mut current = state
+            .config
+            .lock()
+            .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
+        let previous = current.hotkey.clone();
+        *current = config.clone();
+        previous
+    };
+
+    // Keep the OS registration in step with the persisted config — without
+    // this a hotkey edit would only take effect after a restart.
+    //
+    // The config stays saved even if rebinding fails: that is the user's
+    // stated intent, and the error surfaces in the UI so they can pick
+    // another combination.
+    if previous_hotkey != config.hotkey {
+        shortcut::unregister_all(&app).map_err(|e| e.to_string())?;
+        shortcut::register(&app, &config.hotkey).map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 

@@ -54,6 +54,24 @@ fn main() {
         ])
         .setup(|app| {
             tray::setup_tray(app.handle())?;
+
+            // Bind the configured hotkey at launch. Without this the plugin is
+            // registered but no accelerator is ever attached, leaving the
+            // global shortcut dead until the user re-saves it in settings.
+            let hotkey = match app.state::<AppState>().config.lock() {
+                Ok(config) => Some(config.hotkey.clone()),
+                Err(_) => {
+                    eprintln!("[shortcut] config lock poisoned; skipping hotkey registration");
+                    None
+                }
+            };
+            if let Some(hotkey) = hotkey {
+                // A taken hotkey must not abort startup — the user can pick a
+                // different one in settings, so log and carry on.
+                if let Err(e) = shortcut::register(app.handle(), &hotkey) {
+                    eprintln!("[shortcut] failed to register {hotkey}: {e}");
+                }
+            }
             Ok(())
         });
 
