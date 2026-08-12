@@ -7,6 +7,14 @@ import { SkinManifest, SkinManifestSchema } from './skins';
 const PartialConfigSchema = ConfigSchema.partial();
 const SkinChangedPayloadSchema = z.object({ skinId: z.string().min(1) });
 
+/** Mirrors `shortcut::ConflictInfo` on the Rust side. */
+export const ConflictInfoSchema = z.object({
+  hotkey: z.string().min(1),
+  suggestions: z.array(z.string().min(1)),
+});
+
+export type ConflictInfo = z.infer<typeof ConflictInfoSchema>;
+
 // ============ Commands (TS → Rust) ============
 
 export async function getConfig(): Promise<Config> {
@@ -26,6 +34,18 @@ export async function saveConfig(config: Config): Promise<void> {
  */
 export async function registerHotkey(hotkey: string): Promise<void> {
   return invoke('register_hotkey', { hotkey });
+}
+
+/**
+ * Check whether a hotkey is already claimed by another application.
+ *
+ * Resolves to `null` when the hotkey is free (including when OpenWhip itself
+ * already holds it), or conflict details with two suggested alternatives.
+ */
+export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo | null> {
+  const raw = await invoke<unknown>('check_hotkey_conflict', { hotkey });
+  if (raw === null || raw === undefined) return null;
+  return ConflictInfoSchema.parse(raw);
 }
 
 export async function triggerMacro(phrase?: string): Promise<void> {

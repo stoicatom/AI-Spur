@@ -7,17 +7,25 @@ import { DEFAULT_CONFIG } from '../shared/config';
 // the single seam to mock (R-TEST-005 forbids real invoke calls in tests).
 vi.mock('../shared/ipc', () => ({
   getConfig: vi.fn(),
+  saveConfig: vi.fn(),
   onConfigUpdated: vi.fn(),
+  // Panels render for real inside App, so their IPC calls need stubs too.
+  listSkins: vi.fn(),
+  activateSkin: vi.fn(),
+  checkHotkeyConflict: vi.fn(),
 }));
 
-import { getConfig, onConfigUpdated } from '../shared/ipc';
+import { getConfig, saveConfig, onConfigUpdated, listSkins } from '../shared/ipc';
 import { App } from '../settings/App';
 import { NAV_GROUPS, PANEL_IDS } from '../settings/panels';
 
 /** Default happy-path mocks; individual tests override as needed. */
 function primeIpc() {
   vi.mocked(getConfig).mockResolvedValue(DEFAULT_CONFIG);
+  vi.mocked(saveConfig).mockResolvedValue(undefined);
   vi.mocked(onConfigUpdated).mockResolvedValue(vi.fn());
+  // The skins panel fetches on mount; an empty list keeps it quiet.
+  vi.mocked(listSkins).mockResolvedValue([]);
 }
 
 describe('panel registry', () => {

@@ -5,6 +5,8 @@
  * no Tailwind-default spacing or radii (ui-design.md R-UI-002 … R-UI-007).
  */
 
+@import './panels.css';
+
 * {
   box-sizing: border-box;
 }

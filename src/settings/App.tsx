@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Config } from '../shared/config';
-import { getConfig, onConfigUpdated } from '../shared/ipc';
+import { getConfig, onConfigUpdated, saveConfig } from '../shared/ipc';
 import { Sidebar } from './components/Sidebar';
+import { PanelBody } from './components/PanelBody';
 import { DEFAULT_PANEL, findPanel, type PanelId } from './panels';
 import './settings.css';
 
@@ -11,10 +12,22 @@ type LoadState =
   | { status: 'ready'; config: Config }
   | { status: 'error'; message: string };
 
+/**
+ * Delay before a config edit reaches disk. Typing in a phrase field fires a
+ * patch per keystroke; without this every character would be a file write.
+ */
+const SAVE_DEBOUNCE_MS = 400;
+
 export function App() {
   const [active, setActive] = useState<PanelId>(DEFAULT_PANEL);
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [saveError, setSaveError] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
+
+  // Holds the newest config awaiting a write, so a burst of edits collapses
+  // into one save carrying the final value.
+  const pendingRef = useRef<Config | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadConfig = useCallback(async () => {
     setLoad({ status: 'loading' });
@@ -34,6 +47,42 @@ export function App() {
   useEffect(() => {
     void loadConfig();
   }, [loadConfig]);
+
+  const flush = useCallback(async () => {
+    const next = pendingRef.current;
+    if (!next) return;
+    pendingRef.current = null;
+    try {
+      await saveConfig(next);
+      setSaveError(null);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
+
+  /** Apply an edit locally at once, then persist it after the debounce. */
+  const patch = useCallback(
+    (delta: Partial<Config>) => {
+      setLoad((prev) => {
+        if (prev.status !== 'ready') return prev;
+        const merged = { ...prev.config, ...delta };
+        pendingRef.current = merged;
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => void flush(), SAVE_DEBOUNCE_MS);
+        return { status: 'ready', config: merged };
+      });
+    },
+    [flush]
+  );
+
+  // Never lose the last edit to an unmount mid-debounce.
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      void flush();
+    },
+    [flush]
+  );
 
   // Keep the view in sync when Rust mutates config behind our back
   // (usage counters, skin activation from the tray, etc.).
@@ -70,7 +119,7 @@ export function App() {
     <div className="settings-root">
       <Sidebar active={active} onSelect={setActive} />
 
-      <main className="content" aria-live="polite">
+      <main className="content">
         {load.status === 'loading' && (
           <div className="state-block">
             <p className="state-block__text">正在读取配置…</p>
@@ -88,32 +137,37 @@ export function App() {
         )}
 
         {load.status === 'ready' && (
-          <AnimatePresence mode="wait">
-            <motion.section
-              key={active}
-              id={`panel-${active}`}
-              role="tabpanel"
-              aria-labelledby={`nav-${active}`}
-              tabIndex={-1}
-              className="panel"
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
-              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
-              transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <header className="panel__header">
-                <h1 className="panel__title font-display">{panel.label}</h1>
-              </header>
-
-              {/* Panel bodies land in Task 4.3; the frame and transitions are
-                  what this task delivers. */}
-              <div className="panel__body" data-panel={active}>
-                <p className="panel__placeholder">
-                  <span className="font-mono">{panel.id}</span> 面板内容待实现
-                </p>
+          <>
+            {saveError && (
+              <div className="callout callout--error" role="alert">
+                <p className="callout__title">配置保存失败</p>
+                <p className="callout__text font-mono">{saveError}</p>
               </div>
-            </motion.section>
-          </AnimatePresence>
+            )}
+
+            <AnimatePresence mode="wait">
+              <motion.section
+                key={active}
+                id={`panel-${active}`}
+                role="tabpanel"
+                aria-labelledby={`nav-${active}`}
+                tabIndex={-1}
+                className="panel"
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 10 }}
+                animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -10 }}
+                transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <header className="panel__header">
+                  <h1 className="panel__title font-display">{panel.label}</h1>
+                </header>
+
+                <div className="panel__body">
+                  <PanelBody panel={active} config={load.config} onPatch={patch} />
+                </div>
+              </motion.section>
+            </AnimatePresence>
+          </>
         )}
       </main>
     </div>
