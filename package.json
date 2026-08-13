@@ -3,16 +3,6 @@
   "version": "0.2.0",
   "description": "Whip Claude into shape",
   "license": "MIT",
-  "main": "main.js",
-  "bin": {
-    "openwhip": "bin/openwhip.js",
-    "badclaude": "bin/openwhip.js"
-  },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -30,16 +20,6 @@
     "url": "https://github.com/GitFrog1111/OpenWhip/issues"
   },
   "homepage": "https://github.com/GitFrog1111/OpenWhip#readme",
-  "files": [
-    "main.js",
-    "preload.js",
-    "overlay.html",
-    "sounds",
-    "icon",
-    "bin/openwhip.js",
-    "bin/badclaude.js",
-    "README.md"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
