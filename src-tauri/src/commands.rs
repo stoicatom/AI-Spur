@@ -61,8 +61,15 @@ pub async fn increment_usage(state: State<'_, AppState>) -> Result<u32, String> 
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
+
+    let today = today_utc_date();
+    match rollover_today_count(&updated.last_usage_date, &today, updated.today_usage_count) {
+        Some(next) => updated.today_usage_count = next,
+        None => updated.today_usage_count += 1,
+    }
+    updated.last_usage_date = Some(today);
+
     updated.usage_count += 1;
-    updated.today_usage_count += 1;
     config::save_config(&updated).map_err(|e| e.to_string())?;
     let new_count = updated.usage_count;
     *guard = updated;
@@ -276,4 +283,69 @@ pub async fn __test_send_macro(phrase: String) -> Result<Vec<String>, String> {
         })
         .collect();
     Ok(calls)
+}
+
+/// YYYY-MM-DD date string for "today" in UTC. UTC keeps the rollover consistent
+/// across platforms without pulling in TZ-aware date plumbing.
+fn today_utc_date() -> String {
+    use time::OffsetDateTime;
+    OffsetDateTime::now_utc().date().to_string()
+}
+
+/// Decide the next "today" count given the last recorded use date.
+///
+/// `None` means the counts belong to the same day and the caller should keep
+/// accumulating; `Some(n)` is the value to set — n=1 for a new day's first
+/// use, n=0 for a pristine counter that needs no rollover.
+fn rollover_today_count(
+    last_date: &Option<String>,
+    today: &str,
+    current_today: u32,
+) -> Option<u32> {
+    if last_date.as_deref() == Some(today) {
+        None // same day: keep accumulating
+    } else if current_today == 0 && last_date.is_none() {
+        Some(0) // pristine counter, nothing to roll over
+    } else {
+        Some(1) // new day: this is the first use, discard yesterday
+    }
+}
+
+#[cfg(test)]
+mod rollover_tests {
+    use super::rollover_today_count;
+
+    #[test]
+    fn same_day_keeps_accumulating() {
+        assert_eq!(
+            rollover_today_count(&Some("2026-08-13".into()), "2026-08-13", 5),
+            None
+        );
+    }
+
+    #[test]
+    fn new_day_resets_to_one() {
+        assert_eq!(
+            rollover_today_count(&Some("2026-08-12".into()), "2026-08-13", 14),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn missing_last_date_is_a_fresh_day_when_counter_is_zero() {
+        assert_eq!(rollover_today_count(&None, "2026-08-13", 0), Some(0));
+    }
+
+    #[test]
+    fn missing_last_date_with_existing_count_resets() {
+        assert_eq!(rollover_today_count(&None, "2026-08-13", 3), Some(1));
+    }
+
+    #[test]
+    fn future_date_is_treated_as_new_day() {
+        assert_eq!(
+            rollover_today_count(&Some("2026-08-20".into()), "2026-08-13", 7),
+            Some(1)
+        );
+    }
 }

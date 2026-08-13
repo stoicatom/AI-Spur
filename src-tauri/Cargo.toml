@@ -31,6 +31,8 @@ tauri-plugin-global-shortcut = "2.3"
 thiserror = "2.0"
 dirs = "5.0"
 enigo = "0.6"
+# Local-date rollover for the "today" usage counter.
+time = { version = "0.3", features = ["formatting", "local-offset"] }
 # WebdriverIO embedded server for @wdio/tauri-service (E2E Phase 5).
 # Guarded by #[cfg(debug_assertions)] at the call site in main.rs.
 # Note: Cargo does not support debug_assertions as a target filter, so
