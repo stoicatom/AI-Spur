@@ -247,7 +247,8 @@ pub async fn __test_trigger_shortcut(
     // `shift_pressed` is reserved for the fast/standard mode selector (Phase 2.2)
     let _ = shift_pressed;
     if let Some(w) = app.get_webview_window("overlay") {
-        w.emit("spawn-whip", ()).map_err(|e| e.to_string())?;
+        w.emit("spawn-whip", serde_json::json!({ "forceFull": false }))
+            .map_err(|e| e.to_string())?;
     }
     Ok(())
 }
@@ -257,7 +258,8 @@ pub async fn __test_trigger_shortcut(
 pub async fn __test_click_tray(app: AppHandle) -> Result<(), String> {
     // Simulates a left-click on the tray icon (same path as tray.rs handler)
     if let Some(w) = app.get_webview_window("overlay") {
-        w.emit("spawn-whip", ()).map_err(|e| e.to_string())?;
+        w.emit("spawn-whip", serde_json::json!({ "forceFull": false }))
+            .map_err(|e| e.to_string())?;
     }
     Ok(())
 }

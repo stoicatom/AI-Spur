@@ -42,7 +42,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     // The overlay starts hidden and must be shown before it can
                     // render; emitting alone would animate an invisible window.
                     let _ = window.show();
-                    let _ = window.emit("spawn-whip", ());
+                    let _ = window.emit("spawn-whip", serde_json::json!({ "forceFull": false }));
                 }
             }
             "settings" => {
