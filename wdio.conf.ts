@@ -14,7 +14,7 @@ import * as path from 'path';
 // The debug binary produced by `tauri dev` / `cargo tauri dev`.
 const APP_BINARY = path.resolve(
   __dirname,
-  'src-tauri/target/debug/openwhip'
+  'src-tauri/target/debug/ai-spur'
 );
 
 export const config: Options.Testrunner = {

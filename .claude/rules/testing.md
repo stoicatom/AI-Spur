@@ -51,10 +51,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn migrate_v1_config_preserves_hotkey() {
-        let v1 = serde_json::json!({ "version": "1.0", "hotkey": "ctrl+w" });
-        let migrated = migrate(v1).unwrap();
-        assert_eq!(migrated.hotkey, "ctrl+w");
+    fn parse_v2_fills_missing_field_from_default() {
+        let partial = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CmdOrCtrl+W",
+            "phrases": ["FASTER"],
+            // ... 其他必需字段 ...
+            // lastUsageDate 缺失
+        });
+        let cfg = migrate(partial).unwrap();
+        assert_eq!(cfg.last_usage_date, None); // 从 default 填充
     }
 }
 ```
@@ -138,7 +144,7 @@ fn whip_crack_sends_interrupt_then_text() {
 // wdio.conf.ts
 capabilities: [{
   'tauri:options': {
-    application: '../src-tauri/target/release/openwhip',
+    application: '../src-tauri/target/release/ai-spur',
     driverProvider: 'embedded',
   }
 }]

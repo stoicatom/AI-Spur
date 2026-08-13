@@ -33,16 +33,4 @@ export default defineConfig({
       },
     },
   },
-  test: {
-    // Only scan unit and component tests; E2E specs need the live Tauri driver
-    // and bench files use `vitest bench`, so both are excluded.
-    include: ['src/__tests__/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/*.bench.ts',
-    ],
-    environment: 'jsdom',
-    globals: true,
-  },
 });
