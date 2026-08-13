@@ -1,0 +1,95 @@
+{
+  "app": {
+    "name": "AI-Spur"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "trigger": "Trigger",
+      "prompts": "Prompts",
+      "skins": "Skins",
+      "animation": "Animation",
+      "advanced": "Advanced"
+    }
+  },
+  "trigger": {
+    "title": "Trigger Settings",
+    "hotkey": "Global Hotkey",
+    "hotkeyPlaceholder": "Click to record hotkey",
+    "recording": "Press key combination...",
+    "conflict": "Hotkey conflict",
+    "eggHotkey": "Easter Egg Hotkey (Shift variant)",
+    "eggDescription": "Hold Shift to trigger full animation (even in fast mode)"
+  },
+  "prompts": {
+    "title": "Prompt Management",
+    "description": "Randomly select one to send to Claude Code",
+    "add": "Add Prompt",
+    "placeholder": "Enter prompt content...",
+    "empty": "At least one prompt required",
+    "delete": "Delete",
+    "moveUp": "Move Up",
+    "moveDown": "Move Down"
+  },
+  "skins": {
+    "title": "Skins & Sounds",
+    "activeSkin": "Active Skin",
+    "preview": "Preview",
+    "playSound": "Play Sound",
+    "builtIn": "Built-in Skins",
+    "custom": "Custom Skins",
+    "uploadSkin": "Upload Skin",
+    "uploadSound": "Upload Sound"
+  },
+  "animation": {
+    "title": "Animation Options",
+    "mode": "Animation Mode",
+    "modes": {
+      "standard": "Standard Mode",
+      "standardDesc": "Full animation, manually crack by moving mouse",
+      "fast": "Fast Mode",
+      "fastDesc": "Corner mini-whip, auto-dismiss in 0.7s",
+      "auto": "Auto Switch",
+      "autoDesc": "Standard for first N uses, then fast"
+    },
+    "autoThreshold": "Auto Switch Threshold",
+    "autoThresholdDesc": "Switch to fast mode after this many uses",
+    "crackSensitivity": "Crack Sensitivity",
+    "crackSensitivityDesc": "Movement speed threshold (lower = more sensitive)"
+  },
+  "advanced": {
+    "title": "Advanced Settings",
+    "language": "Interface Language",
+    "languages": {
+      "auto": "Follow System",
+      "zh-CN": "简体中文",
+      "en-US": "English"
+    },
+    "resetAll": "Reset All Settings",
+    "resetConfirm": "Reset all settings? This action cannot be undone.",
+    "exportConfig": "Export Config",
+    "importConfig": "Import Config",
+    "version": "Version"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "tray": {
+    "settings": "Settings…",
+    "quit": "Quit AI-Spur"
+  },
+  "errors": {
+    "configLoad": "Failed to load config",
+    "configSave": "Failed to save config",
+    "hotkeyRegister": "Failed to register hotkey",
+    "skinLoad": "Failed to load skin",
+    "soundPlay": "Failed to play sound"
+  }
+}

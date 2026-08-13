@@ -53,6 +53,7 @@ pub struct Config {
     /// Semantics: higher = easier to trigger a crack.
     pub crack_sensitivity: f32,
     pub theme: Theme,
+    pub language: String, // "auto" | "zh-CN" | "en-US"
     pub first_launch: bool,
 }
 
@@ -77,6 +78,7 @@ impl Default for Config {
             show_border_flash: true,
             crack_sensitivity: 1.0,
             theme: Theme::Auto,
+            language: "auto".to_string(),
             first_launch: true,
         }
     }

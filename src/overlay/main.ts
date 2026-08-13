@@ -333,9 +333,7 @@ void applyActiveSkin();
 
 // ── Hot Module Replacement cleanup ──────────────────────────────────────────
 
-// @ts-expect-error - Vite HMR types not in @types/node
 if (import.meta.hot) {
-  // @ts-expect-error - Vite HMR API
   import.meta.hot.dispose(() => {
     unlistenSpawnWhip?.();
     unlistenDropWhip?.();

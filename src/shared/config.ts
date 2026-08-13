@@ -26,6 +26,7 @@ export const ConfigSchema = z.object({
   showBorderFlash: z.boolean(),
   crackSensitivity: z.number().min(0.5).max(2.0),
   theme: ThemeSchema,
+  language: z.enum(['auto', 'zh-CN', 'en-US']).default('auto'),
   firstLaunch: z.boolean(),
 });
 
@@ -45,5 +46,6 @@ export const DEFAULT_CONFIG: Config = {
   showBorderFlash: true,
   crackSensitivity: 1.0,
   theme: 'auto',
+  language: 'auto',
   firstLaunch: true,
 };
