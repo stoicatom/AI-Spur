@@ -35,6 +35,7 @@ export interface SkinConfig {
   handleColor: string;
   bodyGradient: [string, string];
   tipGlow: boolean;
+  particleEffect: 'none' | 'sparks' | 'stars' | 'lightning';
   outlineColor: string;
   bgAlpha: number;
 }
@@ -43,6 +44,7 @@ export const DEFAULT_SKIN: SkinConfig = {
   handleColor: '#111111',
   bodyGradient: ['#111111', '#333333'],
   tipGlow: false,
+  particleEffect: 'none',
   outlineColor: '#ffffff',
   bgAlpha: 0.011,
 };

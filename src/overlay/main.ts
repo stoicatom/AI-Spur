@@ -33,6 +33,7 @@ import {
   wantsFullAnimation,
   QUICK_TUNING,
 } from './quick_whip';
+import { ParticleSystem, type ParticleType } from './particles';
 
 const canvasEl = document.getElementById('whip-canvas') as HTMLCanvasElement | null;
 if (!canvasEl) throw new Error('whip-canvas element not found');
@@ -76,6 +77,9 @@ let autoSwitchThreshold = 20;
 // When set, the current whip is a quick-mode one with a deadline.
 let quickTimeoutAt: number | null = null;
 
+// Particle system for visual effects
+const particles = new ParticleSystem();
+
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
@@ -102,6 +106,7 @@ async function applyActiveSkin(skinId?: string) {
         handleColor: match.visuals.handleColor,
         bodyGradient: match.visuals.bodyGradient,
         tipGlow: match.visuals.tipGlow,
+        particleEffect: match.visuals.particleEffect,
         outlineColor: match.visuals.outlineColor,
         bgAlpha: match.visuals.bgAlpha,
       };
@@ -191,6 +196,10 @@ function frame() {
 
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
+    // Update and render particle effects
+    particles.update(1 / 60); // assume 60fps for now
+    particles.draw(ctx);
+
     // Quick mode: auto-crack once, then despawn when the deadline hits.
     if (quickTimeoutAt !== null) {
       if (!whip.dropping && now >= quickTimeoutAt - QUICK_TUNING.autoCrackAtMs) {
@@ -252,6 +261,14 @@ let unlistenDropWhip: (() => void) | null = null;
   if (full) {
     whip = createWhipState(mouseX, mouseY, physicsParams);
     quickTimeoutAt = null;
+
+    // Emit particles at whip tip if effect is enabled
+    if (skin.particleEffect !== 'none') {
+      const tipIndex = whip.pts.length - 1;
+      const tipX = whip.pts[tipIndex].x;
+      const tipY = whip.pts[tipIndex].y;
+      particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 10, skin.handleColor);
+    }
   } else {
     // Corner mini-whip: smaller arc, automatic crack and despawn.
     whip = createWhipState(mouseX, mouseY, physicsParams, {
@@ -260,6 +277,14 @@ let unlistenDropWhip: (() => void) | null = null;
       now: Date.now(),
     });
     quickTimeoutAt = Date.now() + QUICK_TUNING.lifetimeMs;
+
+    // Emit fewer particles for quick mode
+    if (skin.particleEffect !== 'none') {
+      const tipIndex = whip.pts.length - 1;
+      const tipX = whip.pts[tipIndex].x;
+      const tipY = whip.pts[tipIndex].y;
+      particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 5, skin.handleColor);
+    }
   }
 
   prevMouseX = mouseX;
