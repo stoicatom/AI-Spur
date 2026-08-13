@@ -29,6 +29,10 @@ import {
   listSkins,
   getConfig,
 } from '../shared/ipc';
+import {
+  wantsFullAnimation,
+  QUICK_TUNING,
+} from './quick_whip';
 
 const canvasEl = document.getElementById('whip-canvas') as HTMLCanvasElement | null;
 if (!canvasEl) throw new Error('whip-canvas element not found');
@@ -66,6 +70,11 @@ let mouseX = width / 2;
 let mouseY = height / 2;
 let prevMouseX = mouseX;
 let prevMouseY = mouseY;
+let animationMode: 'standard' | 'fast' | 'auto' = 'standard';
+let usageCount = 0;
+let autoSwitchThreshold = 20;
+// When set, the current whip is a quick-mode one with a deadline.
+let quickTimeoutAt: number | null = null;
 
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
@@ -108,6 +117,9 @@ async function loadPreferences() {
   try {
     const config = await getConfig();
     soundEnabled = config.playSound;
+    animationMode = config.animationMode;
+    usageCount = config.usageCount ?? 0;
+    autoSwitchThreshold = config.autoSwitchThreshold;
     // The crack threshold scales with user sensitivity (0.5x–2.0x of baseline).
     physicsParams = {
       ...DEFAULT_PHYSICS,
@@ -157,6 +169,7 @@ function frame() {
   drawBackdrop(ctx, width, height, skin);
 
   if (whip) {
+    const now = Date.now();
     const { nextState, crackTriggered } = physicsStep(
       whip,
       {
@@ -164,7 +177,7 @@ function frame() {
         mouseY,
         prevMouseX,
         prevMouseY,
-        now: Date.now(),
+        now,
         screenWidth: width,
         screenHeight: height,
       },
@@ -178,7 +191,21 @@ function frame() {
 
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
-    // Once every point has fallen past the bottom edge the whip is spent.
+    // Quick mode: auto-crack once, then despawn when the deadline hits.
+    if (quickTimeoutAt !== null) {
+      if (!whip.dropping && now >= quickTimeoutAt - QUICK_TUNING.autoCrackAtMs) {
+        whip = { ...whip, dropping: true };
+        void handleCrack();
+      }
+      if (now >= quickTimeoutAt) {
+        whip = null;
+        quickTimeoutAt = null;
+        void hideOverlay();
+      }
+      return; // skip the full-mode fall-off check below
+    }
+
+    // Full mode: despawn once every point has fallen past the bottom edge.
     if (whip.dropping && whip.pts.every((p) => p.y > height + 60)) {
       whip = null;
       void hideOverlay();
@@ -202,9 +229,32 @@ async function hideOverlay() {
 
 // ── IPC wiring ──────────────────────────────────────────────────────────────
 
-void onSpawnWhip(() => {
+void onSpawnWhip((payload) => {
   void applyActiveSkin();
-  whip = createWhipState(mouseX, mouseY, physicsParams);
+
+  // payload is the JSON the Rust side emits: { forceFull }.
+  const forceFull = Boolean((payload as { forceFull?: boolean } | null)?.forceFull);
+
+  const full = wantsFullAnimation(
+    animationMode,
+    usageCount,
+    autoSwitchThreshold,
+    forceFull
+  );
+
+  if (full) {
+    whip = createWhipState(mouseX, mouseY, physicsParams);
+    quickTimeoutAt = null;
+  } else {
+    // Corner mini-whip: smaller arc, automatic crack and despawn.
+    whip = createWhipState(mouseX, mouseY, physicsParams, {
+      arcWidth: QUICK_TUNING.arcWidth,
+      arcHeight: QUICK_TUNING.arcHeight,
+      now: Date.now(),
+    });
+    quickTimeoutAt = Date.now() + QUICK_TUNING.lifetimeMs;
+  }
+
   prevMouseX = mouseX;
   prevMouseY = mouseY;
 });

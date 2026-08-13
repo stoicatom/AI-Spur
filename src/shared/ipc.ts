@@ -75,8 +75,16 @@ export const Events = {
   SKIN_CHANGED: 'skin-changed',
 } as const;
 
-export function onSpawnWhip(fn: () => void): Promise<UnlistenFn> {
-  return listen<void>(Events.SPAWN_WHIP, () => fn());
+export interface SpawnWhipPayload {
+  /** True when triggered via the Shift Easter egg — force the full animation. */
+  forceFull?: boolean;
+}
+
+export function onSpawnWhip(fn: (payload: SpawnWhipPayload) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.SPAWN_WHIP, (event) => {
+    const payload = event.payload as SpawnWhipPayload | null | undefined;
+    fn(payload ?? {});
+  });
 }
 
 export function onDropWhip(fn: () => void): Promise<UnlistenFn> {

@@ -97,14 +97,28 @@ export interface PhysicsInput {
 
 // 初始化函数
 
+/** Options that let callers size and time the initial whip. */
+export interface WhipInitOptions {
+  /** Horizontal arc extent; the default 260 matches the tuned baseline. */
+  arcWidth?: number;
+  /** Vertical arc rise; the default 185 matches the tuned baseline. */
+  arcHeight?: number;
+  /** Spawn clock; injected so the initial state is deterministic and tests can
+   * control it. Defaults to Date.now() for the production caller. */
+  now?: number;
+}
+
 export function createWhipState(
   mouseX: number,
   mouseY: number,
-  params: PhysicsParams
+  params: PhysicsParams,
+  init: WhipInitOptions = {}
 ): WhipState {
+  const arcWidth = init.arcWidth ?? 260;
+  const arcHeight = init.arcHeight ?? 185;
+  const now = init.now ?? Date.now();
+
   const pts: Point[] = [];
-  const arcWidth = 260;
-  const arcHeight = 185;
   for (let i = 0; i < params.segments; i++) {
     const t = i / (params.segments - 1);
     const x = mouseX + t * arcWidth;
@@ -115,7 +129,7 @@ export function createWhipState(
     pts,
     dropping: false,
     lastCrackTime: 0,
-    spawnTime: Date.now(),
+    spawnTime: now,
     handleAngle: params.baseTargetAngle,
     handleAngVel: 0,
   };
