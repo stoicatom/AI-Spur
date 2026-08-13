@@ -190,7 +190,7 @@ describe('OnboardingFlow', () => {
     // Each instruction line interleaves a <span> for the hotkey, so assert
     // against the list's combined textContent, not a single text node.
     const steps = container.querySelector('ol');
-    expect(steps?.textContent).toContain('召唤鞭子');
+    expect(steps?.textContent).toContain('触发催促');
     expect(steps?.textContent).toContain('自动发送中断信号');
 
     const note = container.querySelector('.callout--info');

@@ -51,7 +51,7 @@ export function SkinsPanel({ config, onPatch }: PanelProps) {
     <div className="field-stack">
       <section className="field">
         <h2 className="field__label">皮肤</h2>
-        <p className="field__desc">切换后下一次召唤鞭子即生效。</p>
+        <p className="field__desc">切换后下一次触发催促即生效。</p>
 
         {load.status === 'loading' && <p className="field-hint">正在读取皮肤列表…</p>}
 

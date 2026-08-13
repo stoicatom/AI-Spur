@@ -23,7 +23,7 @@ export function StepHotkey({ hotkey, onHotkeyChange }: StepHotkeyProps) {
   return (
     <div className="onboard-step">
       <h2 className="onboard-step__title font-display">设置全局快捷键</h2>
-      <p className="onboard-step__lead">有时候 Claude Code 实在太慢了。给它一鞭子。</p>
+      <p className="onboard-step__lead">有时候 Claude Code 实在太慢了。催它一下。</p>
       <HotkeyRecorder value={hotkey} onChange={onHotkeyChange} />
       <p className="field-hint">
         推荐 <span className="font-mono">{formatAccel('CommandOrControl+Shift+W')}</span>
@@ -139,7 +139,7 @@ export function StepSkin({ activeSkin, onSkinChange, hotkey, threshold }: StepSk
 
       <ol className="onboard-howto">
         <li>
-          按 <span className="font-mono">{formatAccel(hotkey)}</span> 召唤鞭子
+          按 <span className="font-mono">{formatAccel(hotkey)}</span> 触发催促
         </li>
         <li>快速移动鼠标挥鞭，或静待自动 crack</li>
         <li>自动发送中断信号 + 一条提示词</li>

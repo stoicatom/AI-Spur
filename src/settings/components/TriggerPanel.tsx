@@ -7,7 +7,7 @@ export function TriggerPanel({ config, onPatch }: PanelProps) {
       <section className="field">
         <h2 className="field__label">全局快捷键</h2>
         <p className="field__desc">
-          在任何应用中按下该组合即可召唤鞭子。按住 Shift 可强制播放完整动画。
+          在任何应用中按下该组合即可触发催促。按住 Shift 可强制播放完整动画。
         </p>
         <HotkeyRecorder value={config.hotkey} onChange={(hotkey) => onPatch({ hotkey })} />
       </section>
