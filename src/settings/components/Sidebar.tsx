@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react';
 import { NAV_GROUPS, type PanelId } from '../panels';
+import { Icon } from './Icon';
 
 export interface SidebarProps {
   active: PanelId;
@@ -72,9 +73,7 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
                   onClick={() => onSelect(item.id)}
                   onKeyDown={(event) => handleKeyDown(event, item.id)}
                 >
-                  <span className="nav-item__glyph" aria-hidden="true">
-                    {item.glyph}
-                  </span>
+                  <Icon name={item.icon} className="nav-item__icon" />
                   <span className="nav-item__label">{item.label}</span>
                 </button>
               );

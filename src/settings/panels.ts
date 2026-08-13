@@ -6,6 +6,8 @@
  * rendering React.
  */
 
+import type { IconName } from './components/Icon';
+
 export const PANEL_IDS = [
   'trigger',
   'phrases',
@@ -21,8 +23,8 @@ export interface PanelMeta {
   id: PanelId;
   /** Sidebar label (Simplified Chinese, matching the app's locale). */
   label: string;
-  /** Decorative glyph; announced as presentational, never as the only label. */
-  glyph: string;
+  /** Icon name for geometric SVG icon (replaces emoji glyph). */
+  icon: IconName;
 }
 
 export interface NavGroup {
@@ -39,21 +41,21 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: '配置',
     items: [
-      { id: 'trigger', label: '触发', glyph: '🎯' },
-      { id: 'phrases', label: '提示词', glyph: '💬' },
+      { id: 'trigger', label: '触发', icon: 'trigger' },
+      { id: 'phrases', label: '提示词', icon: 'phrases' },
     ],
   },
   {
     label: '外观',
     items: [
-      { id: 'skins', label: '皮肤', glyph: '🎨' },
-      { id: 'animation', label: '动画', glyph: '⚙️' },
-      { id: 'sounds', label: '音效', glyph: '🔊' },
+      { id: 'skins', label: '皮肤', icon: 'skins' },
+      { id: 'animation', label: '动画', icon: 'animation' },
+      { id: 'sounds', label: '音效', icon: 'sounds' },
     ],
   },
   {
     label: '数据',
-    items: [{ id: 'stats', label: '统计', glyph: '📊' }],
+    items: [{ id: 'stats', label: '统计', icon: 'stats' }],
   },
 ];
 

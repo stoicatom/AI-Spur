@@ -1,14 +1,14 @@
 /*
  * OpenWhip v2 — Design Tokens
  *
- * 设计方���：锻���美���（Forged Metal × Kinetic Energy）
- * 品牌定位：���味效率工具，���是 SaaS 仪表板���
+ * 设计方向：锻造美学（Forged Metal × Kinetic Energy）
+ * 品牌定位：极味效率工具，不是 SaaS 仪表板。
  *
- * 字���加���说明���
- *   Chakra Petch  — ���示字体���工业/运���感标题
- *   DM Mono       — ���宽标签，快捷键���示，统计���字
- *   两者���从 Google Fonts 自托管加���，见 settings.html 的 <link> 标���。
- *   Tauri CSP 已���许 style-src 'self' unsafe-inline，���需额外���置���
+ * 字体加载说明：
+ *   Chakra Petch  — 显示字体，工业/运动感标题
+ *   DM Mono       — 等宽标签，快捷键显示，统计数字
+ *   两者均从 Google Fonts 自托管加载，见 settings.html 的 <link> 标签。
+ *   Tauri CSP 已允许 style-src 'self' unsafe-inline，无需额外配置。
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
