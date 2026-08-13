@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { listen } from '@tauri-apps/api/event';
 import type { Config } from '../shared/config';
 import { getConfig, onConfigUpdated, saveConfig } from '../shared/ipc';
 import { Sidebar } from './components/Sidebar';
@@ -49,6 +50,19 @@ export function App() {
   useEffect(() => {
     void loadConfig();
   }, [loadConfig]);
+
+  // Listen for tray menu tab-switch events
+  useEffect(() => {
+    const unlisten = listen('switch-tab', (event) => {
+      const tab = event.payload as string;
+      if (tab === 'prompts' || tab === 'skins' || tab === 'animation' || tab === 'advanced') {
+        setActive(tab as PanelId);
+      }
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   // Apply theme to document root when config loads or theme changes
   useEffect(() => {

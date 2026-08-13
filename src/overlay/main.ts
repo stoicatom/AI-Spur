@@ -28,6 +28,7 @@ import {
   listSkins,
   getConfig,
 } from '../shared/ipc';
+import { convertFileSrc } from '@tauri-apps/api/core';
 import {
   wantsFullAnimation,
   QUICK_TUNING,
@@ -93,6 +94,13 @@ document.addEventListener('mousemove', (e) => {
   mouseY = e.clientY;
 });
 
+// When mouse leaves the window, dismiss the whip to avoid physics glitches
+document.addEventListener('mouseleave', () => {
+  if (whip && !whip.dropping) {
+    whip = { ...whip, dropping: true };
+  }
+});
+
 // Clicking dismisses the whip, matching v1's behaviour.
 document.addEventListener('mousedown', () => {
   if (whip && !whip.dropping) whip = { ...whip, dropping: true };
@@ -149,10 +157,11 @@ function playCrackSound() {
     return;
   }
   const file = crackSounds[Math.floor(Math.random() * crackSounds.length)];
-  // Sounds ship alongside the skin manifest; resolve relative to the app.
-  const soundPath = `sounds/${file}`;
+  // Sounds ship alongside the skin manifest; resolve to absolute path via Tauri asset protocol
+  const soundPath = convertFileSrc(`sounds/${file}`);
   console.log('[overlay] Playing sound:', soundPath);
   const audio = new Audio(soundPath);
+  audio.volume = 0.6; // Reasonable default volume
   audio.play()
     .then(() => console.log('[overlay] Sound played successfully'))
     .catch((err) => {
