@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "description": "AI-Spur —催促 Claude Code 的桌面工具",
   "license": "MIT",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -23,12 +24,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:tauri": "pnpm run build && tauri build",
+    "build:debug": "pnpm run build && tauri build --debug",
+    "bundle": "tauri bundle",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "tauri": "tauri",
-    "ci": "npm run typecheck && npm run test && cd src-tauri && cargo clippy -- -D warnings && cargo test"
+    "tauri:dev": "tauri dev",
+    "ci": "pnpm run typecheck && pnpm run test && cd src-tauri && cargo clippy -- -D warnings && cargo test"
   },
   "dependencies": {
     "framer-motion": "^13.1.0",

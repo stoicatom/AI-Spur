@@ -3,3 +3,9 @@ dist/
 out/
 *.tgz
 .DS_Store
+
+# pnpm
+.pnpm-debug.log*
+
+# npm (legacy, 项目已迁移到 pnpm)
+package-lock.json
