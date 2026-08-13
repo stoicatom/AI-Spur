@@ -27,6 +27,7 @@
     "build:tauri": "pnpm run build && tauri build",
     "build:debug": "pnpm run build && tauri build --debug",
     "bundle": "tauri bundle",
+    "optimize:audio": "scripts/optimize-audio.sh",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
