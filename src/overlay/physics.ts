@@ -90,7 +90,6 @@ export interface PhysicsInput {
   mouseY: number;
   prevMouseX: number;
   prevMouseY: number;
-  dt: number;
   now: number;
   screenWidth: number;
   screenHeight: number;

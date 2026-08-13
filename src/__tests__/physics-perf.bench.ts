@@ -20,7 +20,6 @@ const input: PhysicsInput = {
   mouseY: 480,
   prevMouseX: 850,
   prevMouseY: 500,
-  dt: 16.67,
   now: performance.now(),
   screenWidth: 1920,
   screenHeight: 1080,

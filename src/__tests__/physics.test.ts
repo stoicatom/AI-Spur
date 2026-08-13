@@ -12,7 +12,6 @@ describe('Physics engine', () => {
     mouseY: 300,
     prevMouseX: 500,
     prevMouseY: 300,
-    dt: 1 / 60,
     now: Date.now(),
     screenWidth: 1920,
     screenHeight: 1080,

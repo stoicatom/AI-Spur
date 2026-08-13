@@ -29,8 +29,6 @@ import {
   getConfig,
 } from '../shared/ipc';
 
-const FIXED_DT = 1 / 60;
-
 const canvasEl = document.getElementById('whip-canvas') as HTMLCanvasElement | null;
 if (!canvasEl) throw new Error('whip-canvas element not found');
 const ctxOrNull = canvasEl.getContext('2d');
@@ -159,7 +157,6 @@ function frame() {
         mouseY,
         prevMouseX,
         prevMouseY,
-        dt: FIXED_DT,
         now: Date.now(),
         screenWidth: width,
         screenHeight: height,
