@@ -14,7 +14,6 @@ import {
 } from './physics';
 import {
   drawWhip,
-  drawBackdrop,
   clearDirtyRegion,
   DEFAULT_RENDER,
   DEFAULT_SKIN,
@@ -80,6 +79,15 @@ let quickTimeoutAt: number | null = null;
 // Particle system for visual effects
 const particles = new ParticleSystem();
 
+// FPS monitoring (dev only)
+let lastFrameTime = performance.now();
+let frameCount = 0;
+setInterval(() => {
+  const fps = frameCount;
+  frameCount = 0;
+  if (fps < 50) console.warn('[overlay] Low FPS:', fps);
+}, 1000);
+
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
@@ -136,13 +144,21 @@ async function loadPreferences() {
 }
 
 function playCrackSound() {
-  if (!soundEnabled || crackSounds.length === 0) return;
+  if (!soundEnabled || crackSounds.length === 0) {
+    console.log('[overlay] Sound skipped:', { soundEnabled, crackSoundsCount: crackSounds.length });
+    return;
+  }
   const file = crackSounds[Math.floor(Math.random() * crackSounds.length)];
   // Sounds ship alongside the skin manifest; resolve relative to the app.
-  const audio = new Audio(`sounds/${file}`);
-  audio.play().catch(() => {
+  const soundPath = `sounds/${file}`;
+  console.log('[overlay] Playing sound:', soundPath);
+  const audio = new Audio(soundPath);
+  audio.play()
+    .then(() => console.log('[overlay] Sound played successfully'))
+    .catch((err) => {
     // Autoplay restrictions or a missing file: silence is acceptable here,
     // the visual crack already gives feedback.
+    console.warn('[overlay] Sound play failed:', err);
   });
 }
 
@@ -168,14 +184,22 @@ function frame() {
   // no early-return or exception can ever kill the animation loop.
   requestAnimationFrame(frame);
 
+  frameCount++;
+  const now = performance.now();
+  const frameDelta = now - lastFrameTime;
+  lastFrameTime = now;
+
+  // Log frame time spikes (potential stutter)
+  if (frameDelta > 33) console.warn('[overlay] Frame spike:', frameDelta.toFixed(1), 'ms');
+
   if (whip) {
     clearDirtyRegion(ctx, whip.pts, DEFAULT_RENDER);
   } else {
     ctx.clearRect(0, 0, width, height);
   }
 
-  // The near-invisible backdrop keeps the transparent window clickable.
-  drawBackdrop(ctx, width, height, skin);
+  // Note: backdrop removed per user feedback (no mask layer needed).
+  // On Windows, a 1-pixel anchor may still be needed for mouse events.
 
   if (whip) {
     const now = Date.now();
@@ -200,9 +224,11 @@ function frame() {
 
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
-    // Update and render particle effects
-    particles.update(1 / 60);
-    particles.draw(ctx);
+    // Update and render particle effects (only if active particles exist)
+    if (particles.activeCount > 0) {
+      particles.update(1 / 60);
+      particles.draw(ctx);
+    }
 
     // Quick mode: auto-crack once, then despawn when the deadline hits.
     if (quickTimeoutAt !== null) {
