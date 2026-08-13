@@ -40,6 +40,9 @@ pub struct Config {
     pub last_usage_date: Option<String>, // ISO 8601 date
     pub play_sound: bool,
     pub show_border_flash: bool,
+    /// Multiplier on the crack speed threshold; 1.0 is the tuned baseline.
+    /// Semantics: higher = easier to trigger a crack.
+    pub crack_sensitivity: f32,
     pub first_launch: bool,
 }
 
@@ -62,6 +65,7 @@ impl Default for Config {
             last_usage_date: None,
             play_sound: true,
             show_border_flash: true,
+            crack_sensitivity: 1.0,
             first_launch: true,
         }
     }
@@ -151,6 +155,7 @@ mod tests {
             "todayUsageCount": 0,
             "playSound": true,
             "showBorderFlash": true,
+            "crackSensitivity": 1.0,
             "firstLaunch": true
         });
         let cfg = migrate(raw).unwrap();

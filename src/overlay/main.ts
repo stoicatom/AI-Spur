@@ -9,6 +9,7 @@ import {
   createWhipState,
   physicsStep,
   DEFAULT_PHYSICS,
+  type PhysicsParams,
   type WhipState,
 } from './physics';
 import {
@@ -56,6 +57,7 @@ window.addEventListener('resize', resize);
 
 // ── Mutable runtime state ───────────────────────────────────────────────────
 
+let physicsParams: PhysicsParams = { ...DEFAULT_PHYSICS };
 let whip: WhipState | null = null;
 let skin: SkinConfig = DEFAULT_SKIN;
 let soundEnabled = true;
@@ -106,8 +108,13 @@ async function loadPreferences() {
   try {
     const config = await getConfig();
     soundEnabled = config.playSound;
+    // The crack threshold scales with user sensitivity (0.5x–2.0x of baseline).
+    physicsParams = {
+      ...DEFAULT_PHYSICS,
+      crackSpeed: Math.round(DEFAULT_PHYSICS.crackSpeed * config.crackSensitivity),
+    };
   } catch {
-    // Keep the default (sound on) if config is unreadable.
+    // Keep the defaults if config is unreadable.
   }
 }
 
@@ -161,7 +168,7 @@ function frame() {
         screenWidth: width,
         screenHeight: height,
       },
-      DEFAULT_PHYSICS
+      physicsParams
     );
     whip = nextState;
     prevMouseX = mouseX;
@@ -197,7 +204,7 @@ async function hideOverlay() {
 
 void onSpawnWhip(() => {
   void applyActiveSkin();
-  whip = createWhipState(mouseX, mouseY, DEFAULT_PHYSICS);
+  whip = createWhipState(mouseX, mouseY, physicsParams);
   prevMouseX = mouseX;
   prevMouseY = mouseY;
 });

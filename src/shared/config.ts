@@ -15,6 +15,7 @@ export const ConfigSchema = z.object({
   lastUsageDate: z.string().optional(), // ISO 8601
   playSound: z.boolean(),
   showBorderFlash: z.boolean(),
+  crackSensitivity: z.number().min(0.5).max(2.0),
   firstLaunch: z.boolean(),
 });
 
@@ -32,5 +33,6 @@ export const DEFAULT_CONFIG: Config = {
   lastUsageDate: undefined,
   playSound: true,
   showBorderFlash: true,
+  crackSensitivity: 1.0,
   firstLaunch: true,
 };

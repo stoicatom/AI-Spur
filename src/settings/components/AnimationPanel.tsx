@@ -70,6 +70,28 @@ export function AnimationPanel({ config, onPatch }: PanelProps) {
       )}
 
       <section className="field">
+        <h2 className="field__label" id="sensitivity-label">crack 灵敏度</h2>
+        <p className="field__desc">
+          甩动要多快才会触发 crack？调高更容易触发，调低需要更用力的甩动。
+        </p>
+        <div className="threshold-row">
+          <input
+            type="range"
+            min={0.5}
+            max={2.0}
+            step={0.1}
+            value={config.crackSensitivity}
+            aria-labelledby="sensitivity-label"
+            className="range"
+            onChange={(e) => onPatch({ crackSensitivity: Number(e.target.value) })}
+          />
+          <output className="threshold-row__value font-mono">
+            {Math.round(config.crackSensitivity * 100)}%
+          </output>
+        </div>
+      </section>
+
+      <section className="field">
         <p className="callout callout--info">
           任何模式下按住 <span className="font-mono">Shift</span> + 快捷键，都会强制播放完整动画。
         </p>
