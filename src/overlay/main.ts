@@ -214,6 +214,8 @@ function frame() {
 
   requestAnimationFrame(frame);
 }
+
+// Start the animation loop once when the module loads
 requestAnimationFrame(frame);
 
 // ── Window visibility ───────────────────────────────────────────────────────
@@ -229,8 +231,13 @@ async function hideOverlay() {
 
 // ── IPC wiring ──────────────────────────────────────────────────────────────
 
-void onSpawnWhip((payload) => {
-  void applyActiveSkin();
+// Store the unlisten functions to clean up on module unload
+let unlistenSpawnWhip: (() => void) | null = null;
+let unlistenDropWhip: (() => void) | null = null;
+
+(async () => {
+  unlistenSpawnWhip = await onSpawnWhip((payload) => {
+    void applyActiveSkin();
 
   // payload is the JSON the Rust side emits: { forceFull }.
   const forceFull = Boolean((payload as { forceFull?: boolean } | null)?.forceFull);
@@ -259,13 +266,25 @@ void onSpawnWhip((payload) => {
   prevMouseY = mouseY;
 });
 
-void onDropWhip(() => {
-  if (whip && !whip.dropping) whip = { ...whip, dropping: true };
-});
+  unlistenDropWhip = await onDropWhip(() => {
+    if (whip && !whip.dropping) whip = { ...whip, dropping: true };
+  });
 
-void onSkinChanged((skinId) => {
-  void applyActiveSkin(skinId);
-});
+  await onSkinChanged((skinId) => {
+    void applyActiveSkin(skinId);
+  });
+})();
 
 void loadPreferences();
 void applyActiveSkin();
+
+// ── Hot Module Replacement cleanup ──────────────────────────────────────────
+
+// @ts-expect-error - Vite HMR types not in @types/node
+if (import.meta.hot) {
+  // @ts-expect-error - Vite HMR API
+  import.meta.hot.dispose(() => {
+    unlistenSpawnWhip?.();
+    unlistenDropWhip?.();
+  });
+}
