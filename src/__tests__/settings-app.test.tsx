@@ -3,6 +3,14 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG } from '../shared/config';
 
+// Mock Tauri API modules — jsdom has no __TAURI_INTERNALS__.
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(() => Promise.resolve(() => {})),
+}));
+vi.mock('@tauri-apps/api/core', () => ({
+  convertFileSrc: vi.fn((path: string) => `asset://localhost/${path}`),
+}));
+
 // The settings window talks to Rust only through shared/ipc, so that module is
 // the single seam to mock (R-TEST-005 forbids real invoke calls in tests).
 vi.mock('../shared/ipc', () => ({
