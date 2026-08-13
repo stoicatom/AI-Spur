@@ -68,9 +68,57 @@ pub fn validate_hotkey(hotkey: &str) -> bool {
     !trimmed.is_empty() && !trimmed.ends_with('+') && !trimmed.starts_with('+')
 }
 
-/// Register a global shortcut via the plugin.
+/// Register the given hotkey and, when it does not already contain Shift,
+/// also register the Shift-augmented Easter-egg variant (e.g. Cmd+Alt+W and
+/// Cmd+Alt+Shift+W). This is how the "hold Shift" 彩蛋 works with a plugin
+/// that cannot sense the live keyboard state — it is a second registration.
+///
+/// The plugin's handler receives the *registered* shortcut, so it matches on
+/// the string to tell the two apart.
 pub fn register(app: &AppHandle, hotkey: &str) -> Result<(), tauri_plugin_global_shortcut::Error> {
-    app.global_shortcut().register(hotkey)
+    app.global_shortcut().register(hotkey)?;
+
+    // Best effort: if the egg variant is already taken we still keep the
+    // primary hotkey working — the egg is a nice-to-have, not core.
+    if !hotkey_has_shift(hotkey) {
+        if let Some(shifted) = shifted_variant(hotkey) {
+            let _ = app.global_shortcut().register(shifted.as_str());
+        }
+    }
+
+    Ok(())
+}
+
+/// True when the accelerator string already includes a Shift modifier.
+pub fn hotkey_has_shift(hotkey: &str) -> bool {
+    hotkey.split('+').any(|part| {
+        let p = part.trim();
+        p.eq_ignore_ascii_case("shift") || p.eq_ignore_ascii_case("commandorshift")
+    })
+}
+
+/// Insert a Shift modifier into a hotkey that does not yet have one, returning
+/// a new accelerator string. Returns `None` when already shifted or the format
+/// is odd (no way to insert).
+pub fn shifted_variant(hotkey: &str) -> Option<String> {
+    if hotkey_has_shift(hotkey) {
+        return None;
+    }
+    let parts: Vec<&str> = hotkey.split('+').collect();
+    if parts.is_empty() {
+        return None;
+    }
+    // Insert Shift just before the final key token.
+    let mut out = parts[..parts.len() - 1].to_vec();
+    out.push("Shift");
+    out.push(parts[parts.len() - 1]);
+    Some(out.join("+"))
+}
+
+/// True when `candidate` is the Easter-egg (Shift-augmented) companion of
+/// `primary`.
+pub fn is_egg_variant(primary: &str, candidate: &str) -> bool {
+    shifted_variant(primary).as_deref() == Some(candidate)
 }
 
 /// Unregister all currently registered global shortcuts.
@@ -110,6 +158,44 @@ pub fn check_conflict(app: &AppHandle, hotkey: &str) -> Option<ConflictInfo> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hotkey_with_shift_detected() {
+        assert!(hotkey_has_shift("CommandOrControl+Shift+W"));
+        assert!(hotkey_has_shift("Cmd+Shift+A"));
+    }
+
+    #[test]
+    fn hotkey_without_shift_not_detected() {
+        assert!(!hotkey_has_shift("CommandOrControl+Alt+W"));
+        assert!(!hotkey_has_shift("Cmd+Alt+F5"));
+    }
+
+    #[test]
+    fn shifted_variant_inserts_shift_before_key() {
+        assert_eq!(
+            shifted_variant("CommandOrControl+Alt+W"),
+            Some("CommandOrControl+Alt+Shift+W".to_string())
+        );
+    }
+
+    #[test]
+    fn shifted_variant_returns_none_when_already_shifted() {
+        assert_eq!(shifted_variant("CommandOrControl+Shift+W"), None);
+    }
+
+    #[test]
+    fn shifted_variant_handles_single_key() {
+        assert_eq!(shifted_variant("F5"), Some("Shift+F5".to_string()));
+    }
+
+    #[test]
+    fn egg_variant_round_trip() {
+        let primary = "CommandOrControl+Alt+W";
+        let shifted = shifted_variant(primary).unwrap();
+        assert!(is_egg_variant(primary, &shifted));
+        assert!(!is_egg_variant(primary, primary));
+    }
 
     // --- validate_hotkey ---
 

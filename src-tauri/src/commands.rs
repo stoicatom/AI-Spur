@@ -82,6 +82,8 @@ pub async fn register_hotkey(hotkey: String, app: AppHandle) -> Result<(), Strin
         return Err(format!("Invalid hotkey format: {hotkey}"));
     }
     shortcut::unregister_all(&app).map_err(|e| e.to_string())?;
+    // The returned RegisteredShortcuts carries the primary + Easter-egg pair;
+    // the command only needs to know registration succeeded.
     shortcut::register(&app, &hotkey).map_err(|e| e.to_string())
 }
 

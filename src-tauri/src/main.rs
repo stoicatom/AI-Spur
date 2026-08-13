@@ -40,15 +40,29 @@ fn main() {
         .manage(app_state)
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
-                    // OpenWhip registers at most one global shortcut at a time,
-                    // so we don't need to match on `shortcut` identity here.
+                .with_handler(|app, shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
                         if let Some(w) = app.get_webview_window("overlay") {
                             // The overlay starts hidden; show it before emitting
                             // or the animation runs on an invisible window.
                             let _ = w.show();
-                            let _ = w.emit("spawn-whip", ());
+
+                            // When the triggered shortcut is the Shift-augmented
+                            // Easter-egg variant of the configured primary (only
+                            // possible when the primary has no Shift), force the
+                            // full animation instead of the quick mode.
+                            let force_full = {
+                                let primary = app
+                                    .state::<AppState>()
+                                    .config
+                                    .lock()
+                                    .map(|c| c.hotkey.clone())
+                                    .unwrap_or_default();
+                                shortcut::is_egg_variant(&primary, shortcut.to_string().as_str())
+                            };
+
+                            let _ = w
+                                .emit("spawn-whip", serde_json::json!({ "forceFull": force_full }));
                         }
                     }
                 })
