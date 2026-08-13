@@ -164,6 +164,10 @@ async function handleCrack() {
 // ── Animation loop ──────────────────────────────────────────────────────────
 
 function frame() {
+  // Schedule the next frame unconditionally at the start of every tick so
+  // no early-return or exception can ever kill the animation loop.
+  requestAnimationFrame(frame);
+
   if (whip) {
     clearDirtyRegion(ctx, whip.pts, DEFAULT_RENDER);
   } else {
@@ -197,7 +201,7 @@ function frame() {
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
     // Update and render particle effects
-    particles.update(1 / 60); // assume 60fps for now
+    particles.update(1 / 60);
     particles.draw(ctx);
 
     // Quick mode: auto-crack once, then despawn when the deadline hits.
@@ -211,17 +215,15 @@ function frame() {
         quickTimeoutAt = null;
         void hideOverlay();
       }
-      return; // skip the full-mode fall-off check below
-    }
-
-    // Full mode: despawn once every point has fallen past the bottom edge.
-    if (whip.dropping && whip.pts.every((p) => p.y > height + 60)) {
-      whip = null;
-      void hideOverlay();
+      // Note: no `return` here — RAF is already scheduled at the top.
+    } else {
+      // Full mode: despawn once every point has fallen past the bottom edge.
+      if (whip.dropping && whip.pts.every((p) => p.y > height + 60)) {
+        whip = null;
+        void hideOverlay();
+      }
     }
   }
-
-  requestAnimationFrame(frame);
 }
 
 // Start the animation loop once when the module loads
