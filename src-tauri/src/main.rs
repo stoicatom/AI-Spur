@@ -7,6 +7,7 @@ mod shortcut;
 mod skins;
 mod target_window;
 mod tray;
+mod usage;
 
 use std::sync::Arc;
 
@@ -17,8 +18,6 @@ use tauri::Manager;
 use tauri_plugin_global_shortcut::ShortcutState;
 
 fn main() {
-    let config = config::load_config().unwrap_or_default();
-
     // Build the real input backend. If it fails (e.g. no Accessibility
     // permission on macOS), fall back to a no-op sender that logs — the app
     // must still run and show the tray; the macro just won't fire.
@@ -30,14 +29,8 @@ fn main() {
         }
     };
 
-    let app_state = AppState {
-        config: Mutex::new(config),
-        sender,
-    };
-
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()
-        .manage(app_state)
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
@@ -103,7 +96,34 @@ fn main() {
                 }
             }
         })
-        .setup(|app| {
+        .setup(move |app| {
+            // Resolve the config location from Tauri so it follows the bundle
+            // identifier, then carry over a pre-rename config if this is the
+            // first launch after the OpenWhip → AI-Spur move.
+            let config_dir = app
+                .path()
+                .app_config_dir()
+                .map_err(|e| format!("cannot resolve app config dir: {e}"))?;
+            let config_path = config::config_file_in(&config_dir)
+                .map_err(|e| format!("cannot prepare config dir: {e}"))?;
+            config::migrate_legacy_config(&config_path);
+
+            // A corrupt or future-version config must not block startup: fall
+            // back to defaults and let the user fix it in settings.
+            let config = match config::load_config(&config_path) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("[config] falling back to defaults: {e}");
+                    config::Config::default()
+                }
+            };
+
+            app.manage(AppState {
+                config: Mutex::new(config),
+                sender,
+                config_path,
+            });
+
             tray::setup_tray(app.handle())?;
 
             // Bind the configured hotkey at launch. Without this the plugin is

@@ -3,6 +3,7 @@ use crate::macro_sender::MacroSender;
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
+use crate::usage;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -12,6 +13,10 @@ pub struct AppState {
     /// Injected input backend. Real `EnigoSender` in production, `FakeMacroSender`
     /// in tests — this is how the trait gives us testability (R-ARCH-007).
     pub sender: Arc<dyn MacroSender>,
+    /// Absolute path of `config.json`, resolved once at startup from Tauri's
+    /// `app_config_dir()`. Held here so the command layer never has to guess the
+    /// location from a hardcoded bundle identifier (CLAUDE.md §4.3).
+    pub config_path: PathBuf,
 }
 
 #[tauri::command]
@@ -29,7 +34,7 @@ pub async fn save_config(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
-    config::save_config(&config).map_err(|e| e.to_string())?;
+    config::save_config(&state.config_path, &config).map_err(|e| e.to_string())?;
 
     let previous_hotkey = {
         let mut current = state
@@ -55,24 +60,24 @@ pub async fn save_config(
 }
 
 #[tauri::command]
-pub async fn increment_usage(state: State<'_, AppState>) -> Result<u32, String> {
+pub async fn increment_usage(app: AppHandle, state: State<'_, AppState>) -> Result<u32, String> {
     let mut guard = state
         .config
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
 
-    let today = today_utc_date();
-    match rollover_today_count(&updated.last_usage_date, &today, updated.today_usage_count) {
-        Some(next) => updated.today_usage_count = next,
-        None => updated.today_usage_count += 1,
-    }
-    updated.last_usage_date = Some(today);
+    usage::apply_increment(&mut updated, &usage::today_utc_date());
 
-    updated.usage_count += 1;
-    config::save_config(&updated).map_err(|e| e.to_string())?;
+    config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
     let new_count = updated.usage_count;
-    *guard = updated;
+    *guard = updated.clone();
+    drop(guard);
+
+    // Counts change from the tray and the overlay too, so an open settings
+    // window would otherwise keep showing a stale total until reopened.
+    usage::emit_config_updated(&app, &updated);
+
     Ok(new_count)
 }
 
@@ -119,20 +124,8 @@ pub async fn trigger_macro(
                 .config
                 .lock()
                 .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-            let phrases = &cfg.phrases;
-            if phrases.is_empty() {
-                return Err("提示词列表为空，无法发送".to_string());
-            }
-            let idx = {
-                // use a deterministic index from wall clock to keep it testable
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let now = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_nanos();
-                (now % phrases.len() as u128) as usize
-            };
-            phrases[idx].clone()
+            usage::pick_phrase(&cfg.phrases)
+                .ok_or_else(|| "提示词列表为空，无法发送".to_string())?
         }
     };
 
@@ -221,9 +214,11 @@ pub async fn activate_skin(
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
     updated.active_skin = skin_id.clone();
-    config::save_config(&updated).map_err(|e| e.to_string())?;
-    *guard = updated;
+    config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
+    *guard = updated.clone();
     drop(guard);
+
+    usage::emit_config_updated(&app, &updated);
 
     // Notify the overlay so it can re-render with the new skin.
     if let Some(w) = app.get_webview_window("overlay") {
@@ -287,69 +282,4 @@ pub async fn __test_send_macro(phrase: String) -> Result<Vec<String>, String> {
         })
         .collect();
     Ok(calls)
-}
-
-/// YYYY-MM-DD date string for "today" in UTC. UTC keeps the rollover consistent
-/// across platforms without pulling in TZ-aware date plumbing.
-fn today_utc_date() -> String {
-    use time::OffsetDateTime;
-    OffsetDateTime::now_utc().date().to_string()
-}
-
-/// Decide the next "today" count given the last recorded use date.
-///
-/// `None` means the counts belong to the same day and the caller should keep
-/// accumulating; `Some(n)` is the value to set — n=1 for a new day's first
-/// use, n=0 for a pristine counter that needs no rollover.
-fn rollover_today_count(
-    last_date: &Option<String>,
-    today: &str,
-    current_today: u32,
-) -> Option<u32> {
-    if last_date.as_deref() == Some(today) {
-        None // same day: keep accumulating
-    } else if current_today == 0 && last_date.is_none() {
-        Some(0) // pristine counter, nothing to roll over
-    } else {
-        Some(1) // new day: this is the first use, discard yesterday
-    }
-}
-
-#[cfg(test)]
-mod rollover_tests {
-    use super::rollover_today_count;
-
-    #[test]
-    fn same_day_keeps_accumulating() {
-        assert_eq!(
-            rollover_today_count(&Some("2026-08-13".into()), "2026-08-13", 5),
-            None
-        );
-    }
-
-    #[test]
-    fn new_day_resets_to_one() {
-        assert_eq!(
-            rollover_today_count(&Some("2026-08-12".into()), "2026-08-13", 14),
-            Some(1)
-        );
-    }
-
-    #[test]
-    fn missing_last_date_is_a_fresh_day_when_counter_is_zero() {
-        assert_eq!(rollover_today_count(&None, "2026-08-13", 0), Some(0));
-    }
-
-    #[test]
-    fn missing_last_date_with_existing_count_resets() {
-        assert_eq!(rollover_today_count(&None, "2026-08-13", 3), Some(1));
-    }
-
-    #[test]
-    fn future_date_is_treated_as_new_day() {
-        assert_eq!(
-            rollover_today_count(&Some("2026-08-20".into()), "2026-08-13", 7),
-            Some(1)
-        );
-    }
 }

@@ -12,7 +12,13 @@ export const ConfigSchema = z.object({
   autoSwitchThreshold: z.number().int().min(1).max(100),
   usageCount: z.number().int().min(0),
   todayUsageCount: z.number().int().min(0),
-  lastUsageDate: z.string().optional(), // ISO 8601
+  // ISO 8601. Rust serialises `Option<String>::None` as JSON `null`, so the
+  // schema must accept null as well as undefined; both normalise to undefined
+  // so the TS-facing type stays `string | undefined`.
+  lastUsageDate: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? undefined),
   playSound: z.boolean(),
   showBorderFlash: z.boolean(),
   crackSensitivity: z.number().min(0.5).max(2.0),
