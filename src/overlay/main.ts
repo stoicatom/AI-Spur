@@ -96,13 +96,6 @@ document.addEventListener('mousemove', (e) => {
   mouseY = e.clientY;
 });
 
-// When mouse leaves the window, dismiss the whip to avoid physics glitches
-document.addEventListener('mouseleave', () => {
-  if (whip && !whip.dropping) {
-    whip = { ...whip, dropping: true };
-  }
-});
-
 // Clicking dismisses the whip, matching v1's behaviour.
 document.addEventListener('mousedown', () => {
   if (whip && !whip.dropping) whip = { ...whip, dropping: true };
