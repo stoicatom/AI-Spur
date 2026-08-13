@@ -76,6 +76,8 @@ let usageCount = 0;
 let autoSwitchThreshold = 20;
 // When set, the current whip is a quick-mode one with a deadline.
 let quickTimeoutAt: number | null = null;
+// Track when dropping started for timeout fallback
+let droppingStartTime: number | null = null;
 
 // Particle system for visual effects
 const particles = new ParticleSystem();
@@ -255,9 +257,20 @@ function frame() {
       // Note: no `return` here — RAF is already scheduled at the top.
     } else {
       // Full mode: despawn once every point has fallen past the bottom edge.
-      if (whip.dropping && whip.pts.every((p) => p.y > height + 60)) {
-        whip = null;
-        void hideOverlay();
+      // Also add a 3-second timeout to avoid stuck whips.
+      if (whip.dropping) {
+        if (droppingStartTime === null) {
+          droppingStartTime = now;
+        }
+        const droppingDuration = now - droppingStartTime;
+        const allPointsOffscreen = whip.pts.every((p) => p.y > height + 60);
+        const timedOut = droppingDuration > 3000; // 3 seconds
+
+        if (allPointsOffscreen || timedOut) {
+          whip = null;
+          droppingStartTime = null;
+          void hideOverlay();
+        }
       }
     }
   }
@@ -300,6 +313,7 @@ let unlistenDropWhip: (() => void) | null = null;
     if (full) {
       whip = createWhipState(mouseX, mouseY, physicsParams);
       quickTimeoutAt = null;
+      droppingStartTime = null; // Reset dropping timer for new whip
 
       // Emit particles at whip tip if effect is enabled
       if (skin.particleEffect !== 'none') {
@@ -316,6 +330,7 @@ let unlistenDropWhip: (() => void) | null = null;
         now: Date.now(),
       });
       quickTimeoutAt = Date.now() + QUICK_TUNING.lifetimeMs;
+      droppingStartTime = null; // Quick mode uses timeout, not dropping timer
 
       // Emit fewer particles for quick mode
       if (skin.particleEffect !== 'none') {
