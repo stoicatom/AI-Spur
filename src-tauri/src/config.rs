@@ -129,6 +129,51 @@ mod tests {
     use super::*;
 
     #[test]
+    fn migrate_accepts_shortcut_config_raw() {
+        // A config file written as JSON with version 1.0 should be rejected
+        // (we do not have a v1 migration defined), but the error must name the
+        // version rather than silently produce an empty default config.
+        let raw = serde_json::json!({ "version": "1.0", "hotkey": "ctrl+w" });
+        let err = migrate(raw).unwrap_err();
+        assert!(matches!(err, ConfigError::UnknownVersion(v) if v == "1.0"));
+    }
+
+    #[test]
+    fn migrate_accepts_current_v2() {
+        let raw = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CommandOrControl+Shift+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "default",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 0,
+            "todayUsageCount": 0,
+            "playSound": true,
+            "showBorderFlash": true,
+            "firstLaunch": true
+        });
+        let cfg = migrate(raw).unwrap();
+        assert_eq!(cfg.version, "2.0");
+        assert_eq!(cfg.hotkey, "CommandOrControl+Shift+W");
+    }
+
+    #[test]
+    fn migrate_rejects_unknown_version() {
+        let raw = serde_json::json!({ "version": "99.0" });
+        let err = migrate(raw).unwrap_err();
+        assert!(matches!(err, ConfigError::UnknownVersion(v) if v == "99.0"));
+    }
+
+    #[test]
+    fn migrate_treats_missing_version_as_v1() {
+        // A config with no version field is legacy v1 and gets rejected as such.
+        let raw = serde_json::json!({ "hotkey": "ctrl+w" });
+        let err = migrate(raw).unwrap_err();
+        assert!(matches!(err, ConfigError::UnknownVersion(v) if v == "1.0"));
+    }
+
+    #[test]
     fn default_config_has_correct_version() {
         let cfg = Config::default();
         assert_eq!(cfg.version, "2.0");
