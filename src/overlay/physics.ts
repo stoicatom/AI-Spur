@@ -49,7 +49,7 @@ export const DEFAULT_PHYSICS: PhysicsParams = {
   damping: 0.96,
   constraintIters: 20,
   maxStretchRatio: 1.2,
-  crackSpeed: 340,
+  crackSpeed: 30,
   crackCooldownMs: 200,
   firstCrackGraceMs: 350,
   baseTargetAngle: -1.12,
