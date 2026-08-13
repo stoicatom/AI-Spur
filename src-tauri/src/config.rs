@@ -5,7 +5,6 @@ use thiserror::Error;
 
 // Note: These types and functions are not used in main.rs yet but will be
 // consumed by Tauri command handlers in subsequent tasks (Task 1.3+).
-#[allow(dead_code)]
 #[derive(Error, Debug)]
 pub enum ConfigError {
     #[error("Failed to read config file: {0}")]
@@ -18,7 +17,6 @@ pub enum ConfigError {
     UnknownVersion(String),
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum AnimationMode {
@@ -28,7 +26,6 @@ pub enum AnimationMode {
     Auto,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
@@ -70,7 +67,6 @@ impl Default for Config {
     }
 }
 
-#[allow(dead_code)]
 fn config_path() -> Result<PathBuf, ConfigError> {
     // For Tauri v2, we need to construct the config dir path manually
     // since we don't have access to AppHandle in these standalone functions.
@@ -95,19 +91,31 @@ fn config_path() -> Result<PathBuf, ConfigError> {
     Ok(config_dir.join("config.json"))
 }
 
-#[allow(dead_code)]
 pub fn load_config() -> Result<Config, ConfigError> {
     let path = config_path()?;
     if !path.exists() {
         return Ok(Config::default());
     }
     let contents = fs::read_to_string(&path).map_err(|e| ConfigError::ReadError(e.to_string()))?;
-    let config: Config =
+    let raw: serde_json::Value =
         serde_json::from_str(&contents).map_err(|e| ConfigError::ParseError(e.to_string()))?;
-    Ok(config)
+    migrate(raw)
 }
 
-#[allow(dead_code)]
+/// Convert a raw config JSON value into the current `Config` schema.
+///
+/// Unknown versions are a hard error so a config written by a newer (or
+/// corrupted) build is never silently half-parsed into defaults — better to
+/// surface the problem than to reset the user's settings (R-ARCH-010).
+fn migrate(raw: serde_json::Value) -> Result<Config, ConfigError> {
+    let version = raw.get("version").and_then(|v| v.as_str()).unwrap_or("1.0");
+
+    match version {
+        "2.0" => serde_json::from_value(raw).map_err(|e| ConfigError::ParseError(e.to_string())),
+        _ => Err(ConfigError::UnknownVersion(version.to_string())),
+    }
+}
+
 pub fn save_config(config: &Config) -> Result<(), ConfigError> {
     let path = config_path()?;
     let json =

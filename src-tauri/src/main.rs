@@ -5,7 +5,10 @@ mod config;
 mod macro_sender;
 mod shortcut;
 mod skins;
+mod target_window;
 mod tray;
+
+use std::sync::Arc;
 
 use commands::AppState;
 use std::sync::Mutex;
@@ -15,8 +18,21 @@ use tauri_plugin_global_shortcut::ShortcutState;
 
 fn main() {
     let config = config::load_config().unwrap_or_default();
+
+    // Build the real input backend. If it fails (e.g. no Accessibility
+    // permission on macOS), fall back to a no-op sender that logs — the app
+    // must still run and show the tray; the macro just won't fire.
+    let sender: Arc<dyn macro_sender::MacroSender> = match macro_sender::EnigoSender::new() {
+        Ok(s) => Arc::new(s),
+        Err(e) => {
+            eprintln!("[macro] enigo init failed, using stub sender: {e}");
+            Arc::new(macro_sender::FakeMacroSender::new())
+        }
+    };
+
     let app_state = AppState {
         config: Mutex::new(config),
+        sender,
     };
 
     #[allow(unused_mut)]

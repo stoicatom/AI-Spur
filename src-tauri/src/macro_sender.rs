@@ -3,9 +3,7 @@ use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
 // Note: EnigoSender is not wired into commands.rs yet (macro trigger wiring
-// is Task 2.2). Keep #[allow(dead_code)] until the trigger_macro command
 // consumes this module, matching the pattern used in config.rs.
-#[allow(dead_code)]
 #[derive(Error, Debug)]
 pub enum MacroError {
     #[error("Failed to initialize input backend: {0}")]
@@ -15,7 +13,6 @@ pub enum MacroError {
 }
 
 /// Trait for sending keyboard macros (interrupt + text + enter sequence)
-#[allow(dead_code)]
 pub trait MacroSender: Send + Sync {
     fn send_interrupt(&self) -> Result<(), MacroError>;
     fn type_text(&self, text: &str) -> Result<(), MacroError>;
@@ -23,12 +20,10 @@ pub trait MacroSender: Send + Sync {
 }
 
 /// Production implementation using enigo 0.6
-#[allow(dead_code)]
 pub struct EnigoSender {
     enigo: Mutex<Enigo>,
 }
 
-#[allow(dead_code)]
 impl EnigoSender {
     pub fn new() -> Result<Self, MacroError> {
         let settings = Settings::default();
@@ -89,7 +84,6 @@ impl MacroSender for EnigoSender {
 }
 
 /// Call record for FakeMacroSender testing
-#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum MacroCall {
     Interrupt,
@@ -98,19 +92,16 @@ pub enum MacroCall {
 }
 
 /// Fake implementation for testing without real keyboard events
-#[allow(dead_code)]
 pub struct FakeMacroSender {
     pub calls: Arc<Mutex<Vec<MacroCall>>>,
 }
 
-#[allow(dead_code)]
 impl Default for FakeMacroSender {
     fn default() -> Self {
         Self::new()
     }
 }
 
-#[allow(dead_code)]
 impl FakeMacroSender {
     pub fn new() -> Self {
         Self {

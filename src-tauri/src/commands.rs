@@ -1,12 +1,17 @@
 use crate::config::{self, Config};
+use crate::macro_sender::MacroSender;
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
+use crate::target_window;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 pub struct AppState {
     pub config: Mutex<Config>,
+    /// Injected input backend. Real `EnigoSender` in production, `FakeMacroSender`
+    /// in tests — this is how the trait gives us testability (R-ARCH-007).
+    pub sender: Arc<dyn MacroSender>,
 }
 
 #[tauri::command]
@@ -85,8 +90,58 @@ pub async fn check_hotkey_conflict(
 }
 
 #[tauri::command]
-pub async fn trigger_macro(_phrase: Option<String>) -> Result<(), String> {
-    // Placeholder: full implementation in Phase 2.2 (MacroSender wiring)
+pub async fn trigger_macro(
+    phrase: Option<String>,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    // Safety gate: never inject into a window we can't confirm is a terminal.
+    // Unknown frontmost app should not be spammed with Ctrl+C + text.
+    if !target_window::active_app_is_safe() {
+        return Err("当前前台应用不是终端，已跳过发送".to_string());
+    }
+
+    // Server-side phrase choice (random from config) unless the caller passed
+    // one explicitly (e.g. E2E test backdoors or a test app).
+    let chosen = match phrase {
+        Some(p) if !p.is_empty() => p,
+        _ => {
+            let cfg = state
+                .config
+                .lock()
+                .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
+            let phrases = &cfg.phrases;
+            if phrases.is_empty() {
+                return Err("提示词列表为空，无法发送".to_string());
+            }
+            let idx = {
+                // use a deterministic index from wall clock to keep it testable
+                use std::time::{SystemTime, UNIX_EPOCH};
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_nanos();
+                (now % phrases.len() as u128) as usize
+            };
+            phrases[idx].clone()
+        }
+    };
+
+    let sender = state.sender.clone();
+    // enigo owns a Mutex internally; blocking here is fine because input
+    // synthesis is inherently blocking and short.
+    tauri::async_runtime::spawn_blocking(move || {
+        sender
+            .send_interrupt()
+            .and_then(|_| sender.type_text(&chosen))
+            .and_then(|_| sender.press_enter())
+            .map_err(|e| format!("宏发送失败: {e}"))?;
+        Ok::<(), String>(())
+    })
+    .await
+    .map_err(|e| format!("发送任务失败: {e}"))??;
+
+    let _ = app; // AppHandle kept for future notifications; not needed yet.
     Ok(())
 }
 
