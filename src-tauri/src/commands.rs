@@ -103,8 +103,13 @@ pub async fn check_hotkey_conflict(
     Ok(shortcut::check_conflict(&app, &hotkey))
 }
 
+/// R-ARCH-005: Macro emission runs on the main thread because enigo's macOS
+/// backend calls HIToolbox APIs (islGetInputSourceListWithAdditions) which
+/// require dispatch on the main queue. The command is synchronous to avoid
+/// spawning on a worker thread; Tauri automatically runs sync commands on the
+/// main thread when invoked from the frontend.
 #[tauri::command]
-pub async fn trigger_macro(
+pub fn trigger_macro(
     phrase: Option<String>,
     app: AppHandle,
     state: State<'_, AppState>,
@@ -130,18 +135,12 @@ pub async fn trigger_macro(
     };
 
     let sender = state.sender.clone();
-    // enigo owns a Mutex internally; blocking here is fine because input
-    // synthesis is inherently blocking and short.
-    tauri::async_runtime::spawn_blocking(move || {
-        sender
-            .send_interrupt()
-            .and_then(|_| sender.type_text(&chosen))
-            .and_then(|_| sender.press_enter())
-            .map_err(|e| format!("宏发送失败: {e}"))?;
-        Ok::<(), String>(())
-    })
-    .await
-    .map_err(|e| format!("发送任务失败: {e}"))??;
+    // Run directly on current thread (main thread for sync commands).
+    sender
+        .send_interrupt()
+        .and_then(|_| sender.type_text(&chosen))
+        .and_then(|_| sender.press_enter())
+        .map_err(|e| format!("宏发送失败: {e}"))?;
 
     let _ = app; // AppHandle kept for future notifications; not needed yet.
     Ok(())
