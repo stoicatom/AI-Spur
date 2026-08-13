@@ -39,7 +39,11 @@
     "builtIn": "内置皮肤",
     "custom": "自定义皮肤",
     "uploadSkin": "上传皮肤",
-    "uploadSound": "上传音效"
+    "uploadSound": "上传音效",
+    "enterSkinName": "输入皮肤名称",
+    "noCustomSkins": "暂无自定义皮肤",
+    "soundFiles": "个音效文件",
+    "deleteConfirm": "确定删除此皮肤？"
   },
   "animation": {
     "title": "动画选项",
@@ -79,7 +83,8 @@
     "edit": "编辑",
     "close": "关闭",
     "apply": "应用",
-    "reset": "重置"
+    "reset": "重置",
+    "loading": "加载中..."
   },
   "tray": {
     "settings": "设置…",

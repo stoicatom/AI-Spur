@@ -2,6 +2,7 @@
 
 mod commands;
 mod config;
+mod custom_skins;
 mod macro_sender;
 mod shortcut;
 mod skins;
@@ -73,6 +74,9 @@ fn main() {
             commands::list_skins,
             commands::activate_skin,
             commands::open_settings,
+            custom_skins::list_custom_skins,
+            custom_skins::import_custom_skin,
+            custom_skins::delete_custom_skin,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]
             commands::__test_trigger_shortcut,

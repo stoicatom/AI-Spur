@@ -39,7 +39,11 @@
     "builtIn": "Built-in Skins",
     "custom": "Custom Skins",
     "uploadSkin": "Upload Skin",
-    "uploadSound": "Upload Sound"
+    "uploadSound": "Upload Sound",
+    "enterSkinName": "Enter skin name",
+    "noCustomSkins": "No custom skins yet",
+    "soundFiles": "sound files",
+    "deleteConfirm": "Delete this skin?"
   },
   "animation": {
     "title": "Animation Options",
@@ -79,7 +83,8 @@
     "edit": "Edit",
     "close": "Close",
     "apply": "Apply",
-    "reset": "Reset"
+    "reset": "Reset",
+    "loading": "Loading..."
   },
   "tray": {
     "settings": "Settings…",
