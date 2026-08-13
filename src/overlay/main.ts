@@ -248,48 +248,48 @@ let unlistenDropWhip: (() => void) | null = null;
   unlistenSpawnWhip = await onSpawnWhip((payload) => {
     void applyActiveSkin();
 
-  // payload is the JSON the Rust side emits: { forceFull }.
-  const forceFull = Boolean((payload as { forceFull?: boolean } | null)?.forceFull);
+    // payload is the JSON the Rust side emits: { forceFull }.
+    const forceFull = Boolean((payload as { forceFull?: boolean } | null)?.forceFull);
 
-  const full = wantsFullAnimation(
-    animationMode,
-    usageCount,
-    autoSwitchThreshold,
-    forceFull
-  );
+    const full = wantsFullAnimation(
+      animationMode,
+      usageCount,
+      autoSwitchThreshold,
+      forceFull
+    );
 
-  if (full) {
-    whip = createWhipState(mouseX, mouseY, physicsParams);
-    quickTimeoutAt = null;
+    if (full) {
+      whip = createWhipState(mouseX, mouseY, physicsParams);
+      quickTimeoutAt = null;
 
-    // Emit particles at whip tip if effect is enabled
-    if (skin.particleEffect !== 'none') {
-      const tipIndex = whip.pts.length - 1;
-      const tipX = whip.pts[tipIndex].x;
-      const tipY = whip.pts[tipIndex].y;
-      particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 10, skin.handleColor);
+      // Emit particles at whip tip if effect is enabled
+      if (skin.particleEffect !== 'none') {
+        const tipIndex = whip.pts.length - 1;
+        const tipX = whip.pts[tipIndex].x;
+        const tipY = whip.pts[tipIndex].y;
+        particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 10, skin.handleColor);
+      }
+    } else {
+      // Corner mini-whip: smaller arc, automatic crack and despawn.
+      whip = createWhipState(mouseX, mouseY, physicsParams, {
+        arcWidth: QUICK_TUNING.arcWidth,
+        arcHeight: QUICK_TUNING.arcHeight,
+        now: Date.now(),
+      });
+      quickTimeoutAt = Date.now() + QUICK_TUNING.lifetimeMs;
+
+      // Emit fewer particles for quick mode
+      if (skin.particleEffect !== 'none') {
+        const tipIndex = whip.pts.length - 1;
+        const tipX = whip.pts[tipIndex].x;
+        const tipY = whip.pts[tipIndex].y;
+        particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 5, skin.handleColor);
+      }
     }
-  } else {
-    // Corner mini-whip: smaller arc, automatic crack and despawn.
-    whip = createWhipState(mouseX, mouseY, physicsParams, {
-      arcWidth: QUICK_TUNING.arcWidth,
-      arcHeight: QUICK_TUNING.arcHeight,
-      now: Date.now(),
-    });
-    quickTimeoutAt = Date.now() + QUICK_TUNING.lifetimeMs;
 
-    // Emit fewer particles for quick mode
-    if (skin.particleEffect !== 'none') {
-      const tipIndex = whip.pts.length - 1;
-      const tipX = whip.pts[tipIndex].x;
-      const tipY = whip.pts[tipIndex].y;
-      particles.emit(tipX, tipY, skin.particleEffect as ParticleType, 5, skin.handleColor);
-    }
-  }
-
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-});
+    prevMouseX = mouseX;
+    prevMouseY = mouseY;
+  });
 
   unlistenDropWhip = await onDropWhip(() => {
     if (whip && !whip.dropping) whip = { ...whip, dropping: true };
