@@ -17,6 +17,7 @@ describe('Config IPC contract', () => {
         playSound: true,
         showBorderFlash: true,
         crackSensitivity: 1.0,
+        theme: 'auto',
         firstLaunch: false,
       };
 
@@ -39,6 +40,7 @@ describe('Config IPC contract', () => {
         playSound: true,
         showBorderFlash: true,
         crackSensitivity: 1.0,
+        theme: 'dark',
         firstLaunch: false,
       };
 

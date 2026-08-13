@@ -50,6 +50,17 @@ export function App() {
     void loadConfig();
   }, [loadConfig]);
 
+  // Apply theme to document root when config loads or theme changes
+  useEffect(() => {
+    if (load.status !== 'ready') return;
+    const theme = load.config.theme;
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [load]);
+
   const flush = useCallback(async () => {
     const next = pendingRef.current;
     if (!next) return;

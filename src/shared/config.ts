@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const AnimationModeSchema = z.enum(['standard', 'fast', 'auto']);
 export type AnimationMode = z.infer<typeof AnimationModeSchema>;
 
+export const ThemeSchema = z.enum(['light', 'dark', 'auto']);
+export type Theme = z.infer<typeof ThemeSchema>;
+
 export const ConfigSchema = z.object({
   version: z.literal('2.0'),
   hotkey: z.string().min(1),
@@ -22,6 +25,7 @@ export const ConfigSchema = z.object({
   playSound: z.boolean(),
   showBorderFlash: z.boolean(),
   crackSensitivity: z.number().min(0.5).max(2.0),
+  theme: ThemeSchema,
   firstLaunch: z.boolean(),
 });
 
@@ -40,5 +44,6 @@ export const DEFAULT_CONFIG: Config = {
   playSound: true,
   showBorderFlash: true,
   crackSensitivity: 1.0,
+  theme: 'auto',
   firstLaunch: true,
 };

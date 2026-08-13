@@ -6,7 +6,7 @@
  * for sidebar nav at 16px rendered size.
  */
 
-export type IconName = 'trigger' | 'phrases' | 'skins' | 'animation' | 'sounds' | 'stats';
+export type IconName = 'trigger' | 'phrases' | 'skins' | 'animation' | 'sounds' | 'theme' | 'stats';
 
 export interface IconProps {
   name: IconName;
@@ -96,6 +96,25 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
     <>
       <path
         d="M4 8V12M7 6V14M10 4V16M13 6V14M16 8V12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </>
+  ),
+
+  // Theme: Sun/Moon split (light/dark mode toggle)
+  theme: (
+    <>
+      <circle
+        cx="10"
+        cy="10"
+        r="4"
+        fill="currentColor"
+        opacity="0.2"
+      />
+      <path
+        d="M10 2V4M10 16V18M18 10H16M4 10H2M15.66 15.66L14.24 14.24M5.76 5.76L4.34 4.34M15.66 4.34L14.24 5.76M5.76 14.24L4.34 15.66"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"

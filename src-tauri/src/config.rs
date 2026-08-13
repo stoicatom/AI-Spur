@@ -26,6 +26,15 @@ pub enum AnimationMode {
     Auto,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum Theme {
+    Light,
+    Dark,
+    #[default]
+    Auto,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
@@ -43,6 +52,7 @@ pub struct Config {
     /// Multiplier on the crack speed threshold; 1.0 is the tuned baseline.
     /// Semantics: higher = easier to trigger a crack.
     pub crack_sensitivity: f32,
+    pub theme: Theme,
     pub first_launch: bool,
 }
 
@@ -66,6 +76,7 @@ impl Default for Config {
             play_sound: true,
             show_border_flash: true,
             crack_sensitivity: 1.0,
+            theme: Theme::Auto,
             first_launch: true,
         }
     }

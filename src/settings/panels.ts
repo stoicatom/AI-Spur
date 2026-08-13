@@ -14,6 +14,7 @@ export const PANEL_IDS = [
   'skins',
   'animation',
   'sounds',
+  'theme',
   'stats',
 ] as const;
 
@@ -51,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: 'skins', label: '皮肤', icon: 'skins' },
       { id: 'animation', label: '动画', icon: 'animation' },
       { id: 'sounds', label: '音效', icon: 'sounds' },
+      { id: 'theme', label: '主题', icon: 'theme' },
     ],
   },
   {

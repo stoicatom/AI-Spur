@@ -5,6 +5,7 @@ import { PhrasesPanel } from './PhrasesPanel';
 import { SkinsPanel } from './SkinsPanel';
 import { SoundsPanel } from './SoundsPanel';
 import { StatsPanel } from './StatsPanel';
+import { ThemePanel } from './ThemePanel';
 import { TriggerPanel } from './TriggerPanel';
 
 export interface PanelBodyProps {
@@ -32,6 +33,8 @@ export function PanelBody({ panel, config, onPatch }: PanelBodyProps) {
       return <AnimationPanel {...props} />;
     case 'sounds':
       return <SoundsPanel {...props} />;
+    case 'theme':
+      return <ThemePanel theme={config.theme} onChange={(theme) => onPatch({ theme })} />;
     case 'stats':
       return <StatsPanel {...props} />;
   }
