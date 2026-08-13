@@ -224,9 +224,11 @@ function frame() {
 
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
-    // Update and render particle effects (only if active particles exist)
+    // Update particle physics every frame (particles may be emitted at any time)
+    particles.update(1 / 60);
+
+    // Only draw if there are active particles (optimization)
     if (particles.activeCount > 0) {
-      particles.update(1 / 60);
       particles.draw(ctx);
     }
 
