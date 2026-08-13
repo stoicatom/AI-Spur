@@ -1,13 +1,14 @@
 [package]
-name = "openwhip"
+name = "ai-spur"
 version = "0.2.0"
-description = "Whip Claude into shape"
+description = "Spur Claude Code into moving faster"
 authors = ["lorain"]
 license = "MIT"
 repository = "https://github.com/stoicatom/AI-Spur"
 edition = "2024"
 rust-version = "1.85.0"
 
+# Lib name kept as `openwhip`: the test suites import it by this name.
 [lib]
 name = "openwhip"
 crate-type = ["lib", "cdylib"]
@@ -16,12 +17,16 @@ crate-type = ["lib", "cdylib"]
 
 
 [build-dependencies]
-tauri-build = { version = "2.6.3" }
+tauri-build = { version = "2.6.3", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.11.3", features = ["tray-icon", "image-ico", "image-png"] }
+# macos-private-api: required by the transparent overlay window
+# (app.macOSPrivateApi in tauri.conf.json). Note this makes the app
+# ineligible for the Mac App Store — accepted in ADR-001 since the
+# transparent full-screen overlay is the product's core surface.
+tauri = { version = "2.11.3", features = ["tray-icon", "image-ico", "image-png", "macos-private-api"] }
 tauri-plugin-global-shortcut = "2.3"
 thiserror = "2.0"
 dirs = "5.0"

@@ -90,6 +90,22 @@ pub async fn trigger_macro(_phrase: Option<String>) -> Result<(), String> {
     Ok(())
 }
 
+/// Show and focus the settings window.
+///
+/// The window is defined in tauri.conf.json with `visible: false`, so it
+/// exists from startup but stays hidden until the user asks for it. Creating
+/// it lazily would cost a WebView boot on every open.
+#[tauri::command]
+pub async fn open_settings(app: AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("settings")
+        .ok_or_else(|| "settings window not found".to_string())?;
+    window.show().map_err(|e| e.to_string())?;
+    window.unminimize().ok();
+    window.set_focus().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 // ── Skins ───────────────────────────────────────────────────────────────────
 
 /// Directory holding the bundled skins.

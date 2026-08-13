@@ -1,19 +1,26 @@
 use tauri::{
     AppHandle, Emitter, Manager,
-    menu::{Menu, MenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
+    menu::{Menu, MenuItem, PredefinedMenuItem},
+    tray::{TrayIconBuilder, TrayIconEvent},
 };
 
-/// Set up the system tray icon and context menu.
+/// Build the tray icon and its menu.
 ///
-/// Left-click emits `spawn-whip` to the overlay window.
-/// Right-click shows a menu with "Open Settings" and "Quit".
+/// The menu opens on both left and right click: for a tray-only app the icon
+/// is the entire UI surface, so a left click that silently fired an action
+/// gave the user no way to reach settings or quit.
+///
+/// Triggering the whip moved into the menu as an explicit item, alongside the
+/// global shortcut which remains the fast path.
 pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let menu = Menu::with_items(
         app,
         &[
-            &MenuItem::with_id(app, "settings", "Open Settings", true, None::<&str>)?,
-            &MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?,
+            &MenuItem::with_id(app, "whip", "挥鞭 (Whip It)", true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "settings", "设置…", true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "quit", "退出 AI-Spur", true, None::<&str>)?,
         ],
     )?;
 
@@ -22,31 +29,44 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .cloned()
         .ok_or("no default window icon")?;
 
-    let _tray = TrayIconBuilder::new()
+    let _tray = TrayIconBuilder::with_id("main-tray")
         .icon(icon)
-        .tooltip("OpenWhip - click for whip")
-        .show_menu_on_left_click(false)
+        .icon_as_template(true)
+        .tooltip("AI-Spur — 催促 Claude Code")
         .menu(&menu)
+        // Show the menu on left click too; see the note above.
+        .show_menu_on_left_click(true)
         .on_menu_event(|app, event| match event.id.as_ref() {
-            "quit" => app.exit(0),
-            "settings" => {
-                // Placeholder: settings window not yet implemented (Task 4.2)
-                let _ = app.emit("open-settings", ());
-            }
-            _ => {}
-        })
-        .on_tray_icon_event(|tray: &TrayIcon, event| {
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                button_state: MouseButtonState::Up,
-                ..
-            } = event
-            {
-                let app = tray.app_handle();
-                // The overlay window is created in Phase 2/3; emit is a no-op until then.
+            "whip" => {
                 if let Some(window) = app.get_webview_window("overlay") {
+                    // The overlay starts hidden and must be shown before it can
+                    // render; emitting alone would animate an invisible window.
+                    let _ = window.show();
                     let _ = window.emit("spawn-whip", ());
                 }
+            }
+            "settings" => {
+                if let Some(window) = app.get_webview_window("settings") {
+                    // LSUIElement makes this a non-activating (accessory) app, so
+                    // showing a window is not enough — without promoting the app to
+                    // a regular activation policy first, macOS keeps the window off
+                    // screen even though Tauri reports it as visible.
+                    #[cfg(target_os = "macos")]
+                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+            }
+            "quit" => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|_tray, event| {
+            // Clicks are handled by the menu itself now. Enter/Leave/Move still
+            // arrive here; ignore them rather than acting on a stray event.
+            if let TrayIconEvent::Click { .. } = event {
+                // Intentionally empty: show_menu_on_left_click handles display.
             }
         })
         .build(app)?;

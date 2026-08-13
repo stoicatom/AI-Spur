@@ -29,6 +29,9 @@ fn main() {
                     // so we don't need to match on `shortcut` identity here.
                     if event.state() == ShortcutState::Pressed {
                         if let Some(w) = app.get_webview_window("overlay") {
+                            // The overlay starts hidden; show it before emitting
+                            // or the animation runs on an invisible window.
+                            let _ = w.show();
                             let _ = w.emit("spawn-whip", ());
                         }
                     }
@@ -46,6 +49,7 @@ fn main() {
             commands::trigger_macro,
             commands::list_skins,
             commands::activate_skin,
+            commands::open_settings,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]
             commands::__test_trigger_shortcut,
@@ -54,6 +58,21 @@ fn main() {
             #[cfg(debug_assertions)]
             commands::__test_send_macro,
         ])
+        .on_window_event(|window, event| {
+            // Closing the settings window should hide it and drop the app back to
+            // accessory mode, not quit: this is a tray-resident app. Without the
+            // policy reset the Dock tile added when opening settings would stay.
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "settings" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                    #[cfg(target_os = "macos")]
+                    let _ = window
+                        .app_handle()
+                        .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                }
+            }
+        })
         .setup(|app| {
             tray::setup_tray(app.handle())?;
 
