@@ -12,10 +12,11 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let menu = Menu::with_items(
         app,
         &[
-            &MenuItem::with_id(app, "settings:prompts", "提示词管理…", true, None::<&str>)?,
-            &MenuItem::with_id(app, "settings:skins", "皮肤与音效…", true, None::<&str>)?,
+            &MenuItem::with_id(app, "settings:phrases", "提示词管理…", true, None::<&str>)?,
+            &MenuItem::with_id(app, "settings:skins", "皮肤选择…", true, None::<&str>)?,
             &MenuItem::with_id(app, "settings:animation", "动画选项…", true, None::<&str>)?,
-            &MenuItem::with_id(app, "settings:advanced", "高级设置…", true, None::<&str>)?,
+            &MenuItem::with_id(app, "settings:sounds", "音效设置…", true, None::<&str>)?,
+            &MenuItem::with_id(app, "settings:theme", "主题外观…", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "quit", "退出 AI-Spur", true, None::<&str>)?,
         ],

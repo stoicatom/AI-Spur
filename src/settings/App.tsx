@@ -55,7 +55,9 @@ export function App() {
   useEffect(() => {
     const unlisten = listen('switch-tab', (event) => {
       const tab = event.payload as string;
-      if (tab === 'prompts' || tab === 'skins' || tab === 'animation' || tab === 'advanced') {
+      // Validate that the tab is a valid PanelId before setting
+      const validPanels = ['trigger', 'phrases', 'skins', 'animation', 'sounds', 'theme', 'stats'];
+      if (validPanels.includes(tab)) {
         setActive(tab as PanelId);
       }
     });

@@ -220,6 +220,11 @@ export function physicsStep(
   // Crack 检测（使用物理计算前的速度）
   const tipVel = tipVelBeforePhysics;
 
+  // Debug logging for crack detection
+  if (!newState.dropping && tipVel > 100) {
+    console.log('[physics] Tip velocity:', tipVel.toFixed(1), 'threshold:', params.crackSpeed);
+  }
+
   if (
     !newState.dropping &&
     tipVel > params.crackSpeed &&
@@ -228,6 +233,7 @@ export function physicsStep(
   ) {
     crackTriggered = true;
     newState.lastCrackTime = input.now;
+    console.log('[physics] CRACK! tipVel:', tipVel.toFixed(1));
   }
 
   return { nextState: newState, crackTriggered };

@@ -231,7 +231,10 @@ function frame() {
     prevMouseX = mouseX;
     prevMouseY = mouseY;
 
-    if (crackTriggered) void handleCrack();
+    if (crackTriggered) {
+      console.log('[overlay] Crack triggered! tipVel:', crackTriggered);
+      void handleCrack();
+    }
 
     drawWhip(ctx, whip, skin, DEFAULT_RENDER);
 
