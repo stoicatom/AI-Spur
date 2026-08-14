@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0",
-  "productName": "AI-Spur",
+  "productName": "AISpur",
   "version": "0.2.0",
   "identifier": "com.aispur.app",
   "build": {
@@ -57,7 +57,7 @@
       {
         "label": "overlay",
         "url": "overlay.html",
-        "title": "AI-Spur Overlay",
+        "title": "AISpur Overlay",
         "width": 1920,
         "height": 1080,
         "transparent": true,
@@ -71,7 +71,7 @@
       {
         "label": "settings",
         "url": "settings.html",
-        "title": "AI-Spur 设置",
+        "title": "AISpur 设置",
         "width": 900,
         "height": 640,
         "minWidth": 720,

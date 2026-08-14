@@ -50,7 +50,7 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
   return (
     <nav className="sidebar" aria-label="设置分类">
       <div className="sidebar__brand">
-        <span className="sidebar__brand-mark font-display">AI-Spur</span>
+        <span className="sidebar__brand-mark font-display">AISpur</span>
         <span className="sidebar__brand-version font-mono">v2</span>
       </div>
 

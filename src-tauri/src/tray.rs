@@ -18,7 +18,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             &MenuItem::with_id(app, "settings:sounds", "音效设置", true, None::<&str>)?,
             &MenuItem::with_id(app, "settings:theme", "主题外观", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "quit", "退出 AI-Spur", true, None::<&str>)?,
+            &MenuItem::with_id(app, "quit", "退出应用", true, None::<&str>)?,
         ],
     )?;
 
@@ -30,7 +30,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let _tray = TrayIconBuilder::with_id("main-tray")
         .icon(icon)
         .icon_as_template(true)
-        .tooltip("AI-Spur — 催促 Claude Code")
+        .tooltip("AISpur — 催促 Claude Code")
         .menu(&menu)
         // Show the menu on left click too; see the note above.
         .show_menu_on_left_click(true)
