@@ -28,6 +28,10 @@ export const ConfigSchema = z.object({
   theme: ThemeSchema,
   language: z.enum(['auto', 'zh-CN', 'en-US']).default('auto'),
   firstLaunch: z.boolean(),
+  crackSoundId: z.string().default('default'),
+  // 活跃素材 id（光标/爆裂视觉）。与 Rust config.active_material_id 同步，
+  // 新增字段用 default 保持向后兼容——参照 crackSoundId 的既有做法。
+  activeMaterialId: z.string().default('rocket'),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -48,4 +52,6 @@ export const DEFAULT_CONFIG: Config = {
   theme: 'auto',
   language: 'auto',
   firstLaunch: true,
+  crackSoundId: 'default',
+  activeMaterialId: 'rocket',
 };

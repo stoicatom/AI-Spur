@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "AISpur"
+    "name": "AISpur",
+    "description": "AI Terminal Accelerator"
   },
   "settings": {
     "title": "Settings",
@@ -50,7 +51,7 @@
     "mode": "Animation Mode",
     "modes": {
       "standard": "Standard Mode",
-      "standardDesc": "Full animation, manually crack by moving mouse",
+      "standardDesc": "Full animation, triggered by swinging the mouse",
       "fast": "Fast Mode",
       "fastDesc": "Corner mini-whip, auto-dismiss in 0.7s",
       "auto": "Auto Switch",
@@ -59,7 +60,7 @@
     "autoThreshold": "Auto Switch Threshold",
     "autoThresholdDesc": "Switch to fast mode after this many uses",
     "crackSensitivity": "Crack Sensitivity",
-    "crackSensitivityDesc": "Movement speed threshold (lower = more sensitive)"
+    "crackSensitivityDesc": "Swing speed threshold (higher = more sensitive)"
   },
   "advanced": {
     "title": "Advanced Settings",
@@ -88,7 +89,7 @@
   },
   "tray": {
     "settings": "Settings…",
-    "quit": "Quit AI-Spur"
+    "quit": "Quit AISpur"
   },
   "errors": {
     "configLoad": "Failed to load config",

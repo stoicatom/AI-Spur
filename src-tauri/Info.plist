@@ -6,5 +6,12 @@
        Electron's app.dock.hide(). -->
   <key>LSUIElement</key>
   <true/>
+  <!-- 打开设置时切到 Regular 激活策略会短暂显示 Dock 图标；不显式声明
+       这两个键时，Dock 悬浮名回退为可执行文件名（Cargo 包名小写 aispur）。
+       固定为品牌大写 AISpur。 -->
+  <key>CFBundleName</key>
+  <string>AISpur</string>
+  <key>CFBundleDisplayName</key>
+  <string>AISpur</string>
 </dict>
 </plist>

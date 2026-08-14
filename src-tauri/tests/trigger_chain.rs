@@ -4,8 +4,8 @@
 //! keeping fast-path coverage of shortcut + tray handler logic separated from
 //! live AppHandle tests (which require a running window system).
 
-use openwhip::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
-use openwhip::shortcut::generate_alternatives;
+use aispur::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
+use aispur::shortcut::generate_alternatives;
 
 // ���───��� Macro / whip-crack chain ────���─────���──���───────���──���──���─���───���────────���──
 

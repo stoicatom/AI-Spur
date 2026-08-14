@@ -1,26 +1,28 @@
 {
-  "name": "ai-spur",
+  "name": "aispur",
   "version": "0.2.0",
-  "description": "AI-Spur —催促 Claude Code 的桌面工具",
+  "description": "AISpur —AI 终端加速器",
   "license": "MIT",
   "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=18.0.0"
   },
   "keywords": [
-    "electron",
+    "ai",
+    "terminal",
     "tray",
     "overlay",
-    "cli"
+    "claude",
+    "codex"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stoicatom/AI-Spur.git"
+    "url": "git+https://github.com/stoicatom/AISpur.git"
   },
   "bugs": {
-    "url": "https://github.com/stoicatom/AI-Spur/issues"
+    "url": "https://github.com/stoicatom/AISpur/issues"
   },
-  "homepage": "https://github.com/stoicatom/AI-Spur#readme",
+  "homepage": "https://github.com/stoicatom/AISpur#readme",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

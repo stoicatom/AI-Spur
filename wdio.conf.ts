@@ -1,5 +1,5 @@
 /**
- * WebdriverIO configuration for OpenWhip v2 E2E tests.
+ * WebdriverIO configuration for AISpur E2E tests.
  *
  * Uses @wdio/tauri-service to drive the Tauri application binary directly.
  * The app must be built in debug mode before running:
@@ -12,9 +12,11 @@ import type { Options } from '@wdio/types';
 import * as path from 'path';
 
 // The debug binary produced by `tauri dev` / `cargo tauri dev`.
+// Name comes from `mainBinaryName` in tauri.conf.json (branded uppercase),
+// not the lowercase Cargo package name.
 const APP_BINARY = path.resolve(
   __dirname,
-  'src-tauri/target/debug/ai-spur'
+  'src-tauri/target/debug/AISpur'
 );
 
 export const config: Options.Testrunner = {

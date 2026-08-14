@@ -1,10 +1,12 @@
 use crate::config::{self, Config};
+use crate::cursor_tracker;
 use crate::macro_sender::MacroSender;
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
 use crate::usage;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -17,6 +19,10 @@ pub struct AppState {
     /// `app_config_dir()`. Held here so the command layer never has to guess the
     /// location from a hardcoded bundle identifier (CLAUDE.md §4.3).
     pub config_path: PathBuf,
+    /// Whether the overlay cursor-tracking loop is running. Set by the shortcut
+    /// handler (show) and cleared by `stop_cursor_tracking` (overlay hide). One
+    /// shared flag guarantees a single polling task (see `cursor_tracker`).
+    pub cursor_tracking: Arc<AtomicBool>,
 }
 
 #[tauri::command]
@@ -146,6 +152,17 @@ pub fn trigger_macro(
     Ok(())
 }
 
+/// Stop the overlay cursor-tracking loop.
+///
+/// Called by the overlay when it hides — after a crack's exit choreography, on
+/// `Esc`, or any other dismissal. Idempotent: clearing an already-clear flag is
+/// harmless, so the overlay can call it defensively without tracking state.
+#[tauri::command]
+pub fn stop_cursor_tracking(state: State<'_, AppState>) -> Result<(), String> {
+    cursor_tracker::stop(&state.cursor_tracking);
+    Ok(())
+}
+
 /// Show and focus the settings window.
 ///
 /// The window is defined in tauri.conf.json with `visible: false`, so it
@@ -170,13 +187,23 @@ pub async fn open_settings(app: AppHandle) -> Result<(), String> {
 /// that directory does not carry them, so fall back to the crate's own
 /// `skins/` folder.
 fn builtin_skins_dir(app: &AppHandle) -> PathBuf {
+    let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("skins");
+
+    // Dev: the source tree is authoritative (target/debug accumulates stale
+    // resource copies that are never pruned). Packaged builds use the bundled
+    // resource dir when it scans to at least one skin.
+    #[cfg(not(debug_assertions))]
     if let Ok(resource_dir) = app.path().resource_dir() {
         let bundled = resource_dir.join("skins");
-        if bundled.is_dir() {
+        if bundled.is_dir() && !skins::list_skins_in(&bundled).is_empty() {
             return bundled;
         }
     }
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("skins")
+
+    #[cfg(debug_assertions)]
+    let _ = app;
+
+    source
 }
 
 /// Directory holding user-installed skins: `app_data_dir()/skins/`.
@@ -250,10 +277,13 @@ pub async fn __test_trigger_shortcut(
 #[cfg(debug_assertions)]
 #[tauri::command]
 pub async fn __test_click_tray(app: AppHandle) -> Result<(), String> {
-    // Simulates a left-click on the tray icon (same path as tray.rs handler)
-    if let Some(w) = app.get_webview_window("overlay") {
-        w.emit("spawn-whip", serde_json::json!({ "forceFull": false }))
-            .map_err(|e| e.to_string())?;
+    // Simulates a left-click on the tray icon → opens settings panel.
+    if let Some(w) = app.get_webview_window("settings") {
+        #[cfg(target_os = "macos")]
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
     }
     Ok(())
 }

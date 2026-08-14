@@ -75,7 +75,7 @@ async fn save_config(config: Config, state: State<'_, AppState>) -> Result<(), S
 // ❌ 禁止——业务逻辑直接在命令中
 #[tauri::command]
 async fn save_config(config: Config) -> Result<(), String> {
-    let path = dirs::config_dir().unwrap().join("openwhip/config.json");
+    let path = dirs::config_dir().unwrap().join("aispur/config.json");
     std::fs::write(path, serde_json::to_string(&config).unwrap()).map_err(|e| e.to_string())
 }
 ```

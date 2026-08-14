@@ -55,6 +55,25 @@ pub struct Config {
     pub theme: Theme,
     pub language: String, // "auto" | "zh-CN" | "en-US"
     pub first_launch: bool,
+    /// ID of the active sound preset.
+    /// "default" = use the current skin's built-in sounds.
+    /// Anything else selects a preset or user-uploaded sound pack.
+    #[serde(default = "default_crack_sound_id")]
+    pub crack_sound_id: String,
+    /// ID of the active material (cursor/burst visual). "rocket" is the first
+    /// built-in vector effect. Kept in sync with the TS `activeMaterialId`
+    /// (Zod `.default('rocket')`); added via serde `default` so configs written
+    /// before this field parse unchanged (same approach as `crack_sound_id`).
+    #[serde(default = "default_active_material_id")]
+    pub active_material_id: String,
+}
+
+fn default_crack_sound_id() -> String {
+    "default".to_string()
+}
+
+fn default_active_material_id() -> String {
+    "rocket".to_string()
 }
 
 impl Default for Config {
@@ -80,6 +99,8 @@ impl Default for Config {
             theme: Theme::Auto,
             language: "auto".to_string(),
             first_launch: true,
+            crack_sound_id: "default".to_string(),
+            active_material_id: "rocket".to_string(),
         }
     }
 }
@@ -302,6 +323,35 @@ mod tests {
     }
 
     #[test]
+    fn parse_v2_fills_active_material_id_from_default() {
+        // A config written before `activeMaterialId` existed must still parse,
+        // picking up the "rocket" default rather than landing in the error state.
+        let partial = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CmdOrCtrl+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "default",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 0,
+            "todayUsageCount": 0,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": false,
+            // crackSoundId and activeMaterialId intentionally omitted
+        });
+        let cfg = migrate(partial).unwrap();
+        assert_eq!(cfg.active_material_id, "rocket");
+        assert_eq!(cfg.crack_sound_id, "default");
+    }
+
+    #[test]
+    fn default_config_has_rocket_material() {
+        assert_eq!(Config::default().active_material_id, "rocket");
+    }
+
+    #[test]
     fn parse_v2_ignores_unknown_fields() {
         let with_extra = serde_json::json!({
             "version": "2.0",
@@ -324,7 +374,7 @@ mod tests {
     #[test]
     fn save_and_load_roundtrip_with_path() {
         use std::env;
-        let path = env::temp_dir().join("openwhip_test_config.json");
+        let path = env::temp_dir().join("aispur_test_config.json");
         let cfg = Config::default();
         save_config(&path, &cfg).unwrap();
         let loaded = load_config(&path).unwrap();

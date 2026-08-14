@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "AI-Spur"
+    "name": "AISpur",
+    "description": "AI 终端加速器"
   },
   "settings": {
     "title": "设置",
@@ -50,7 +51,7 @@
     "mode": "动画模式",
     "modes": {
       "standard": "标准模式",
-      "standardDesc": "完整动画，需手动挥动鼠标触发",
+      "standardDesc": "完整动画，甩动鼠标触发",
       "fast": "快速模式",
       "fastDesc": "角落小动画，0.7秒自动消失",
       "auto": "自动切换",
@@ -59,7 +60,7 @@
     "autoThreshold": "自动切换阈值",
     "autoThresholdDesc": "使用多少次后切换到快速模式",
     "crackSensitivity": "触发灵敏度",
-    "crackSensitivityDesc": "挥动速度阈值（越小越灵敏）"
+    "crackSensitivityDesc": "甩动速度阈值（越大越灵敏）"
   },
   "advanced": {
     "title": "高级设置",
@@ -88,7 +89,7 @@
   },
   "tray": {
     "settings": "设置…",
-    "quit": "退出 AI-Spur"
+    "quit": "退出 AISpur"
   },
   "errors": {
     "configLoad": "配置加载失败",

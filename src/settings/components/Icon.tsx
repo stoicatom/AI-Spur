@@ -1,5 +1,5 @@
 /**
- * Geometric icon system for AI-Spur settings.
+ * Geometric icon system for AISpur settings.
  *
  * Replaces emoji glyphs with sharp, industrial SVG icons that match the
  * forged-metal aesthetic. All icons are 20×20px with 1.5px stroke, optimized

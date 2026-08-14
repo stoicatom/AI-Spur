@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
-use serde::{Deserialize, Serialize};
 
 /// Custom skin manifest structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -78,8 +78,7 @@ pub fn import_custom_skin(
     }
 
     // Create target directory
-    fs::create_dir_all(&target_dir)
-        .map_err(|e| format!("Failed to create skin directory: {e}"))?;
+    fs::create_dir_all(&target_dir).map_err(|e| format!("Failed to create skin directory: {e}"))?;
 
     // Copy all audio files from source
     let source_path = Path::new(&source_dir);
@@ -136,8 +135,7 @@ pub fn delete_custom_skin(app: AppHandle, skin_id: String) -> Result<(), String>
         return Err(format!("Skin '{skin_id}' not found"));
     }
 
-    fs::remove_dir_all(&skin_dir)
-        .map_err(|e| format!("Failed to delete skin directory: {e}"))?;
+    fs::remove_dir_all(&skin_dir).map_err(|e| format!("Failed to delete skin directory: {e}"))?;
 
     Ok(())
 }

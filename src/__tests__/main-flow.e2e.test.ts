@@ -1,15 +1,13 @@
 /**
  * Main flow integration test
  *
- * Tests the new click→effect→macro interaction model.
+ * Covers the swing-based interaction model: the animation-mode decision
+ * (`wantsFullAnimation`) and the swing detector that turns cursor samples into
+ * crack triggers.
  */
 import { describe, it, expect } from 'vitest';
 import { wantsFullAnimation } from '../overlay/quick_whip';
-import {
-  createEffect,
-  updateEffect,
-  type EffectKind,
-} from '../overlay/effects';
+import { SwingDetector, DEFAULT_SWING, type SwingParams } from '../overlay/swing';
 
 // ── wantsFullAnimation Decision Tests ──────────────────────────────────────
 
@@ -39,112 +37,74 @@ describe('wantsFullAnimation decision logic', () => {
   });
 });
 
-// ── Effect System Tests ───────────────────────────────────────────────────
+// ── Swing detector Tests ────────────────────────────────────────────────────
 
-describe('Effects system', () => {
-  const EFFECT_KINDS: EffectKind[] = ['rocket', 'explosion', 'sparkle', 'starburst', 'firework'];
+/** Drive a fast leftward move followed by a hard stop (snap-back). */
+function feedSnap(det: SwingDetector, params: SwingParams, startT: number): boolean {
+  let fired = false;
+  // Accelerate right: big steps every 16ms.
+  const xs = [0, 90, 190, 300, 300, 300];
+  let t = startT;
+  for (let i = 0; i < xs.length; i++) {
+    // The stop (repeated 300) is the snap: high peak speed then abrupt halt.
+    fired = det.push({ x: xs[i], y: 200, t }, params) || fired;
+    t += 16;
+  }
+  return fired;
+}
 
-  describe('createEffect', () => {
-    it.each(EFFECT_KINDS)('creates %s effect at click point', (kind) => {
-      const e = createEffect(kind, 400, 300);
-      expect(e.kind).toBe(kind);
-      expect(e.cx).toBe(400);
-      expect(e.cy).toBe(300);
-      expect(e.alive).toBe(true);
-      expect(e.particles).toHaveLength(0);
-    });
-  });
+describe('SwingDetector', () => {
+  const params = { ...DEFAULT_SWING, graceMs: 0, cooldownMs: 0 };
 
-  describe('updateEffect lifecycle', () => {
-    it.each(EFFECT_KINDS)('%s spawns particles on first update', (kind) => {
-      const e = createEffect(kind, 400, 300);
-      updateEffect(e, e.t0 + 16);
-      expect(e.particles.length).toBeGreaterThan(0);
-    });
-
-    it.each(EFFECT_KINDS)('%s effect auto-expires after 2 seconds', (kind) => {
-      const e = createEffect(kind, 400, 300);
-      updateEffect(e, e.t0 + 2100);
-      expect(e.alive).toBe(false);
-    });
-  });
-
-  describe('explosion effect', () => {
-    it('particles move outward from center', () => {
-      const e = createEffect('explosion', 500, 500);
-      updateEffect(e, e.t0 + 16);
-
-      const avgDist = e.particles.reduce(
-        (sum, p) => sum + Math.hypot(p.x - 500, p.y - 500),
-        0,
-      ) / e.particles.length;
-
-      expect(avgDist).toBeGreaterThan(0);
-    });
-  });
-
-  describe('firework effect', () => {
-    it('spawns ~60 particles at click point', () => {
-      const e = createEffect('firework', 400, 300);
-      updateEffect(e, e.t0 + 16);
-      expect(e.particles.length).toBe(60);
-    });
-  });
-
-  describe('starburst effect', () => {
-    it('creates particles in 8-arm pattern (64 particles)', () => {
-      const e = createEffect('starburst', 400, 300);
-      updateEffect(e, e.t0 + 16);
-      expect(e.particles.length).toBe(64);
-    });
-  });
-
-  describe('particle physics', () => {
-    it('particles lose life over time', () => {
-      const e = createEffect('explosion', 500, 500);
-      updateEffect(e, e.t0 + 16);
-      const initialCount = e.particles.length;
-
-      for (let i = 0; i < 50; i++) {
-        updateEffect(e, e.t0 + 16 + i * 16);
-      }
-
-      expect(e.particles.length).toBeLessThanOrEqual(initialCount);
-    });
-
-    it('gravity pulls particles down', () => {
-      const e = createEffect('explosion', 500, 300);
-      updateEffect(e, e.t0 + 16);
-
-      // Track a single particle's y position
-      const initialY = e.particles[0].y;
-
-      for (let i = 0; i < 30; i++) {
-        updateEffect(e, e.t0 + 16 + i * 16);
-        if (e.particles.length === 0) break;
-      }
-
-      // At least some particles should have fallen below initial position
-      const hasFallen = e.particles.some((p) => p.y > initialY);
-      expect(hasFallen).toBe(true);
-    });
-  });
-});
-
-// ── Interaction Model Tests ───────────────────────────────────────────────
-
-describe('Click-based interaction model', () => {
-  it('effect is created at click coordinates', () => {
-    const e = createEffect('explosion', 1920 / 2, 1080 / 2);
-    expect(e.cx).toBe(960);
-    expect(e.cy).toBe(540);
-  });
-
-  it('each effect kind can be created', () => {
-    const kinds: EffectKind[] = ['rocket', 'explosion', 'sparkle', 'starburst', 'firework'];
-    for (const kind of kinds) {
-      const e = createEffect(kind, 100, 100);
-      expect(e.kind).toBe(kind);
+  it('does not fire on slow drift', () => {
+    const det = new SwingDetector(0);
+    let fired = false;
+    for (let i = 0; i < 10; i++) {
+      // 5px per 16ms ≈ 0.3 px/ms — well under threshold.
+      fired = det.push({ x: i * 5, y: 100, t: i * 16 }, params) || fired;
     }
+    expect(fired).toBe(false);
+  });
+
+  it('fires on a fast swing followed by a hard stop', () => {
+    const det = new SwingDetector(0);
+    expect(feedSnap(det, params, 0)).toBe(true);
+  });
+
+  it('respects the grace period after spawn', () => {
+    const det = new SwingDetector(0);
+    const graced = { ...DEFAULT_SWING, graceMs: 1000, cooldownMs: 0 };
+    // Snap happens at t≈80ms, inside the 1000ms grace window → suppressed.
+    expect(feedSnap(det, graced, 0)).toBe(false);
+  });
+
+  it('higher sensitivity lowers the speed needed to fire', () => {
+    // A moderate swing (~1.0 px/ms peak) that sits between the two thresholds:
+    // sensitivity 2.0 → threshold 0.7 (fires), sensitivity 0.5 → threshold 2.8
+    // (ignored).
+    const move = (det: SwingDetector, p: SwingParams) => {
+      let fired = false;
+      const xs = [0, 16, 34, 52, 52, 52];
+      let t = 0;
+      for (const x of xs) {
+        fired = det.push({ x, y: 100, t }, p) || fired;
+        t += 16;
+      }
+      return fired;
+    };
+    const low = move(new SwingDetector(0), { ...DEFAULT_SWING, graceMs: 0, cooldownMs: 0, minTravel: 20, sensitivity: 0.5 });
+    const high = move(new SwingDetector(0), { ...DEFAULT_SWING, graceMs: 0, cooldownMs: 0, minTravel: 20, sensitivity: 2.0 });
+    expect(high).toBe(true);
+    expect(low).toBe(false);
+  });
+
+  it('enforces a cooldown between cracks', () => {
+    const det = new SwingDetector(0);
+    const cooled = { ...DEFAULT_SWING, graceMs: 0, cooldownMs: 500 };
+    const first = feedSnap(det, cooled, 0);
+    // Immediately snap again well within the 500ms cooldown.
+    const second = feedSnap(det, cooled, 96);
+    expect(first).toBe(true);
+    expect(second).toBe(false);
   });
 });

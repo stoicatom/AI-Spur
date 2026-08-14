@@ -1,6 +1,6 @@
-# AI-Spur
+# AISpur
 
-AI-Spur —催促 Claude Code 的桌面工具。一个跨平台（macOS / Windows / Linux）桌面托盘应用，通过全局快捷键向 Claude Code CLI 发送"催促"信号。
+AISpur —AI 终端加速器。一个跨平台（macOS / Windows / Linux）桌面托盘应用，通过全局快捷键向终端 AI 工具（Claude Code、Codex 等）发送"催促"信号。
 
 ## 技术栈
 
@@ -20,8 +20,8 @@ AI-Spur —催促 Claude Code 的桌面工具。一个跨平台（macOS / Window
 
 ```bash
 # 克隆仓库
-git clone https://github.com/stoicatom/AI-Spur.git
-cd AI-Spur
+git clone https://github.com/stoicatom/AISpur.git
+cd AISpur
 
 # 安装依赖
 pnpm install
@@ -73,7 +73,7 @@ pnpm run bundle
 ## 项目结构
 
 ```
-AI-Spur/
+AISpur/
 ├── src/                    # 前端源码（React + TS）
 │   ├── overlay/           # 鞭子动画叠加层
 │   ├── settings/          # 设置窗口
@@ -130,9 +130,9 @@ MIT
 3. 更新相关测试
 
 
-Sometimes Claude Code is too slow — spur it into shape.
+Sometimes your AI is too slow — spur it into shape.
 
-AI-Spur 是一个跨平台桌面托盘应用（macOS / Windows / Linux），用来给 Claude Code CLI 发送「催促」信号：按一下全局快捷键，甩一鞭子（全屏透明动画），应用随即把 `Ctrl+C` 中断 + 一条提示词打进当前活跃终端。
+AISpur 是一个跨平台桌面托盘应用（macOS / Windows / Linux），用来给终端 AI 工具（Claude Code、Codex、等）发送「催促」信号：按一下全局快捷键，甩一鞭子（全屏透明动画），应用随即把 `Ctrl+C` 中断 + 一条提示词打进当前活跃终端。
 
 ## 核心循环
 

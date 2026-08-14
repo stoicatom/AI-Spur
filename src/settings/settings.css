@@ -1,5 +1,5 @@
 /*
- * OpenWhip v2 — Settings window styles
+ * AISpur — Settings window styles
  *
  * Every value here resolves through design-tokens.css. No literal colors,
  * no Tailwind-default spacing or radii (ui-design.md R-UI-002 … R-UI-007).
@@ -63,7 +63,7 @@ body {
 
 .sidebar__brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--gap-xs);
   padding: var(--space-2) var(--space-2) 0;
 }
@@ -72,13 +72,6 @@ body {
   font-size: var(--text-md);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
-}
-
-.sidebar__brand-version {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  color: var(--accent);
-  letter-spacing: var(--tracking-wide);
 }
 
 .sidebar__groups {

@@ -20,11 +20,32 @@ vi.mock('../shared/ipc', () => ({
   listSkins: vi.fn(),
   activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
+  listSoundPresets: vi.fn().mockResolvedValue([
+    { id: 'default', name: '默认', isBuiltin: true, files: [] },
+  ]),
+  readSoundData: vi.fn().mockResolvedValue('data:audio/mpeg;base64,AAAA'),
+  setCrackSound: vi.fn().mockResolvedValue(undefined),
+  uploadCustomSound: vi.fn(),
+  deleteCustomSound: vi.fn(),
+  listMaterials: vi.fn().mockResolvedValue([]),
+  setActiveMaterial: vi.fn().mockResolvedValue(undefined),
+  uploadCustomMaterial: vi.fn(),
+  deleteCustomMaterial: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { listSkins, activateSkin, checkHotkeyConflict } from '../shared/ipc';
+import {
+  listSkins,
+  activateSkin,
+  checkHotkeyConflict,
+  listMaterials,
+  setActiveMaterial,
+  uploadCustomMaterial,
+  deleteCustomMaterial,
+} from '../shared/ipc';
+import { open } from '@tauri-apps/plugin-dialog';
 import { PhrasesPanel } from '../settings/components/PhrasesPanel';
 import { SkinsPanel } from '../settings/components/SkinsPanel';
+import { MaterialPicker } from '../settings/components/MaterialPicker';
 import { AnimationPanel } from '../settings/components/AnimationPanel';
 import { SoundsPanel } from '../settings/components/SoundsPanel';
 import { StatsPanel } from '../settings/components/StatsPanel';
@@ -33,6 +54,24 @@ import { HotkeyRecorder } from '../settings/components/HotkeyRecorder';
 function cfg(overrides: Partial<Config> = {}): Config {
   return { ...DEFAULT_CONFIG, ...overrides };
 }
+
+const builtinMaterial = {
+  id: 'rocket',
+  name: '火箭',
+  kind: 'image' as const,
+  builtin: true,
+  imageFile: 'rocket.svg',
+  dataUri: 'data:image/svg+xml;base64,PHN2Zy8+',
+};
+
+const customImageMaterial = {
+  id: 'my-logo',
+  name: '我的 Logo',
+  kind: 'image' as const,
+  builtin: false,
+  imageFile: 'logo.png',
+  dataUri: 'data:image/png;base64,AAAA',
+};
 
 const skinFixture = {
   specVersion: '1' as const,
@@ -186,6 +225,105 @@ describe('SkinsPanel', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByText('skin not found')).toBeInTheDocument();
     expect(onPatch).not.toHaveBeenCalled();
+  });
+});
+
+describe('MaterialPicker', () => {
+  it('shows a loading hint before materials arrive', () => {
+    vi.mocked(listMaterials).mockReturnValue(new Promise(() => {}));
+    render(<MaterialPicker config={cfg()} onPatch={vi.fn()} />);
+    expect(screen.getByText('正在读取素材列表…')).toBeInTheDocument();
+  });
+
+  it('renders a radio per material plus the upload card', async () => {
+    vi.mocked(listMaterials).mockResolvedValue([builtinMaterial, customImageMaterial]);
+    render(<MaterialPicker config={cfg({ activeMaterialId: 'rocket' })} onPatch={vi.fn()} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: '火箭' })).toBeInTheDocument()
+    );
+    expect(screen.getByRole('radio', { name: '火箭' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '我的 Logo' })).not.toBeChecked();
+    expect(screen.getByRole('button', { name: /上传素材图片/ })).toBeInTheDocument();
+  });
+
+  it('selects a material and mirrors it locally', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    vi.mocked(listMaterials).mockResolvedValue([builtinMaterial, customImageMaterial]);
+
+    render(<MaterialPicker config={cfg({ activeMaterialId: 'rocket' })} onPatch={onPatch} />);
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: '我的 Logo' })).toBeInTheDocument()
+    );
+
+    await user.click(screen.getByRole('radio', { name: '我的 Logo' }));
+
+    await waitFor(() => expect(setActiveMaterial).toHaveBeenCalledWith('my-logo'));
+    expect(onPatch).toHaveBeenCalledWith({ activeMaterialId: 'my-logo' });
+  });
+
+  it('shows a delete button only for custom image materials', async () => {
+    vi.mocked(listMaterials).mockResolvedValue([builtinMaterial, customImageMaterial]);
+    render(<MaterialPicker config={cfg()} onPatch={vi.fn()} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '删除 我的 Logo' })).toBeInTheDocument()
+    );
+    // Built-in material must not offer deletion.
+    expect(screen.queryByRole('button', { name: '删除 火箭' })).not.toBeInTheDocument();
+  });
+
+  it('deletes a custom material and falls back when it was active', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    vi.mocked(listMaterials).mockResolvedValue([builtinMaterial, customImageMaterial]);
+
+    render(<MaterialPicker config={cfg({ activeMaterialId: 'my-logo' })} onPatch={onPatch} />);
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '删除 我的 Logo' })).toBeInTheDocument()
+    );
+
+    await user.click(screen.getByRole('button', { name: '删除 我的 Logo' }));
+
+    await waitFor(() => expect(deleteCustomMaterial).toHaveBeenCalledWith('my-logo'));
+    // Active material was removed, so it reverts to the default.
+    expect(setActiveMaterial).toHaveBeenCalledWith('rocket');
+    expect(onPatch).toHaveBeenCalledWith({ activeMaterialId: 'rocket' });
+  });
+
+  it('uploads a picked file and activates the new material', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    vi.mocked(listMaterials).mockResolvedValue([builtinMaterial]);
+    vi.mocked(open).mockResolvedValue('/tmp/pic.png');
+    vi.mocked(uploadCustomMaterial).mockResolvedValue({
+      id: 'pic',
+      name: 'pic',
+      kind: 'image',
+      builtin: false,
+      imageFile: 'pic.png',
+      dataUri: 'data:image/png;base64,AAAA',
+    });
+
+    render(<MaterialPicker config={cfg()} onPatch={onPatch} />);
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /上传素材图片/ })).toBeInTheDocument()
+    );
+
+    await user.click(screen.getByRole('button', { name: /上传素材图片/ }));
+
+    await waitFor(() => expect(uploadCustomMaterial).toHaveBeenCalledWith('/tmp/pic.png'));
+    expect(setActiveMaterial).toHaveBeenCalledWith('pic');
+    expect(onPatch).toHaveBeenCalledWith({ activeMaterialId: 'pic' });
+  });
+
+  it('surfaces a load failure instead of an empty grid', async () => {
+    vi.mocked(listMaterials).mockRejectedValue(new Error('materials dir unreadable'));
+    render(<MaterialPicker config={cfg()} onPatch={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByText('materials dir unreadable')).toBeInTheDocument();
   });
 });
 

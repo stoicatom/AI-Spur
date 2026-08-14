@@ -47,7 +47,7 @@ export function StepPhrases({ selected, onToggle }: StepPhrasesProps) {
   return (
     <div className="onboard-step">
       <h2 className="onboard-step__title font-display">选择提示词</h2>
-      <p className="onboard-step__lead">每次挥鞭会随机发送一条。之后可以随时增删改。</p>
+      <p className="onboard-step__lead">每次甩动触发会随机发送一条。之后可以随时增删改。</p>
 
       <div className="onboard-phrases">
         {SUGGESTED_PHRASES.map((phrase) => {
@@ -139,9 +139,9 @@ export function StepSkin({ activeSkin, onSkinChange, hotkey, threshold }: StepSk
 
       <ol className="onboard-howto">
         <li>
-          按 <span className="font-mono">{formatAccel(hotkey)}</span> 触发催促
+          按 <span className="font-mono">{formatAccel(hotkey)}</span> 唤出覆盖层
         </li>
-        <li>快速移动鼠标挥鞭，或静待自动 crack</li>
+        <li>快速甩动鼠标，甩到位即触发（也可直接点击）</li>
         <li>自动发送中断信号 + 一条提示词</li>
       </ol>
 

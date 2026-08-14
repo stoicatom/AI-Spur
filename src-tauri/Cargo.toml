@@ -1,17 +1,28 @@
 [package]
-name = "ai-spur"
+name = "aispur"
 version = "0.2.0"
 description = "Spur Claude Code into moving faster"
 authors = ["lorain"]
 license = "MIT"
-repository = "https://github.com/stoicatom/AI-Spur"
+repository = "https://github.com/stoicatom/AISpur"
 edition = "2024"
 rust-version = "1.85.0"
 
-# Lib name kept as `openwhip`: the test suites import it by this name.
+# Lib name `aispur`: the test suites import it by this name.
 [lib]
-name = "openwhip"
+name = "aispur"
 crate-type = ["lib", "cdylib"]
+
+# Branded binary name (uppercase): `tauri dev`/`build` run `cargo run --bin AISpur`
+# via `mainBinaryName` in tauri.conf.json, so the Cargo target must match. This
+# also fixes the macOS Dock hover name in dev mode — the bare debug binary's file
+# name is what the Dock shows when the app switches to the Regular activation
+# policy, and the lowercase package name `aispur` was leaking through there.
+# Explicitly pointing at src/main.rs overrides Cargo's auto-discovered
+# package-named binary rather than adding a second target.
+[[bin]]
+name = "AISpur"
+path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -26,13 +37,21 @@ serde = { version = "1.0", features = ["derive"] }
 # (app.macOSPrivateApi in tauri.conf.json). Note this makes the app
 # ineligible for the Mac App Store — accepted in ADR-001 since the
 # transparent full-screen overlay is the product's core surface.
-tauri = { version = "2.11.3", features = ["tray-icon", "image-ico", "image-png", "macos-private-api"] }
+tauri = { version = "2.11.3", features = ["protocol-asset", "tray-icon", "image-ico", "image-png", "macos-private-api"] }
 tauri-plugin-global-shortcut = "2.3"
+# Native file-open dialog for the material/skin/sound uploaders. The JS side
+# (@tauri-apps/plugin-dialog) is inert without this Rust plugin registered, which
+# is what produced "dialog.open not allowed. Plugin not found".
+tauri-plugin-dialog = "2"
 thiserror = "2.0"
 dirs = "5.0"
 enigo = "0.6"
 # Local-date rollover for the "today" usage counter.
 time = { version = "0.3", features = ["formatting", "local-offset"] }
+# Async timer for the overlay cursor-tracking loop (cursor_tracker.rs). Tauri's
+# async runtime is tokio, so this only surfaces the `time` module we already
+# pull in transitively — no new runtime.
+tokio = { version = "1", features = ["time"] }
 # WebdriverIO embedded server for @wdio/tauri-service (E2E Phase 5).
 # Guarded by #[cfg(debug_assertions)] at the call site in main.rs.
 # Note: Cargo does not support debug_assertions as a target filter, so

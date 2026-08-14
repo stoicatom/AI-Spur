@@ -3,6 +3,7 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { z } from 'zod';
 import { Config, ConfigSchema } from './config';
 import { SkinManifest, SkinManifestSchema } from './skins';
+import { Material, MaterialSchema } from './materials';
 
 const PartialConfigSchema = ConfigSchema.partial();
 const SkinChangedPayloadSchema = z.object({ skinId: z.string().min(1) });
@@ -39,7 +40,7 @@ export async function registerHotkey(hotkey: string): Promise<void> {
 /**
  * Check whether a hotkey is already claimed by another application.
  *
- * Resolves to `null` when the hotkey is free (including when OpenWhip itself
+ * Resolves to `null` when the hotkey is free (including when AISpur itself
  * already holds it), or conflict details with two suggested alternatives.
  */
 export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo | null> {
@@ -65,30 +66,127 @@ export async function activateSkin(skinId: string): Promise<void> {
   return invoke('activate_skin', { skinId });
 }
 
+// ============ Sound Presets ============
+
+export interface SoundPreset {
+  id: string;
+  name: string;
+  isBuiltin: boolean;
+  files: string[];
+}
+
+export async function listSoundPresets(): Promise<SoundPreset[]> {
+  return invoke<SoundPreset[]>('list_sound_presets');
+}
+
+/** 读取某音效包内一个音频文件，返回 data: URI（用于试听 / overlay 播放）。 */
+export async function readSoundData(presetId: string, file: string): Promise<string> {
+  return invoke<string>('read_sound_data', { presetId, file });
+}
+
+export async function setCrackSound(presetId: string): Promise<void> {
+  return invoke('set_crack_sound', { presetId });
+}
+
+export async function uploadCustomSound(
+  sourceDir: string,
+  packName: string,
+): Promise<SoundPreset> {
+  return invoke<SoundPreset>('upload_custom_sound', {
+    sourceDir,
+    packName,
+  });
+}
+
+export async function deleteCustomSound(presetId: string): Promise<void> {
+  return invoke('delete_custom_sound', { presetId });
+}
+
+// ============ Materials ============
+
+/** 列出全部素材：内置矢量 + 内置图片 + 用户自定义图片。 */
+export async function listMaterials(): Promise<Material[]> {
+  const raw = await invoke<unknown[]>('list_materials');
+  return raw.map((m) => MaterialSchema.parse(m));
+}
+
+/** 设置活跃素材：Rust 会落盘 config.active_material_id 并 emit material-changed。 */
+export async function setActiveMaterial(id: string): Promise<void> {
+  return invoke('set_active_material', { id });
+}
+
+/**
+ * 上传自定义图片素材。
+ *
+ * `sourcePath` 是用户选择的单个图片文件（png/jpg/jpeg/gif/svg/webp）；
+ * Rust 复制到 `app_data_dir()/materials/custom/<slug>/` 并返回新建的 Material。
+ */
+export async function uploadCustomMaterial(sourcePath: string): Promise<Material> {
+  const raw = await invoke<unknown>('upload_custom_material', { sourcePath });
+  return MaterialSchema.parse(raw);
+}
+
+/** 删除自定义素材（仅限 custom 目录内的素材）。 */
+export async function deleteCustomMaterial(id: string): Promise<void> {
+  return invoke('delete_custom_material', { id });
+}
+
 // ============ Events (Rust → TS) ============
 
 export const Events = {
   SPAWN_WHIP: 'spawn-whip',
   DROP_WHIP: 'drop-whip',
+  CURSOR_POS: 'cursor-pos',
   MODE_CHANGED: 'mode-changed',
   CONFIG_UPDATED: 'config-updated',
   SKIN_CHANGED: 'skin-changed',
+  MATERIAL_CHANGED: 'material-changed',
 } as const;
 
-export interface SpawnWhipPayload {
+/**
+ * spawn-whip 载荷。
+ *
+ * `x` / `y` 是 overlay 窗口内的逻辑坐标（Rust 端由光标全局坐标换算而来）；
+ * 取不到光标位置时二者省略，下游（overlay/main.ts，WF2）回退到窗口中心。
+ */
+export const SpawnWhipPayloadSchema = z.object({
   /** True when triggered via the Shift Easter egg — force the full animation. */
-  forceFull?: boolean;
-}
+  forceFull: z.boolean().default(false),
+  x: z.number().optional(),
+  y: z.number().optional(),
+});
+
+export type SpawnWhipPayload = z.infer<typeof SpawnWhipPayloadSchema>;
 
 export function onSpawnWhip(fn: (payload: SpawnWhipPayload) => void): Promise<UnlistenFn> {
   return listen<unknown>(Events.SPAWN_WHIP, (event) => {
-    const payload = event.payload as SpawnWhipPayload | null | undefined;
-    fn(payload ?? {});
+    // Rust 可能发送 null / 空对象；用 schema 归一并回退默认值。
+    const parsed = SpawnWhipPayloadSchema.safeParse(event.payload ?? {});
+    fn(parsed.success ? parsed.data : { forceFull: false });
   });
 }
 
 export function onDropWhip(fn: () => void): Promise<UnlistenFn> {
   return listen<void>(Events.DROP_WHIP, () => fn());
+}
+
+/**
+ * cursor-pos 载荷：overlay 窗口内的逻辑坐标，由 Rust 以 ~60fps 全局读取推送。
+ * 让非激活覆盖层无需夺焦点即可让素材跟随光标（消除「必须先点击」）。
+ */
+const CursorPosPayloadSchema = z.object({ x: z.number(), y: z.number() });
+export type CursorPosPayload = z.infer<typeof CursorPosPayloadSchema>;
+
+export function onCursorPos(fn: (pos: CursorPosPayload) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.CURSOR_POS, (event) => {
+    const parsed = CursorPosPayloadSchema.safeParse(event.payload);
+    if (parsed.success) fn(parsed.data);
+  });
+}
+
+/** 停止 Rust 侧的光标推送循环（overlay 隐藏 / Esc / crack 收尾后调用）。 */
+export async function stopCursorTracking(): Promise<void> {
+  return invoke('stop_cursor_tracking');
 }
 
 export function onModeChanged(fn: (mode: string) => void): Promise<UnlistenFn> {
@@ -106,5 +204,14 @@ export function onSkinChanged(fn: (skinId: string) => void): Promise<UnlistenFn>
   return listen<unknown>(Events.SKIN_CHANGED, (event) => {
     const { skinId } = SkinChangedPayloadSchema.parse(event.payload);
     fn(skinId);
+  });
+}
+
+const MaterialChangedPayloadSchema = z.object({ materialId: z.string().min(1) });
+
+export function onMaterialChanged(fn: (materialId: string) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.MATERIAL_CHANGED, (event) => {
+    const { materialId } = MaterialChangedPayloadSchema.parse(event.payload);
+    fn(materialId);
   });
 }

@@ -7,15 +7,15 @@ export function TriggerPanel({ config, onPatch }: PanelProps) {
       <section className="field">
         <h2 className="field__label">全局快捷键</h2>
         <p className="field__desc">
-          在任何应用中按下该组合即可触发催促。按住 Shift 可强制播放完整动画。
+          在任何应用中按下该组合即可唤出覆盖层，甩动鼠标触发。再次按下可收起。按住 Shift 强制完整动画。
         </p>
         <HotkeyRecorder value={config.hotkey} onChange={(hotkey) => onPatch({ hotkey })} />
       </section>
 
       <section className="field">
-        <h2 className="field__label">托盘触发</h2>
+        <h2 className="field__label">托盘图标</h2>
         <p className="field__desc">
-          点击菜单栏的托盘图标同样可以触发，行为与快捷键一致。此入口始终可用。
+          左键点击菜单栏图标打开本设置窗口；右键弹出菜单，可直达各设置面板。触发催促请使用全局快捷键。
         </p>
       </section>
     </div>

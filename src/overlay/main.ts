@@ -1,29 +1,32 @@
 /**
  * Overlay window entry point.
  *
- * Interaction:
- *   1. Hotkey → overlay shows, mouse becomes effect icon
- *   2. Click anywhere → icon explodes into particles + sound + prompt
- *   3. Effect ends → overlay hides
+ * 交互（甩动主触发 + 点击兵底 + 非激活焦点）：
+ *   1. 热键 / 托盘 → overlay 显示（不夺焦点），素材立即吸附到光标
+ *   2. Rust 以 ~60fps 推送 `cursor-pos`，素材跟随光标 + 拖尾
+ *   3. 快速甩动达 snap 阈值（或点击兵底）→ crack
+ *   4. crack 瞬间即向终端发 Ctrl+C + 提示词（终端全程保持焦点）
+ *   5. 播放素材专属爆裂动画 → 渐隐 → 隐藏覆盖层 + 停止光标推送
+ *   Esc：无副作用取消。
  */
-import { convertFileSrc } from '@tauri-apps/api/core';
 import {
   onSpawnWhip,
   onDropWhip,
+  onCursorPos,
   onSkinChanged,
+  onMaterialChanged,
   triggerMacro,
   incrementUsage,
+  stopCursorTracking,
   listSkins,
+  listMaterials,
   getConfig,
+  listSoundPresets,
+  readSoundData,
+  type SoundPreset,
 } from '../shared/ipc';
-import {
-  type EffectKind,
-  type EffectState,
-  createEffect,
-  updateEffect,
-  drawEffect,
-  drawCursorIcon,
-} from './effects';
+import { ImageMaterial, MaterialTrail, resolveMaterial } from './material-visual';
+import { SwingDetector, DEFAULT_SWING, type SwingParams } from './swing';
 
 // ── Canvas ────────────────────────────────────────────────────────────────
 
@@ -52,15 +55,20 @@ window.addEventListener('resize', resize);
 
 // ── State ─────────────────────────────────────────────────────────────────
 
-let effect: EffectState | null = null;
-let activeEffectKind: EffectKind = 'rocket';
+const material = new ImageMaterial();
+const trail = new MaterialTrail();
+const swing = new SwingDetector(performance.now());
+let swingParams: SwingParams = { ...DEFAULT_SWING };
+
 let soundEnabled = true;
 let crackSounds: string[] = [];
+let crackSoundId = 'default';
+
 let mouseX = width / 2;
 let mouseY = height / 2;
-let mouseInWindow = true;
+let active = false; // 覆盖层是否处于活跃（已 spawn、未收尾）
 
-// ── Skin ──────────────────────────────────────────────────────────────────
+// ── Skin / preferences ──────────────────────────────────────────────────────
 
 async function applyActiveSkin(skinId?: string) {
   try {
@@ -78,26 +86,69 @@ async function loadPreferences() {
   try {
     const config = await getConfig();
     soundEnabled = config.playSound;
+    crackSoundId = config.crackSoundId ?? 'default';
+    swingParams = { ...DEFAULT_SWING, sensitivity: config.crackSensitivity };
+  } catch {}
+}
+
+// ── Material ────────────────────────────────────────────────────────────────
+
+async function applyActiveMaterial(materialId?: string) {
+  try {
+    const [config, materials] = await Promise.all([
+      materialId ? Promise.resolve(null) : getConfig(),
+      listMaterials(),
+    ]);
+    const targetId = materialId ?? config?.activeMaterialId ?? 'rocket';
+    const resolved = resolveMaterial(targetId, materials);
+    material.load(resolved.url, resolved.id);
+    trail.setHue(material.hue);
   } catch {}
 }
 
 // ── Sound ─────────────────────────────────────────────────────────────────
 
-function playEffectSound() {
-  if (!soundEnabled || crackSounds.length === 0) return;
-  const file = crackSounds[Math.floor(Math.random() * crackSounds.length)];
-  const audio = new Audio(convertFileSrc(`sounds/${file}`));
-  audio.volume = 0.6;
-  audio.play().catch(() => {});
+async function playEffectSound() {
+  if (!soundEnabled) return;
+
+  // Resolve the file list for the active preset. "default" follows the active
+  // skin's crack sounds (played from the sounds root); a named preset uses its
+  // own files.
+  let presetId = crackSoundId;
+  let files: string[] = [];
+
+  if (crackSoundId === 'default') {
+    files = crackSounds;
+  } else {
+    try {
+      const presets: SoundPreset[] = await listSoundPresets();
+      const match = presets.find((p: SoundPreset) => p.id === crackSoundId);
+      if (match && match.files.length > 0) files = match.files;
+    } catch {}
+  }
+
+  if (files.length === 0) return;
+  const file = files[Math.floor(Math.random() * files.length)];
+  try {
+    // Read via Rust as a data: URI — the asset protocol can't reach the sound
+    // files in dev (they live in the source tree, outside the asset scope).
+    const dataUri = await readSoundData(presetId, file);
+    const audio = new Audio(dataUri);
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+  } catch {}
 }
 
-// ── Effect ────────────────────────────────────────────────────────────────
+// ── Crack ─────────────────────────────────────────────────────────────────
 
-function triggerEffect(x: number, y: number) {
-  if (effect?.alive) return;
-  effect = createEffect(activeEffectKind, x, y);
-  playEffectSound();
+function triggerCrack(x: number, y: number) {
+  if (material.crackAlive || !active) return;
+  // 判定瞬间即发键：终端仍是聚焦窗口（overlay 非激活），早发早生效。
   triggerMacro().catch((err) => console.error('[overlay] macro failed:', err));
+  active = false; // 锁定，避免爆裂动画期间二次触发
+  playEffectSound();
+  material.startCrack(x, y);
+  trail.clear();
   incrementUsage().catch(() => {});
 }
 
@@ -106,24 +157,30 @@ function triggerEffect(x: number, y: number) {
 function frame() {
   requestAnimationFrame(frame);
   ctx.clearRect(0, 0, width, height);
+  const now = performance.now();
 
-  if (effect) {
-    updateEffect(effect, performance.now());
-    if (effect.alive) {
-      drawEffect(ctx, effect);
-    } else {
-      effect = null;
-      void hideOverlay();
-    }
-  } else if (mouseInWindow) {
-    drawCursorIcon(ctx, activeEffectKind, mouseX, mouseY);
+  if (material.crackAlive) {
+    material.updateAndDrawCrack(ctx, now);
+    if (!material.crackAlive) void dismiss();
+    return;
+  }
+
+  if (active) {
+    trail.draw(ctx, now);
+    material.drawCursor(ctx, mouseX, mouseY);
   }
 }
 requestAnimationFrame(frame);
 
-// ── Window ────────────────────────────────────────────────────────────────
+// ── Window lifecycle ────────────────────────────────────────────────────────
 
-async function hideOverlay() {
+/** 收尾：停止光标推送 + 隐藏窗口 + 释放拖尾。 */
+async function dismiss() {
+  active = false;
+  trail.clear();
+  try {
+    await stopCursorTracking();
+  } catch {}
   try {
     const { getCurrentWindow } = await import('@tauri-apps/api/window');
     await getCurrentWindow().hide();
@@ -132,33 +189,56 @@ async function hideOverlay() {
 
 // ── Input ─────────────────────────────────────────────────────────────────
 
-canvas.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  mouseInWindow = true;
-});
-canvas.addEventListener('mouseleave', () => { mouseInWindow = false; });
-canvas.addEventListener('mouseenter', () => { mouseInWindow = true; });
-canvas.addEventListener('click', (e) => triggerEffect(e.clientX, e.clientY));
-window.addEventListener('keydown', (e) => { if (e.key === 'Escape') void hideOverlay(); });
+// 唯一的直接交互是「甩动」：素材跟随鼠标（Rust 推送坐标），快速甩动即触发。
+// 覆盖层是非激活窗口（不夺焦点，终端保持键盘焦点以接收 Ctrl+C），因此这里
+// 不监听 click / keydown —— 点击会夺焦点破坏发键，键盘事件也收不到。
+// 收起由「再按热键」经 Rust 发 drop-whip 完成（见下方 onDropWhip）。
 
 // ── IPC ───────────────────────────────────────────────────────────────────
 
 let unlistenSpawn: (() => void) | null = null;
 let unlistenDrop: (() => void) | null = null;
+let unlistenCursor: (() => void) | null = null;
 
 (async () => {
-  unlistenSpawn = await onSpawnWhip(() => {
+  unlistenSpawn = await onSpawnWhip((payload) => {
     void applyActiveSkin();
-    mouseInWindow = true;
+    void applyActiveMaterial();
+    void loadPreferences();
+    // 立即把素材落到真实光标处（缺失坐标时回退窗口中心）。
+    mouseX = payload.x ?? width / 2;
+    mouseY = payload.y ?? height / 2;
+    active = true;
+    swing.reset(performance.now());
+    trail.clear();
+    trail.push(mouseX, mouseY, performance.now());
   });
-  unlistenDrop = await onDropWhip(() => { if (effect?.alive) effect.alive = false; });
+
+  unlistenCursor = await onCursorPos((pos) => {
+    mouseX = pos.x;
+    mouseY = pos.y;
+    if (!active) return;
+    const now = performance.now();
+    trail.push(mouseX, mouseY, now);
+    // 甩动检测：达 snap 阈值即 crack。
+    if (swing.push({ x: mouseX, y: mouseY, t: now }, swingParams)) {
+      triggerCrack(mouseX, mouseY);
+    }
+  });
+
+  unlistenDrop = await onDropWhip(() => void dismiss());
   await onSkinChanged((id) => void applyActiveSkin(id));
+  await onMaterialChanged((id) => void applyActiveMaterial(id));
 })();
 
 void loadPreferences();
 void applyActiveSkin();
+void applyActiveMaterial();
 
 if (import.meta.hot) {
-  import.meta.hot.dispose(() => { unlistenSpawn?.(); unlistenDrop?.(); });
+  import.meta.hot.dispose(() => {
+    unlistenSpawn?.();
+    unlistenDrop?.();
+    unlistenCursor?.();
+  });
 }

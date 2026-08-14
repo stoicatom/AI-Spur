@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     fn missing_directory_yields_no_skins() {
-        let skins = list_skins_in(std::path::Path::new("/nonexistent/openwhip/skins"));
+        let skins = list_skins_in(std::path::Path::new("/nonexistent/aispur/skins"));
         assert!(skins.is_empty());
     }
 
@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn user_skin_overrides_bundled_skin_with_same_id() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-override-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-override-test");
         let skin_dir = tmp.join("fire");
         std::fs::create_dir_all(&skin_dir).unwrap();
         let mut custom = valid_manifest();
@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn user_skin_with_new_id_is_appended() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-append-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-append-test");
         let skin_dir = tmp.join("custom-skin");
         std::fs::create_dir_all(&skin_dir).unwrap();
         let mut custom = valid_manifest();
@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn invalid_user_manifest_is_skipped_not_fatal() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-invalid-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-invalid-test");
         let skin_dir = tmp.join("broken");
         std::fs::create_dir_all(&skin_dir).unwrap();
         std::fs::write(skin_dir.join("manifest.json"), "{ not valid json").unwrap();

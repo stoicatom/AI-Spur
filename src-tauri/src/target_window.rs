@@ -7,7 +7,11 @@ use std::process::Command;
 /// editor, which would clobber whatever the user has selected. An unknown app
 /// is treated as unsafe — better to skip the whip than to destroy the user's
 /// selection.
+///
+/// This list covers terminal emulators and IDEs that host AI CLI tools
+/// (Claude Code, Codex, Aider, Cursor, etc.).
 const TERMINAL_APPS: &[&str] = &[
+    // macOS terminals
     "Terminal",
     "iTerm2",
     "Ghostty",
@@ -16,12 +20,48 @@ const TERMINAL_APPS: &[&str] = &[
     "kitty",
     "WezTerm",
     "Hyper",
-    "Android Studio",
-    "Xcode",
+    "Rio",
+    "Tabby",
+    "tmux",
+    // Windows terminals
+    "Windows Terminal",
+    "WindowsTerminal",
+    "PowerShell",
+    "Command Prompt",
+    "ConEmu",
+    "Cmder",
+    "MobaXterm",
+    "PuTTY",
+    "KiTTY",
+    "Mintty",
+    "Alacritty",
+    "WezTerm",
+    // Linux terminals
+    "GNOME Terminal",
+    "Konsole",
+    "XFCE Terminal",
+    "LXTerminal",
+    "Terminator",
+    "Tilix",
+    "Foot",
+    "St",
+    "Alacritty",
+    "kitty",
+    "WezTerm",
+    "Rio",
+    "Tabby",
+    // IDEs with integrated terminals
     "Visual Studio Code",
     "Code",
     "JetBrains",
-    // Claude Code runs inside these; the app name reported is the host.
+    "Cursor",
+    "Windsurf",
+    "Android Studio",
+    "Xcode",
+    "Zed",
+    // Claude Code / Codex / AI CLIs run inside these hosts
+    "Claude Code",
+    "Codex",
 ];
 
 /// True when the currently focused macOS application looks like a terminal or

@@ -13,6 +13,7 @@
     "core:window:allow-set-focus",
     "core:window:allow-unminimize",
     "core:event:default",
-    "wdio-webdriver:default"
+    "wdio-webdriver:default",
+    "dialog:allow-open"
   ]
 }

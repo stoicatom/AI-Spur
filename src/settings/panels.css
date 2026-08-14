@@ -1,5 +1,5 @@
 /*
- * OpenWhip v2 — Panel-internal component styles
+ * AISpur — Panel-internal component styles
  *
  * Split from settings.css so the shell (grid, sidebar, transitions) stays
  * separate from the controls that live inside panels. Every value resolves
@@ -322,6 +322,156 @@
   color: var(--accent);
 }
 
+/* ─── Material picker ────────────────────────────────────────────────────── */
+
+.material-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--gap-sm);
+}
+
+.material-card {
+  position: relative;
+  display: flex;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  transition:
+    border-color var(--duration-normal) var(--ease-in-out),
+    transform var(--duration-normal) var(--ease-whip),
+    box-shadow var(--duration-normal) var(--ease-in-out);
+}
+
+.material-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.material-card--active {
+  border-color: var(--accent);
+  border-width: 2px;
+  background: var(--accent-subtle);
+}
+
+.material-card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.material-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  cursor: pointer;
+}
+
+.material-card__thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: transparent;
+}
+
+.material-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
+}
+
+.material-card__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
+.material-card__delete {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--surface-active);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out),
+    color var(--duration-fast) var(--ease-in-out);
+}
+
+.material-card:hover .material-card__delete,
+.material-card__delete:focus-visible {
+  opacity: 1;
+}
+
+.material-card__delete:hover {
+  background: var(--surface-hover);
+  color: var(--text-danger);
+}
+
+.material-picker__upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 106px;
+  border: 1.5px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
+}
+
+.material-picker__upload:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.material-picker__upload:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.material-picker__upload-glyph {
+  font-size: 24px;
+  font-weight: var(--weight-medium);
+  line-height: 1;
+}
+
+.material-picker__upload-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
 /* ─── Radio / toggle rows ───────────────────────────────────────────────── */
 
 .radio-stack {
@@ -456,4 +606,150 @@
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
   color: var(--accent);
+}
+
+/* ─── Sound picker (used inside SkinsPanel) ──────────────────────────── */
+
+.sound-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.sound-picker__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: var(--gap-sm);
+}
+
+.sound-card {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--space-2) var(--space-3);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    transform var(--duration-normal) var(--ease-whip);
+}
+
+.sound-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.sound-card--active {
+  border-color: var(--accent);
+  border-width: 2px;
+  background: var(--accent-subtle);
+}
+
+.sound-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-primary);
+}
+
+.sound-card__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.sound-card__meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.sound-card__delete {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.sound-card__delete:hover {
+  background: var(--surface-hover);
+  color: var(--text-danger);
+}
+
+.sound-card__preview {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  color: var(--accent);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-in-out),
+    transform var(--duration-normal) var(--ease-whip);
+}
+
+.sound-card__preview:hover {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  transform: scale(1.08);
+}
+
+.sound-card__preview:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sound-picker__upload {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border: 1.5px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    color var(--duration-fast) var(--ease-in-out);
+}
+
+.sound-picker__upload:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sound-picker__upload:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Sidebar brand logo ─────────────────────────────────────────────── */
+
+.sidebar__brand-logo {
+  flex: none;
+  width: 22px;
+  height: 22px;
 }
