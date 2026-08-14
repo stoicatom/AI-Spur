@@ -3,6 +3,17 @@ import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/re
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(() => Promise.resolve(() => {})),
+}));
+vi.mock('@tauri-apps/api/core', () => ({
+  convertFileSrc: vi.fn((p: string) => `asset://localhost/${p}`),
+  invoke: vi.fn(),
+}));
+vi.mock('@tauri-apps/plugin-dialog', () => ({
+  open: vi.fn(),
+}));
+
 // All Rust access goes through shared/ipc, so that is the only seam to mock
 // (R-TEST-005 forbids real invoke calls in component tests).
 vi.mock('../shared/ipc', () => ({

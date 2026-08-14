@@ -3,6 +3,14 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(() => Promise.resolve(() => {})),
+}));
+vi.mock('@tauri-apps/api/core', () => ({
+  convertFileSrc: vi.fn((p: string) => `asset://localhost/${p}`),
+  invoke: vi.fn(),
+}));
+
 vi.mock('../shared/ipc', () => ({
   listSkins: vi.fn(),
   activateSkin: vi.fn(),
