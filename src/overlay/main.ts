@@ -1,10 +1,14 @@
 /**
  * Overlay window entry point.
  *
- * New interaction model:
- *   1. Hotkey → overlay appears (full-screen transparent)
- *   2. Click anywhere → plays visual effect + sends prompt
- *   3. Effect completes → overlay hides
+ * Interaction model:
+ *   1. Hotkey → overlay appears (full-screen transparent), cursor becomes effect icon
+ *   2. User moves mouse → icon follows (custom cursor drawn on canvas)
+ *   3. Click → icon explodes into visual effect + sound + sends prompt
+ *   4. Effect completes → overlay hides
+ *
+ * Cursor resilience: mouseX/mouseY persist across mouseleave/mouseenter,
+ * so the icon reappears at the last known position when the cursor returns.
  */
 import { convertFileSrc } from '@tauri-apps/api/core';
 import {
@@ -18,9 +22,11 @@ import {
 } from '../shared/ipc';
 import {
   type EffectKind,
+  type EffectState,
   createEffect,
   updateEffect,
   drawEffect,
+  drawCursorIcon,
 } from './effects';
 
 // ── Canvas Setup ──────────────────────────────────────────────────────────
@@ -55,6 +61,12 @@ let effect: EffectState | null = null;
 let activeEffectKind: EffectKind = 'rocket';
 let soundEnabled = true;
 let crackSounds: string[] = [];
+
+// Mouse tracking — persists across mouseleave/mouseenter
+// so the cursor icon reappears at the last known position when returning.
+let mouseX = -100;
+let mouseY = -100;
+let mouseInWindow = false;
 
 // ── Skin Loading ──────────────────────────────────────────────────────────
 
@@ -97,12 +109,11 @@ function playCrackSound() {
 // ── Effect Trigger ────────────────────────────────────────────────────────
 
 function triggerEffect(clickX: number, clickY: number) {
-  if (effect?.alive) return; // Don't stack effects
+  if (effect?.alive) return;
 
   effect = createEffect(activeEffectKind, clickX, clickY);
   playCrackSound();
 
-  // Fire-and-forget: send prompt to Claude
   triggerMacro().catch((err) => {
     console.error('[overlay] macro dispatch failed:', err);
   });
@@ -123,10 +134,12 @@ function frame() {
     if (effect.alive) {
       drawEffect(ctx, effect);
     } else {
-      // Effect finished — hide overlay
       effect = null;
       void hideOverlay();
     }
+  } else if (mouseInWindow) {
+    // Draw cursor icon at mouse position (before click)
+    drawCursorIcon(ctx, activeEffectKind, mouseX, mouseY);
   }
 }
 
@@ -145,9 +158,31 @@ async function hideOverlay() {
 
 // ── Input Handling ────────────────────────────────────────────────────────
 
-// Click triggers the effect
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  mouseInWindow = true;
+});
+
+// When cursor leaves the overlay window, stop drawing but preserve position.
+// When it returns (mouseenter), resume drawing at the saved position.
+canvas.addEventListener('mouseleave', () => {
+  mouseInWindow = false;
+});
+
+canvas.addEventListener('mouseenter', () => {
+  mouseInWindow = true;
+});
+
 canvas.addEventListener('click', (e) => {
   triggerEffect(e.clientX, e.clientY);
+});
+
+// ESC dismisses overlay without triggering effect
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    void hideOverlay();
+  }
 });
 
 // ── IPC Wiring ────────────────────────────────────────────────────────────
@@ -158,11 +193,13 @@ let unlistenDropWhip: (() => void) | null = null;
 (async () => {
   unlistenSpawnWhip = await onSpawnWhip(() => {
     void applyActiveSkin();
-    // Overlay is shown by Rust; user clicks to trigger effect
+    // Overlay just appeared — assume cursor is already in window.
+    // The next mousemove will confirm the position, but we need to
+    // start drawing immediately so the user sees the cursor icon.
+    mouseInWindow = true;
   });
 
   unlistenDropWhip = await onDropWhip(() => {
-    // Force-finish current effect on drop
     if (effect?.alive) effect.alive = false;
   });
 
