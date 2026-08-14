@@ -20,7 +20,17 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
+use serde::Serialize;
 use tauri::{Emitter, Manager};
+
+/// `cursor-pos` payload. A plain `#[derive(Serialize)]` struct rather than the
+/// `serde_json::json!` macro, which builds a heap `Value` tree on every 60fps
+/// tick; this serializes straight to the IPC without that per-frame allocation.
+#[derive(Clone, Serialize)]
+struct CursorPos {
+    x: f64,
+    y: f64,
+}
 
 /// ~60fps. One frame is 16.6ms; 16 keeps us a touch ahead of the render loop so
 /// the overlay never starves for a fresh position.
@@ -54,13 +64,16 @@ pub fn start(app: &tauri::AppHandle, flag: &Arc<AtomicBool>) {
     let app = app.clone();
     let flag = Arc::clone(flag);
     tauri::async_runtime::spawn(async move {
+        // Resolve the window handle once; it lives for the whole overlay session.
+        let Some(window) = app.get_webview_window("overlay") else {
+            flag.store(false, Ordering::SeqCst);
+            return;
+        };
         while flag.load(Ordering::SeqCst) {
-            if let Some(window) = app.get_webview_window("overlay") {
-                if let Some((x, y)) = cursor_in_overlay(&window) {
-                    // A failed emit (window torn down mid-flight) is not worth
-                    // aborting the loop for; the next tick re-checks the flag.
-                    let _ = window.emit("cursor-pos", serde_json::json!({ "x": x, "y": y }));
-                }
+            if let Some((x, y)) = cursor_in_overlay(&window) {
+                // A failed emit (window torn down mid-flight) is not worth
+                // aborting the loop for; the next tick re-checks the flag.
+                let _ = window.emit("cursor-pos", CursorPos { x, y });
             }
             tokio::time::sleep(POLL_INTERVAL).await;
         }

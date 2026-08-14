@@ -154,30 +154,51 @@ function triggerCrack(x: number, y: number) {
 
 // ── Animation Loop ────────────────────────────────────────────────────────
 
+// The overlay window is created once and reused (hidden between activations),
+// so the render loop must NOT run while hidden — a permanent rAF keeps the GPU
+// compositor busy and the page from ever idling. `rafId` tracks the live loop;
+// it runs only between spawn and dismiss.
+let rafId = 0;
+
 function frame() {
-  requestAnimationFrame(frame);
   ctx.clearRect(0, 0, width, height);
   const now = performance.now();
 
   if (material.crackAlive) {
     material.updateAndDrawCrack(ctx, now);
-    if (!material.crackAlive) void dismiss();
-    return;
-  }
-
-  if (active) {
+    if (!material.crackAlive) {
+      void dismiss();
+      return; // dismiss stops the loop; don't schedule another frame
+    }
+  } else if (active) {
     trail.draw(ctx, now);
     material.drawCursor(ctx, mouseX, mouseY);
   }
+
+  rafId = requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+
+/** Start the render loop if it is not already running. */
+function startLoop() {
+  if (rafId === 0) rafId = requestAnimationFrame(frame);
+}
+
+/** Stop the render loop and clear the canvas one last time. */
+function stopLoop() {
+  if (rafId !== 0) {
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+  ctx.clearRect(0, 0, width, height);
+}
 
 // ── Window lifecycle ────────────────────────────────────────────────────────
 
-/** 收尾：停止光标推送 + 隐藏窗口 + 释放拖尾。 */
+/** 收尾：停止渲染循环 + 光标推送 + 隐藏窗口 + 释放拖尾。 */
 async function dismiss() {
   active = false;
   trail.clear();
+  stopLoop();
   try {
     await stopCursorTracking();
   } catch {}
@@ -212,6 +233,7 @@ let unlistenCursor: (() => void) | null = null;
     swing.reset(performance.now());
     trail.clear();
     trail.push(mouseX, mouseY, performance.now());
+    startLoop(); // 覆盖层显示时才启动渲染循环
   });
 
   unlistenCursor = await onCursorPos((pos) => {
