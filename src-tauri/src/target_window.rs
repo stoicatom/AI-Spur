@@ -245,7 +245,7 @@ pub mod window {
     /// Look up a key's raw `CFTypeRef`, or `None` if absent. Constructs the key
     /// `CFString` on demand — cheap, and avoids reaching into the `kCGWindow*`
     /// globals via FFI.
-    fn raw(dict: WindowDict, key: &str) -> Option<*const c_void> {
+    pub(crate) fn raw(dict: WindowDict, key: &str) -> Option<*const c_void> {
         let key_cf = core_foundation::string::CFString::new(key);
         unsafe {
             let mut value: *const c_void = std::ptr::null();
@@ -375,5 +375,56 @@ mod tests {
         // but the core-graphics path must not panic on a live machine.
         let _ = app_under_cursor(-99999.0, -99999.0);
         let _ = activate_app(i32::MAX); // nonexistent pid → false
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    #[ignore = "debug probe — remove once bounds parsing is verified"]
+    fn debug_bounds_type() {
+        use crate::target_window::window::{K_BOUNDS, K_WINDOW_LAYER, WindowDict};
+        use core_foundation::base::TCFType;
+        use core_foundation_sys::array::{CFArrayGetCount, CFArrayGetValueAtIndex};
+        use core_foundation_sys::base::CFGetTypeID;
+        use core_foundation_sys::number::CFNumberGetTypeID;
+        use core_foundation_sys::string::CFStringGetTypeID;
+
+        // Print CF type IDs for reference.
+        let cfdata_id = unsafe { core_foundation_sys::data::CFDataGetTypeID() };
+        let cfstring_id = unsafe { CFStringGetTypeID() };
+        let cfnumber_id = unsafe { CFNumberGetTypeID() };
+        let cfdict_id = unsafe { core_foundation_sys::dictionary::CFDictionaryGetTypeID() };
+        eprintln!("CF type IDs: data={cfdata_id} string={cfstring_id} number={cfnumber_id} dict={cfdict_id}");
+
+        let info = core_graphics::window::copy_window_info(
+            core_graphics::window::kCGWindowListOptionOnScreenOnly
+                | core_graphics::window::kCGWindowListExcludeDesktopElements,
+            core_graphics::window::kCGNullWindowID,
+        )
+        .unwrap();
+        let arr = info.as_concrete_TypeRef();
+        let count = unsafe { CFArrayGetCount(arr) };
+
+        let mut checked = 0;
+        for i in 0..count {
+            if checked >= 3 { break; }
+            let el = unsafe { CFArrayGetValueAtIndex(arr, i) };
+            let d = WindowDict(el as *const _);
+            let layer = d.get_i32(K_WINDOW_LAYER).unwrap_or(-1);
+            if layer != 0 { continue; }
+
+            match super::window::raw(d, K_BOUNDS) {
+                Some(ptr) => {
+                    let tid = unsafe { CFGetTypeID(ptr) };
+                    let len = if tid == cfdata_id {
+                        unsafe { Some(core_foundation_sys::data::CFDataGetLength(ptr as *const _)) }
+                    } else {
+                        None
+                    };
+                    eprintln!("  bounds type_id={tid} is_cfdata={} len={len:?}", tid == cfdata_id);
+                }
+                None => eprintln!("  bounds: raw() returned None"),
+            }
+            checked += 1;
+        }
     }
 }
