@@ -15,7 +15,7 @@ import type { Material } from '../shared/materials';
 
 const TAU = Math.PI * 2;
 const CURSOR_MAX_PX = 56; // 光标精灵最长边（48–64 区间）
-const CRACK_MS = 720; // 爆裂动画时长
+const CRACK_MS = 1200; // 爆裂动画时长
 
 /** 解析后的渲染指令。所有素材均为图片，`url` 为 data: URI。 */
 export type ResolvedMaterial = { kind: 'image'; url: string; id: string };
