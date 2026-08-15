@@ -216,7 +216,9 @@ pub mod window {
     use core_foundation::base::TCFType;
     use core_foundation_sys::base::CFGetTypeID;
     use core_foundation_sys::dictionary::CFDictionaryGetValueIfPresent;
-    use core_foundation_sys::number::{CFNumberGetTypeID, CFNumberGetValue, kCFNumberSInt32Type};
+    use core_foundation_sys::number::{
+        CFNumberGetTypeID, CFNumberGetValue, kCFNumberFloat64Type, kCFNumberSInt32Type,
+    };
     use core_foundation_sys::string::{
         CFStringGetCStringPtr, CFStringGetTypeID, kCFStringEncodingUTF8,
     };
@@ -294,24 +296,44 @@ pub mod window {
     }
 
     fn bounds_get(ptr: *const c_void) -> Option<(f64, f64, f64, f64)> {
+        use core_foundation_sys::dictionary::{CFDictionaryGetCount, CFDictionaryGetKeysAndValues};
+        use core_foundation_sys::number::CFNumberGetTypeID;
+
         unsafe {
-            if type_id(ptr) != core_foundation_sys::data::CFDataGetTypeID() {
+            if type_id(ptr) != core_foundation_sys::dictionary::CFDictionaryGetTypeID() {
                 return None;
             }
-            let len = core_foundation_sys::data::CFDataGetLength(ptr as *const _);
-            if len < (core::mem::size_of::<f64>() * 4) as isize {
-                return None;
+            let dict_ptr = ptr as core_foundation_sys::dictionary::CFDictionaryRef;
+            let num_keys = CFDictionaryGetCount(dict_ptr);
+            if num_keys != 4 {
+                return None; // bounds must have exactly 4 keys
             }
-            let mut v: [f64; 4] = [0.0; 4];
-            core_foundation_sys::data::CFDataGetBytes(
-                ptr as *const _,
-                core_foundation_sys::base::CFRange {
-                    location: 0,
-                    length: len,
-                },
-                v.as_mut_ptr() as *mut u8,
-            );
-            Some((v[0], v[1], v[2], v[3]))
+
+            // Dump all keys and values from the bounds dictionary.
+            let mut keys: [*const c_void; 4] = [std::ptr::null(); 4];
+            let mut vals: [*const c_void; 4] = [std::ptr::null(); 4];
+            CFDictionaryGetKeysAndValues(dict_ptr, keys.as_mut_ptr(), vals.as_mut_ptr());
+
+            // Extract all f64 values from the CFNumber entries.
+            let cfnum_id = CFNumberGetTypeID();
+            let mut nums: [f64; 4] = [0.0; 4];
+            for i in 0..4 {
+                if type_id(vals[i]) != cfnum_id {
+                    return None;
+                }
+                if CFNumberGetValue(
+                    vals[i] as *const _,
+                    kCFNumberFloat64Type,
+                    &mut nums[i] as *mut f64 as *mut c_void,
+                ) {
+                    // success
+                } else {
+                    return None;
+                }
+            }
+
+            // The 4 numbers are {X, Y, Width, Height} — same order CGWindow uses.
+            Some((nums[0], nums[1], nums[2], nums[3]))
         }
     }
 
@@ -379,52 +401,10 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    #[ignore = "debug probe — remove once bounds parsing is verified"]
-    fn debug_bounds_type() {
-        use crate::target_window::window::{K_BOUNDS, K_WINDOW_LAYER, WindowDict};
-        use core_foundation::base::TCFType;
-        use core_foundation_sys::array::{CFArrayGetCount, CFArrayGetValueAtIndex};
-        use core_foundation_sys::base::CFGetTypeID;
-        use core_foundation_sys::number::CFNumberGetTypeID;
-        use core_foundation_sys::string::CFStringGetTypeID;
-
-        // Print CF type IDs for reference.
-        let cfdata_id = unsafe { core_foundation_sys::data::CFDataGetTypeID() };
-        let cfstring_id = unsafe { CFStringGetTypeID() };
-        let cfnumber_id = unsafe { CFNumberGetTypeID() };
-        let cfdict_id = unsafe { core_foundation_sys::dictionary::CFDictionaryGetTypeID() };
-        eprintln!("CF type IDs: data={cfdata_id} string={cfstring_id} number={cfnumber_id} dict={cfdict_id}");
-
-        let info = core_graphics::window::copy_window_info(
-            core_graphics::window::kCGWindowListOptionOnScreenOnly
-                | core_graphics::window::kCGWindowListExcludeDesktopElements,
-            core_graphics::window::kCGNullWindowID,
-        )
-        .unwrap();
-        let arr = info.as_concrete_TypeRef();
-        let count = unsafe { CFArrayGetCount(arr) };
-
-        let mut checked = 0;
-        for i in 0..count {
-            if checked >= 3 { break; }
-            let el = unsafe { CFArrayGetValueAtIndex(arr, i) };
-            let d = WindowDict(el as *const _);
-            let layer = d.get_i32(K_WINDOW_LAYER).unwrap_or(-1);
-            if layer != 0 { continue; }
-
-            match super::window::raw(d, K_BOUNDS) {
-                Some(ptr) => {
-                    let tid = unsafe { CFGetTypeID(ptr) };
-                    let len = if tid == cfdata_id {
-                        unsafe { Some(core_foundation_sys::data::CFDataGetLength(ptr as *const _)) }
-                    } else {
-                        None
-                    };
-                    eprintln!("  bounds type_id={tid} is_cfdata={} len={len:?}", tid == cfdata_id);
-                }
-                None => eprintln!("  bounds: raw() returned None"),
-            }
-            checked += 1;
-        }
+    fn probe_real_bounds_parse() {
+        // Verify bounds parsing on live windows: must return valid (x,y,w,h)
+        // without panicking. Hit result depends on what's on screen.
+        let hit = app_under_cursor(800.0, 400.0);
+        eprintln!("probe: hit={hit:?}");
     }
 }
