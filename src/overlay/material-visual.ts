@@ -158,37 +158,32 @@ function ring(cx: number, cy: number, count: number, speedLo: number, speedHi: n
 /** 素材 id → 专属爆裂风味。未知 id 回退到通用锻造橙爆裂。 */
 function crackStyle(id: string): CrackStyle {
   switch (id) {
-    // ── whip · 三态变速弧 ──────────────────────────────────────────────
-    // 蓄力抖动 → 沿弧线加速甩出 → 鞭梢过冲淡出
-    // 粒子沿弧线路径铺开（残影弧），不从中心散射。
+    // ── whip · 三态变速弧（大范围）────────────────────────────────────
     case 'whip':
       return {
         hue: 28,
         sprite: (t) => {
           let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
           if (t < 0.25) {
-            // 蓄力：小幅颤抖
             const s = t / 0.25;
-            dx = Math.sin(s * 20) * 4 * (1 - s);
-            dy = Math.cos(s * 24) * 3 * (1 - s);
-            rot = Math.sin(s * 30) * 0.15;
+            dx = Math.sin(s * 20) * 8 * (1 - s);
+            dy = Math.cos(s * 24) * 6 * (1 - s);
+            rot = Math.sin(s * 30) * 0.3;
           } else if (t < 0.75) {
-            // 甩出：沿弧线加速
             const s = (t - 0.25) / 0.5;
             const angle = -Math.PI * 0.1 + s * Math.PI * 0.6;
-            const r = 20 + s * s * 60;
+            const r = 40 + s * s * 120;
             dx = Math.cos(angle) * r;
             dy = -Math.sin(angle) * r;
-            scale = 1 + s * 0.9;
+            scale = 1 + s * 1.8;
             rot = -angle + Math.PI * 0.5;
           } else {
-            // 鞭梢过冲 + 断崖淡出
             const s = (t - 0.75) / 0.25;
             const angle = Math.PI * 0.5;
-            const r = 80 + s * 20;
+            const r = 160 + s * 40;
             dx = Math.cos(angle) * r;
             dy = -Math.sin(angle) * r;
-            scale = 1.9 - s * 0.3;
+            scale = 2.8 - s * 0.6;
             rot = Math.PI * 0.4 - s * 0.3;
             alpha = 1 - s;
           }
@@ -196,174 +191,151 @@ function crackStyle(id: string): CrackStyle {
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 残影弧：沿甩鞭路径等距铺粒子，不散射
-          for (let i = 0; i < 28; i++) {
-            const frac = i / 28;
+          for (let i = 0; i < 50; i++) {
+            const frac = i / 50;
             const angle = -Math.PI * 0.1 + frac * Math.PI * 0.6;
-            const r = 20 + frac * frac * 60;
+            const r = 40 + frac * frac * 120;
             const px = cx + Math.cos(angle) * r;
             const py = cy - Math.sin(angle) * r;
-            // 每个粒子沿当时弧切方向续飞
             const tangent = angle + Math.PI * 0.5;
-            const sp = rand(3, 7);
+            const sp = rand(6, 14);
             out.push({ x: px, y: py, vx: Math.cos(tangent) * sp, vy: -Math.sin(tangent) * sp,
-              life: 1, decay: rand(0.018, 0.03), size: rand(2.5, 5),
+              life: 1, decay: rand(0.015, 0.025), size: rand(4, 9),
               hue: rand(22, 40), gravity: 0.05, shape: 'streak', angle: tangent });
           }
-          // 皮革屑：鞭梢末端散落
-          for (let i = 0; i < 18; i++) {
+          for (let i = 0; i < 30; i++) {
             const a = rand(0, TAU);
-            const sp = rand(1.5, 5);
-            out.push({ x: cx + rand(20, 50), y: cy - rand(40, 70), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.022, 0.04), size: rand(1.5, 3),
+            const sp = rand(2, 8);
+            out.push({ x: cx + rand(30, 80), y: cy - rand(60, 120), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.035), size: rand(2.5, 5),
               hue: rand(14, 38), gravity: 0.1, shape: Math.random() < 0.5 ? 'shard' : 'dot', angle: rand(0, TAU) });
           }
           return out;
         },
       };
-    // ── classic · 横扫亮痕 ─────────────────────────────────────────────
-    // 直线横切(几乎无旋转)，scale 短促尖峰模拟鞭梢擦过
-    // 粒子沿固定方向平行 streak，端点溅灰烟，不散射。
+    // ── classic · 横扫亮痕（大范围）────────────────────────────────────
     case 'classic':
       return {
         hue: 200,
         sprite: (t) => {
           let dx = 0, dy = 0, scale = 1.1, alpha = 1;
           if (t < 0.2) {
-            // 空气中吸收，几乎透明
             alpha = t / 0.2 * 0.15;
-            dx = t / 0.2 * (-60);
+            dx = t / 0.2 * (-120);
           } else if (t < 0.6) {
-            // 横扫出亮线
             const s = (t - 0.2) / 0.4;
-            dx = -60 + s * 140;
-            dy = 10 - s * 18; // 末尾上挑
+            dx = -120 + s * 280;
+            dy = 20 - s * 36;
             alpha = 0.15 + s * 0.85;
           } else {
-            // 鞭梢擦过尖峰 + 灭
             const s = (t - 0.6) / 0.4;
-            dx = 80 + s * 10;
-            dy = -8 + s * (-3);
-            scale = 1.1 + (s < 0.3 ? s / 0.3 * 0.5 : (1 - (s - 0.3) / 0.7) * 0.5);
+            dx = 160 + s * 20;
+            dy = -16 + s * (-6);
+            scale = 1.1 + (s < 0.3 ? s / 0.3 * 1.0 : (1 - (s - 0.3) / 0.7) * 1.0);
             alpha = 1 - s;
           }
           return { dx, dy, scale, rot: 0, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 平行横切线：沿固定方向飞
-          for (let i = 0; i < 30; i++) {
-            const frac = (i / 30 - 0.5) * 100;
+          for (let i = 0; i < 40; i++) {
+            const frac = (i / 40 - 0.5) * 200;
             const px = cx + frac;
             const py = cy + frac * (-0.15);
-            const sp = rand(4, 9);
-            out.push({ x: px, y: py, vx: sp, vy: rand(-0.3, 0.3),
-              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
+            const sp = rand(8, 18);
+            out.push({ x: px, y: py, vx: sp, vy: rand(-0.6, 0.6),
+              life: 1, decay: rand(0.018, 0.03), size: rand(3.5, 8),
               hue: rand(195, 215), gravity: 0.02, shape: 'streak', angle: 0.05 });
           }
-          // 鞭尾端溅灰烟
-          for (let i = 0; i < 12; i++) {
+          for (let i = 0; i < 15; i++) {
             const a = Math.PI + rand(-0.5, 0.5);
-            const sp = rand(1, 4);
-            out.push({ x: cx - 55 + rand(-5, 5), y: cy + 8 + rand(-4, 4),
+            const sp = rand(2, 7);
+            out.push({ x: cx - 110 + rand(-8, 8), y: cy + 16 + rand(-6, 6),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp + 0.5,
-              life: 1, decay: rand(0.025, 0.04), size: rand(1.5, 3),
+              life: 1, decay: rand(0.022, 0.038), size: rand(2.5, 5),
               hue: rand(210, 230), gravity: 0.08, shape: 'dot', angle: 0 });
           }
           return out;
         },
       };
-    // ── rocket · 点火喷射 ──────────────────────────────────────────────
-    // 点火颤抖 → 加速爬升 → 穿云淡出
-    // 底部连续尾焰烟柱（向下 streak + 斜散 dot），负重力。
+    // ── rocket · 点火喷射（大范围）─────────────────────────────────────
     case 'rocket':
       return {
         hue: 26,
         sprite: (t) => {
           let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
           if (t < 0.2) {
-            // 点火：原地震颤
             const s = t / 0.2;
-            dx = Math.sin(s * 40) * 3;
-            dy = s * 6; // 微下压（被发射台顶）
-            scale = 1 + Math.sin(s * 20) * 0.15;
-            rot = Math.sin(s * 30) * 0.12;
+            dx = Math.sin(s * 40) * 6;
+            dy = s * 12;
+            scale = 1 + Math.sin(s * 20) * 0.3;
+            rot = Math.sin(s * 30) * 0.25;
           } else if (t < 0.75) {
-            // 加速爬升：三次方加速
             const s = (t - 0.2) / 0.55;
-            dy = 6 - s * s * s * 380;
-            scale = 1 + s * 0.25;
-            rot *= 1 - s; // 趋正
+            dy = 12 - s * s * s * 760;
+            scale = 1 + s * 0.5;
+            rot *= 1 - s;
           } else {
-            // 穿云淡出
             const s = (t - 0.75) / 0.25;
-            dy = 6 - 380 - s * 60;
-            scale = 1.25 + s * 0.1;
+            dy = 12 - 760 - s * 120;
+            scale = 1.5 + s * 0.2;
             alpha = 1 - s;
           }
           return { dx, dy, scale, rot, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 核心喷流：高速向下 streak
-          for (let i = 0; i < 20; i++) {
-            const sp = rand(6, 14);
-            const a = Math.PI / 2 + rand(-0.15, 0.15);
-            out.push({ x: cx + rand(-3, 3), y: cy + 5,
+          for (let i = 0; i < 60; i++) {
+            const sp = rand(12, 28);
+            const a = Math.PI / 2 + rand(-0.3, 0.3);
+            out.push({ x: cx + rand(-6, 6), y: cy + 10,
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.015, 0.025), size: rand(3, 6),
+              life: 1, decay: rand(0.012, 0.02), size: rand(5, 12),
               hue: rand(18, 36), gravity: 0, shape: 'streak', angle: a });
           }
-          // 羽状烟：斜散 dot，负重力飘浮
-          for (let i = 0; i < 26; i++) {
-            const a = Math.PI / 2 + rand(-0.8, 0.8);
-            const sp = rand(1.5, 5);
-            out.push({ x: cx + rand(-10, 10), y: cy + rand(8, 20),
+          for (let i = 0; i < 40; i++) {
+            const a = Math.PI / 2 + rand(-1.2, 1.2);
+            const sp = rand(3, 10);
+            out.push({ x: cx + rand(-18, 18), y: cy + rand(12, 40),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.018, 0.035), size: rand(2, 4),
+              life: 1, decay: rand(0.015, 0.03), size: rand(3.5, 8),
               hue: rand(14, 40), gravity: -0.01, shape: 'dot', angle: 0 });
           }
           return out;
         },
       };
-    // ── lightning · 闪烁劈裂 ───────────────────────────────────────────
-    // 原地高频闪烁（alpha 锯齿波），scale 爆缩。
-    // 3-5 段分形电弧折线，延迟点亮+熄灭。
+    // ── lightning · 闪烁劈裂（大范围）──────────────────────────────────
     case 'lightning':
       return {
         hue: 205,
         sprite: (t) => {
           const alpha = Math.max(0, 1 - t) * (0.55 + 0.45 * Math.sin(t * 50));
-          const scale = t < 0.2 ? 1.3 - t * 2 : 0.9 + (t - 0.2) * 0.4;
+          const scale = t < 0.2 ? 2.0 - t * 4 : 1.2 + (t - 0.2) * 0.8;
           return { dx: 0, dy: 0, scale, rot: 0, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 分形电弧：3-5 段折线，每段带 1-2 个短叉
-          const arcs = 3 + Math.floor(Math.random() * 3);
+          const arcs = 4 + Math.floor(Math.random() * 4);
           for (let a = 0; a < arcs; a++) {
             const baseAngle = (a / arcs) * TAU + rand(-0.3, 0.3);
-            const arcLen = rand(40, 80);
-            const segs = 3 + Math.floor(Math.random() * 2);
-            // 电弧的初始 delay（造成先后点亮）
+            const arcLen = rand(80, 160);
+            const segs = 3 + Math.floor(Math.random() * 3);
             const delay = rand(0, 0.15);
             for (let s = 0; s < segs; s++) {
-              const segAngle = baseAngle + (Math.random() - 0.5) * 1.0;
+              const segAngle = baseAngle + (Math.random() - 0.5) * 1.2;
               const sx = cx + Math.cos(baseAngle) * arcLen * (s / segs);
               const sy = cy + Math.sin(baseAngle) * arcLen * (s / segs);
-              const sp = rand(5, 10);
-              // const len = arcLen / segs;
+              const sp = rand(10, 20);
               out.push({ x: sx, y: sy,
                 vx: Math.cos(segAngle) * sp, vy: Math.sin(segAngle) * sp,
-                life: 1, decay: rand(0.025, 0.04) + delay, size: rand(2.5, 5),
+                life: 1, decay: rand(0.022, 0.038) + delay, size: rand(4.5, 10),
                 hue: rand(195, 210), gravity: 0, shape: 'streak', angle: segAngle });
-              // 叉枝
-              if (Math.random() < 0.5) {
+              if (Math.random() < 0.6) {
                 const branchAngle = segAngle + (Math.random() > 0.5 ? 1 : -1) * rand(0.6, 1.2);
-                const bs = rand(3, 7);
+                const bs = rand(6, 14);
                 out.push({ x: sx, y: sy,
                   vx: Math.cos(branchAngle) * bs, vy: Math.sin(branchAngle) * bs,
-                  life: 1, decay: rand(0.03, 0.05) + delay, size: rand(1.5, 3),
+                  life: 1, decay: rand(0.028, 0.045) + delay, size: rand(3, 6),
                   hue: rand(210, 225), gravity: 0, shape: 'streak', angle: branchAngle });
               }
             }
@@ -371,155 +343,134 @@ function crackStyle(id: string): CrackStyle {
           return out;
         },
       };
-    // ── flame · 舒展上腾 ───────────────────────────────────────────────
-    // 火源不动，scale 从 0.4 膨胀到 1.9，小幅度呼吸摆动。
-    // 火星涡旋上升（vx 沿 sin 摆动），底部亮黄→顶部暗红。
+    // ── flame · 舒展上腾（大范围）──────────────────────────────────────
     case 'flame':
       return {
         hue: 20,
         sprite: (t) => {
-          const dx = 22 * Math.sin(t * 10) * Math.exp(-3 * t);
-          const dy = -t * 30;
-          const scale = 0.4 + t * 1.5;
-          const rot = Math.sin(t * 8) * 0.12;
+          const dx = 44 * Math.sin(t * 10) * Math.exp(-3 * t);
+          const dy = -t * 60;
+          const scale = 0.4 + t * 3.0;
+          const rot = Math.sin(t * 8) * 0.24;
           const alpha = t < 0.1 ? t / 0.1 : 1 - (t - 0.1) * 0.8 / 0.9;
           return { dx, dy, scale, rot, alpha: Math.max(0, alpha) };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 火星涡旋：从基部向上螺旋
-          for (let i = 0; i < 38; i++) {
-            const base = rand(-12, 12);
-            const sp = rand(2, 5);
-            const vx = base * 0.3 + Math.sin(i * 0.7) * 1.5;
+          for (let i = 0; i < 60; i++) {
+            const base = rand(-20, 20);
+            const sp = rand(4, 10);
+            const vx = base * 0.3 + Math.sin(i * 0.7) * 3;
             const vy = -sp;
-            // 底部亮黄(14-24) 到顶部暗红(40-55)渐变
-            const frac = i / 38;
+            const frac = i / 60;
             const hue = 14 + frac * 36;
-            out.push({ x: cx + rand(-8, 8), y: cy + rand(-4, 8),
-              vx, vy, life: 1, decay: rand(0.01, 0.022),
-              size: rand(2, 4.5), hue, gravity: -0.03, shape: 'dot', angle: 0 });
+            out.push({ x: cx + rand(-14, 14), y: cy + rand(-6, 12),
+              vx, vy, life: 1, decay: rand(0.008, 0.018),
+              size: rand(3.5, 8), hue, gravity: -0.03, shape: 'dot', angle: 0 });
           }
-          // 烟：灰色 dot 横飘下沉
-          for (let i = 0; i < 12; i++) {
-            const a = rand(-0.8, 0.8);
-            const sp = rand(1, 3);
-            out.push({ x: cx + rand(-10, 10), y: cy - rand(10, 20),
+          for (let i = 0; i < 20; i++) {
+            const a = rand(-1.2, 1.2);
+            const sp = rand(2, 6);
+            out.push({ x: cx + rand(-16, 16), y: cy - rand(16, 35),
               vx: Math.cos(a) * sp, vy: -0.5,
-              life: 1, decay: rand(0.015, 0.025), size: rand(2, 3.5),
+              life: 1, decay: rand(0.012, 0.022), size: rand(3, 6),
               hue: rand(0, 10), gravity: 0.06, shape: 'dot', angle: 0 });
           }
           return out;
         },
       };
-    // ── star · 五芒绽放 ────────────────────────────────────────────────
-    // 原地暴缩到放大 2.2，旋转 180°。
-    // 5 组粒子各指向 72° 间隔（五角对称），不散射。
+    // ── star · 五芒绽放（大范围）───────────────────────────────────────
     case 'star':
       return {
         hue: 45,
         sprite: (t) => {
-          const scale = t < 0.3 ? 1 + t / 0.3 * 1.2 : 2.2 - (t - 0.3) / 0.7 * 1.2;
-          const wobble = t < 0.3 ? Math.sin(t * 60) * 0.08 : 0;
+          const scale = t < 0.3 ? 1 + t / 0.3 * 2.0 : 3.0 - (t - 0.3) / 0.7 * 2.0;
+          const wobble = t < 0.3 ? Math.sin(t * 60) * 0.16 : 0;
           return { dx: 0, dy: 0, scale, rot: t * Math.PI + wobble, alpha: 1 - t * t };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 五重对称光丝
           for (let arm = 0; arm < 5; arm++) {
             const baseAngle = (arm / 5) * TAU - Math.PI / 2;
-            for (let j = 0; j < 6; j++) {
+            for (let j = 0; j < 10; j++) {
               const a = baseAngle + rand(-0.12, 0.12);
-              const sp = rand(3, 10);
+              const sp = rand(6, 20);
               out.push({ x: cx, y: cy,
                 vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-                life: 1, decay: rand(0.02, 0.035), size: rand(1.5, 3.5),
+                life: 1, decay: rand(0.018, 0.03), size: rand(3, 7),
                 hue: rand(40, 56), gravity: 0.02, shape: 'dot', angle: 0 });
             }
           }
           return out;
         },
       };
-    // ── meteor · 弧线俯冲撞击 ─────────────────────────────────────────
-    // 抛物线上抛再回落（先上后下），末尾 scale 暴增（撞击）。
-    // 前半段身后火尾 + t=0.8 时地面冲击波。
+    // ── meteor · 弧线俯冲撞击（大范围）────────────────────────────────
     case 'meteor':
       return {
         hue: 30,
         sprite: (t) => {
-          let dx = 0, dy = 0, scale = 1, rot = t * 4, alpha = 1;
+          let dx = 0, dy = 0, scale = 1, rot = t * 6, alpha = 1;
           if (t < 0.8) {
-            // 抛物线飞行
             const s = t / 0.8;
-            dx = s * 120;
-            dy = -s * (1 - s) * 160; // 上拱后回落
+            dx = s * 240;
+            dy = -s * (1 - s) * 320;
             scale = 1 - s * 0.15;
           } else {
-            // 撞击：挤压放大
             const s = (t - 0.8) / 0.2;
-            dx = 120 + s * 10;
-            dy = -s * (1 - s) * 160;
-            scale = 0.85 + s * 1.35;
+            dx = 240 + s * 20;
+            dy = -s * (1 - s) * 320;
+            scale = 0.85 + s * 2.7;
             alpha = 1 - s * s;
           }
           return { dx, dy, scale, rot, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 飞行火尾：身后 streak
-          for (let i = 0; i < 20; i++) {
-            const frac = i / 20;
-            const px = cx + frac * 50;
-            const py = cy - frac * 30 + frac * frac * 20;
+          for (let i = 0; i < 40; i++) {
+            const frac = i / 40;
+            const px = cx + frac * 100;
+            const py = cy - frac * 60 + frac * frac * 40;
             const a = Math.PI * 0.8 + rand(-0.3, 0.3);
-            const sp = rand(2, 5);
+            const sp = rand(4, 10);
             out.push({ x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
+              life: 1, decay: rand(0.018, 0.03), size: rand(3.5, 7),
               hue: rand(20, 38), gravity: 0.12, shape: 'streak', angle: a });
           }
-          // 撞击冲击波：沿地面切线爆开
-          for (let i = 0; i < 16; i++) {
+          for (let i = 0; i < 20; i++) {
             const a = rand(-Math.PI * 0.8, Math.PI * 0.2);
-            const sp = rand(5, 12);
-            out.push({ x: cx + 130, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.02, 0.03), size: rand(2.5, 5),
+            const sp = rand(10, 24);
+            out.push({ x: cx + 260, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.03), size: rand(4.5, 10),
               hue: rand(22, 42), gravity: 0.08, shape: 'streak', angle: a });
           }
-          // 碎岩 shard
-          for (let i = 0; i < 6; i++) {
+          for (let i = 0; i < 10; i++) {
             const a = rand(-1.2, 0.2);
-            const sp = rand(4, 10);
-            out.push({ x: cx + 130, y: cy - 5, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.02, 0.035), size: rand(3, 6),
+            const sp = rand(8, 20);
+            out.push({ x: cx + 260, y: cy - 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.03), size: rand(5, 12),
               hue: rand(15, 35), gravity: 0.2, shape: 'shard', angle: rand(0, TAU) });
           }
           return out;
         },
       };
-    // ── skull · 结构崩解 ───────────────────────────────────────────────
-    // 原地碎裂抖动（高频乱抖 + 左右错位），alpha 渐隐。
-    // 骨片 shard 从颅骨上下缘分离坠落 + 灰烬 dot 飘散。
+    // ── skull · 结构崩解（大范围）──────────────────────────────────────
     case 'skull':
       return {
         hue: 8,
         sprite: (t) => {
           let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
           if (t < 0.2) {
-            // 预裂：静止
           } else if (t < 0.35) {
-            // 裂缝：高频抖动
             const s = (t - 0.2) / 0.15;
-            dx = Math.sin(s * 50) * 8 * s;
-            rot = Math.sin(s * 40) * 0.15 * s;
-            scale = 1 + Math.sin(s * 30) * 0.05;
+            dx = Math.sin(s * 50) * 16 * s;
+            rot = Math.sin(s * 40) * 0.3 * s;
+            scale = 1 + Math.sin(s * 30) * 0.1;
           } else if (t < 0.5) {
-            // 碎开：向两侧分离
             const s = (t - 0.35) / 0.15;
-            dx = Math.sin(t * 60) * 10 * (1 - s);
-            scale = 1 - s * 0.2;
+            dx = Math.sin(t * 60) * 20 * (1 - s);
+            scale = 1 - s * 0.4;
             alpha = 1 - s * 0.3;
           } else {
-            // 消失
             const s = (t - 0.5) / 0.5;
             alpha = 0.7 - s * 0.7;
           }
@@ -527,127 +478,112 @@ function crackStyle(id: string): CrackStyle {
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 骨片 shard：从颅骨上缘和下缘分离
-          for (let i = 0; i < 20; i++) {
+          for (let i = 0; i < 40; i++) {
             const isTop = Math.random() < 0.45;
-            const ox = rand(-16, 16);
-            const oy = isTop ? rand(-20, -8) : rand(8, 18);
-            const vx = ox * 0.3 + rand(-1, 1);
-            const vy = isTop ? rand(-2, 1) : rand(1, 3);
+            const ox = rand(-32, 32);
+            const oy = isTop ? rand(-40, -16) : rand(16, 36);
+            const vx = ox * 0.3 + rand(-2, 2);
+            const vy = isTop ? rand(-4, 2) : rand(2, 6);
             out.push({ x: cx + ox, y: cy + oy, vx, vy,
-              life: 1, decay: rand(0.02, 0.038), size: rand(2.5, 5),
+              life: 1, decay: rand(0.018, 0.035), size: rand(4.5, 10),
               hue: rand(10, 24), gravity: 0.2, shape: 'shard', angle: rand(0, TAU) });
           }
-          // 灰烬飘散
-          for (let i = 0; i < 14; i++) {
+          for (let i = 0; i < 25; i++) {
             const a = rand(0, TAU);
-            const sp = rand(1, 3);
-            out.push({ x: cx + rand(-14, 14), y: cy + rand(-10, 10),
+            const sp = rand(2, 6);
+            out.push({ x: cx + rand(-28, 28), y: cy + rand(-20, 20),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.5,
-              life: 1, decay: rand(0.015, 0.028), size: rand(1, 2.5),
+              life: 1, decay: rand(0.012, 0.025), size: rand(2, 5),
               hue: rand(0, 12), gravity: 0.08, shape: 'dot', angle: 0 });
           }
           return out;
         },
       };
-    // ── crown · 上抛自旋加冕 ───────────────────────────────────────────
-    // 竖抛物线(0→-70→0)，rot 变速率整圈旋转。
-    // 滞空宝石光晕环（负重力悬浮）+ 弧光迹。
+    // ── crown · 上抛自旋加冕（大范围）──────────────────────────────────
     case 'crown':
       return {
         hue: 45,
         sprite: (t) => {
-          const dy = -4 * 70 * t * (1 - t); // 抛物线：顶在 t=0.5
-          // 变速率旋转：前 40% 快，后 60% 慢
+          const dy = -4 * 140 * t * (1 - t);
           let rot = 0;
           if (t < 0.4) rot = (t / 0.4) * 0.7 * TAU;
           else rot = 0.7 * TAU + ((t - 0.4) / 0.6) * 0.3 * TAU;
-          const scale = 0.9 + t * 0.4;
+          const scale = 0.9 + t * 0.8;
           const alpha = t > 0.9 ? 1 - (t - 0.9) / 0.1 : 1;
           return { dx: 0, dy, scale, rot, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 宝石光晕：在滞空高点上方微浮
-          for (let i = 0; i < 10; i++) {
-            const angle = (i / 10) * TAU;
-            const r = 18 + rand(-4, 4);
-            out.push({ x: cx + Math.cos(angle) * r, y: cy - 70 + Math.sin(angle) * r,
-              vx: Math.cos(angle) * 0.3, vy: Math.sin(angle) * 0.3,
-              life: 1, decay: rand(0.012, 0.02), size: rand(2, 4),
+          for (let i = 0; i < 20; i++) {
+            const angle = (i / 20) * TAU;
+            const r = 36 + rand(-8, 8);
+            out.push({ x: cx + Math.cos(angle) * r, y: cy - 140 + Math.sin(angle) * r,
+              vx: Math.cos(angle) * 0.6, vy: Math.sin(angle) * 0.6,
+              life: 1, decay: rand(0.01, 0.018), size: rand(4, 8),
               hue: i % 2 === 0 ? rand(40, 52) : rand(195, 215), gravity: -0.03, shape: 'dot', angle: 0 });
           }
-          // 上抛弧光迹
-          for (let i = 0; i < 14; i++) {
-            const frac = i / 14;
-            const py = cy - frac * 70;
+          for (let i = 0; i < 28; i++) {
+            const frac = i / 28;
+            const py = cy - frac * 140;
             const a = -Math.PI / 2 + rand(-0.15, 0.15);
-            const sp = rand(2, 5);
-            out.push({ x: cx + rand(-3, 3), y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.018, 0.03), size: rand(1.5, 3),
+            const sp = rand(4, 10);
+            out.push({ x: cx + rand(-6, 6), y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.015, 0.025), size: rand(2.5, 5),
               hue: rand(40, 56), gravity: -0.01, shape: 'dot', angle: 0 });
           }
           return out;
         },
       };
-    // ── sword · 两段式挥斩 ─────────────────────────────────────────────
-    // 提刀后撤(0→0.35) → 劈下大弧(0.35→0.75) → 收刀(0.75→1)
-    // rot 始终贴合运动方向。
-    // 粒子沿劈落弧线的高亮 streak 刃光 + 端点金橙火花。
+    // ── sword · 两段式挥斩（大范围）────────────────────────────────────
     case 'sword':
       return {
         hue: 24,
         sprite: (t) => {
           let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
           if (t < 0.35) {
-            // 提刀后撤：向后上方举起
             const s = t / 0.35;
-            dx = -s * 25;
-            dy = -s * 45;
-            rot = -s * 0.8; // 剑尖朝上
-            scale = 0.95 + s * 0.05;
+            dx = -s * 50;
+            dy = -s * 90;
+            rot = -s * 1.6;
+            scale = 0.95 + s * 0.1;
           } else if (t < 0.75) {
-            // 劈下：沿大圆弧快速斩落
             const s = (t - 0.35) / 0.4;
             const angle = -Math.PI * 0.3 + s * Math.PI * 0.7;
-            const r = 55;
-            dx = -25 + Math.cos(angle + Math.PI * 0.5) * r * s;
-            dy = -45 + Math.sin(angle + Math.PI * 0.5) * r * s + 85 * s;
-            rot = -0.8 + s * 1.6; // 剑尖从上转到下
-            scale = 1 + s * 0.4;
+            const r = 110;
+            dx = -50 + Math.cos(angle + Math.PI * 0.5) * r * s;
+            dy = -90 + Math.sin(angle + Math.PI * 0.5) * r * s + 170 * s;
+            rot = -1.6 + s * 3.2;
+            scale = 1 + s * 0.8;
             alpha = 1;
           } else {
-            // 收刀回正
             const s = (t - 0.75) / 0.25;
-            dy = 40 - s * 40;
-            rot = 0.8 - s * 0.8;
-            scale = 1.4 - s * 0.3;
+            dy = 80 - s * 80;
+            rot = 1.6 - s * 1.6;
+            scale = 1.8 - s * 0.6;
             alpha = 1 - s;
           }
           return { dx, dy, scale, rot, alpha };
         },
         emit: (cx, cy) => {
           const out: Particle[] = [];
-          // 刃光切痕：沿劈落弧线铺设
-          for (let i = 0; i < 28; i++) {
-            const frac = i / 28;
+          for (let i = 0; i < 40; i++) {
+            const frac = i / 40;
             const angle = -Math.PI * 0.3 + frac * Math.PI * 0.7;
-            const r = 55;
-            const px = cx - 25 + Math.cos(angle + Math.PI * 0.5) * r * frac;
-            const py = cy - 45 + Math.sin(angle + Math.PI * 0.5) * r * frac + 85 * frac;
+            const r = 110;
+            const px = cx - 50 + Math.cos(angle + Math.PI * 0.5) * r * frac;
+            const py = cy - 90 + Math.sin(angle + Math.PI * 0.5) * r * frac + 170 * frac;
             const tangent = angle + Math.PI * 0.5;
-            const sp = rand(5, 11);
+            const sp = rand(10, 22);
             out.push({ x: px, y: py,
               vx: Math.cos(tangent) * sp, vy: Math.sin(tangent) * sp,
-              life: 1, decay: rand(0.02, 0.032), size: rand(2.5, 5),
+              life: 1, decay: rand(0.018, 0.03), size: rand(4.5, 10),
               hue: rand(40, 56), gravity: 0.03, shape: 'streak', angle: tangent });
           }
-          // 端点金橙火花
-          for (let i = 0; i < 12; i++) {
-            const a = rand(-0.8, 0.4) + Math.PI * 0.4;
-            const sp = rand(3, 8);
-            out.push({ x: cx + 30, y: cy + 40, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-              life: 1, decay: rand(0.022, 0.038), size: rand(1.5, 3.5),
+          for (let i = 0; i < 20; i++) {
+            const a = rand(-1.6, 0.8) + Math.PI * 0.4;
+            const sp = rand(6, 16);
+            out.push({ x: cx + 60, y: cy + 80, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.035), size: rand(3, 7),
               hue: rand(20, 46), gravity: 0.12, shape: 'dot', angle: 0 });
           }
           return out;
