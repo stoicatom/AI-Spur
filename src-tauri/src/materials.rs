@@ -146,6 +146,9 @@ mod tests {
                 .all(|m| m.builtin && !m.image_file.is_empty())
         );
         assert!(materials.iter().any(|m| m.id == "rocket"));
+        // The pioneering whip material — the original whip + crack sound —
+        // ships as the first built-in.
+        assert!(materials.iter().any(|m| m.id == "whip"));
     }
 
     #[test]
@@ -160,9 +163,10 @@ mod tests {
         let all = list_materials(&bundled_materials_dir(), None);
         assert!(!all.is_empty());
         assert!(all.iter().all(|m| m.kind == MaterialKind::Image));
-        // The eight hand-designed built-ins ship in this repo.
+        // The hand-designed built-ins ship in this repo.
         assert!(all.iter().any(|m| m.id == "rocket"));
         assert!(all.iter().any(|m| m.id == "lightning"));
+        assert!(all.iter().any(|m| m.id == "whip"));
     }
 
     #[test]

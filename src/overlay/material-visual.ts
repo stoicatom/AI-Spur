@@ -50,9 +50,14 @@ interface TrailPoint {
 /**
  * 素材跟随时的能量拖尾。环形缓冲最近的位置点，按 age 递减 alpha/宽度绘制，
  * 甩得越快点距越大 → 拖尾越长。纯 canvas 折线，无逐帧分配。
+ *
+ * 用**定长对象数组 + 头/尾游标**实现，而非 `push`/`shift`：跟随阶段每帧
+ * 记一个点，环形缓冲避免每帧分配新 TrailPoint 对象，也让丢弃最旧点是 O(1)。
  */
 export class MaterialTrail {
   private points: TrailPoint[] = [];
+  private head = 0; // 最旧点的下标（环形 write 游标 = 最旧点位置）。
+  private count = 0;
   private readonly max = 14;
   private hue = 24;
 
@@ -62,30 +67,43 @@ export class MaterialTrail {
   }
 
   clear(): void {
-    this.points = [];
+    this.count = 0;
   }
 
   push(x: number, y: number, now: number): void {
-    const last = this.points[this.points.length - 1];
-    // 仅在移动足够时记点，避免静止时堆叠。
-    if (last && Math.hypot(x - last.x, y - last.y) < 4) return;
-    this.points.push({ x, y, t: now });
-    if (this.points.length > this.max) this.points.shift();
+    // 环形缓冲里最旧的下标。count 不足满时，write 落在 count 之后（即物理下标
+    // = count）。
+    const writeAt = this.count < this.max ? this.count : this.head;
+    // 仅在移动足够时记点，避免静止时堆叠（与原 push/shift 语义一致）。
+    if (this.count > 0) {
+      const last = this.points[(writeAt + this.max - 1) % this.max];
+      if (last && Math.hypot(x - last.x, y - last.y) < 4) return;
+    }
+    const p = this.points[writeAt] ?? (this.points[writeAt] = { x: 0, y: 0, t: 0 });
+    p.x = x;
+    p.y = y;
+    p.t = now;
+    if (this.count < this.max) {
+      this.count++;
+    } else {
+      this.head = (this.head + 1) % this.max;
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, now: number): void {
-    if (this.points.length < 2) return;
+    if (this.count < 2) return;
+    // 从最旧到最新遍历段（首尾相接的环形里的连续区间）。
     // 老点在 220ms 后淡尽。
-    for (let i = 1; i < this.points.length; i++) {
-      const a = this.points[i - 1];
-      const b = this.points[i];
+    for (let k = 1; k < this.count; k++) {
+      const a = this.points[(this.head + k - 1) % this.max];
+      const b = this.points[(this.head + k) % this.max];
       const age = now - b.t;
       const life = Math.max(0, 1 - age / 220);
       if (life <= 0) continue;
       ctx.save();
-      ctx.globalAlpha = life * 0.5 * (i / this.points.length);
+      ctx.globalAlpha = life * 0.5 * (k / this.count);
       ctx.strokeStyle = `hsl(${this.hue}, 100%, 62%)`;
-      ctx.lineWidth = 10 * life * (i / this.points.length);
+      ctx.lineWidth = 10 * life * (k / this.count);
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
@@ -140,6 +158,36 @@ function ring(cx: number, cy: number, count: number, speedLo: number, speedHi: n
 /** 素材 id → 专属爆裂风味。未知 id 回退到通用锻造橙爆裂。 */
 function crackStyle(id: string): CrackStyle {
   switch (id) {
+    case 'whip':
+      // 抽甩：素材沿一道弧线高速抡出并放大淡出，落点迸射一条长弧光 + 皮革碎屑。
+      return {
+        hue: 28,
+        sprite: (t) => {
+          // 鞭身沿右上→左下的大弧甩出（模仿真实抡鞭的手势）。
+          const ang = -Math.PI * 0.25 + t * Math.PI * 0.5;
+          const rx = 46 * Math.cos(ang);
+          const ry = 46 * Math.sin(ang);
+          return { dx: -rx, dy: -ry, scale: 1 + t * 0.8, rot: t * 1.2, alpha: 1 - t * t };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 主线：一条长弧光 streak，沿抽击切线甩出。
+          for (let i = 0; i < 22; i++) {
+            const a = -Math.PI / 3 + rand(-0.1, 0.1);
+            const sp = rand(7, 16);
+            out.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.016, 0.028), size: rand(3, 6), hue: rand(22, 40), gravity: 0.05, shape: 'streak', angle: a });
+          }
+          // 散碎皮革屑 + 土黄微粒子。
+          for (let i = 0; i < 26; i++) {
+            const a = rand(0, TAU);
+            const sp = rand(1.5, 7);
+            out.push({ x: cx + rand(-10, 24), y: cy + rand(-10, 18), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1,
+              life: 1, decay: rand(0.02, 0.04), size: rand(1.5, 3.5), hue: rand(14, 42), gravity: 0.12, shape: Math.random() < 0.4 ? 'shard' : 'dot', angle: rand(0, TAU) });
+          }
+          return out;
+        },
+      };
     case 'rocket':
       // 升空：精灵向上加速冲出，尾部橙焰粒子向下喷、扩成烟云。
       return {
@@ -245,6 +293,9 @@ export class ImageMaterial {
   private img = new Image();
   private ready = false;
   private url = '';
+  /** 精灵适配后的绘制尺寸，load 成功时缓存一次，避免帧内重复计算。 */
+  private fitW = 0;
+  private fitH = 0;
 
   private crackT0 = 0;
   private crackX = 0;
@@ -265,6 +316,9 @@ export class ImageMaterial {
       if (this.url === url) {
         this.img = img;
         this.ready = true;
+        const s = fitSize(img, CURSOR_MAX_PX);
+        this.fitW = s.w;
+        this.fitH = s.h;
       }
     };
     img.onerror = () => {
@@ -289,8 +343,7 @@ export class ImageMaterial {
   /** 光标跟随：居中绘制在 (x, y)，保持宽高比。 */
   drawCursor(ctx: CanvasRenderingContext2D, x: number, y: number): void {
     if (!this.ready) return;
-    const { w, h } = fitSize(this.img, CURSOR_MAX_PX);
-    ctx.drawImage(this.img, x - w / 2, y - h / 2, w, h);
+    ctx.drawImage(this.img, x - this.fitW / 2, y - this.fitH / 2, this.fitW, this.fitH);
   }
 
   /** 触发该素材的专属爆裂动画。 */
@@ -318,16 +371,22 @@ export class ImageMaterial {
     const cx = this.crackX;
     const cy = this.crackY;
 
-    // 粒子。
-    for (const p of this.particles) {
-      if (p.life <= 0) continue;
+    // 粒子：物理推进 + 绘制 + 「原地压缩」在单遍内完成。活粒子写入数组前段，
+    // 最后截断 length——不再每帧 `filter` 分配新数组（爆裂期间 720ms 内的
+    // 主要 GC 压力来源）。
+    let write = 0;
+    const ps = this.particles;
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
       p.vy += p.gravity;
       p.x += p.vx;
       p.y += p.vy;
       p.vx *= 0.98;
       p.vy *= 0.98;
       p.life -= p.decay;
-      if (p.life <= 0) continue;
+      if (p.life <= 0) continue; // 死粒子：不画也不压实（后面统一截断）。
+
+      // 绘制活粒子。
       ctx.save();
       ctx.globalAlpha = Math.min(1, p.life * 1.4);
       const sz = p.size * p.life;
@@ -354,15 +413,18 @@ export class ImageMaterial {
         ctx.fillRect(-sz, -sz * 0.5, sz * 2, sz);
       }
       ctx.restore();
+
+      // 压实：活粒子留在前段（原位或前移覆盖死粒子）。
+      if (write !== i) ps[write] = p;
+      write++;
     }
-    this.particles = this.particles.filter((p) => p.life > 0);
+    ps.length = write;
 
     // 素材精灵：按专属运动轨迹位移 / 缩放 / 旋转 / 淡出。
     if (this.ready) {
       const s = this.style.sprite(t);
-      const { w, h } = fitSize(this.img, CURSOR_MAX_PX);
-      const iw = w * s.scale;
-      const ih = h * s.scale;
+      const iw = this.fitW * s.scale;
+      const ih = this.fitH * s.scale;
       ctx.save();
       ctx.globalAlpha = Math.max(0, s.alpha);
       ctx.translate(cx + s.dx, cy + s.dy);

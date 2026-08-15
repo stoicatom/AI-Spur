@@ -39,10 +39,11 @@ export interface Material {
 }
 
 /**
- * 八枚内置素材 id，与 `src-tauri/materials/<id>/` 目录一一对应。
+ * 内置素材 id，与 `src-tauri/materials/<id>/` 目录一一对应。
  * 默认活跃素材为 `rocket`（见 config.ts activeMaterialId 默认值）。
  */
 export const BUILTIN_MATERIAL_IDS = [
+  'whip',
   'rocket',
   'lightning',
   'flame',

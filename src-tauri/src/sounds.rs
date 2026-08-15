@@ -21,6 +21,7 @@ pub struct SoundPresetMeta {
 
 const BUILTIN_PRESETS: &[(&str, &str)] = &[
     ("default", "默认"),
+    ("whip", "皮鞭抽响"),
     ("rocket", "火箭升空"),
     ("lightning", "闪电电击"),
     ("flame", "火焰呼啸"),
@@ -220,12 +221,12 @@ mod tests {
 
     #[test]
     fn bundled_material_sound_packs_resolve_audio() {
-        // The eight material-matched packs ship real audio in the repo.
+        // The material-matched packs ship real audio in the repo.
         let sounds_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")
             .join("sounds");
         let presets = builtin_presets(&sounds_dir);
-        for id in ["rocket", "lightning", "flame", "sword"] {
+        for id in ["whip", "rocket", "lightning", "flame", "sword"] {
             let p = presets
                 .iter()
                 .find(|p| p.id == id)

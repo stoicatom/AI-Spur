@@ -164,8 +164,8 @@ pub async fn upload_custom_material(
     }
 
     let asset_path = target_dir.join(&file_name);
-    let data_uri = materials::image_data_uri(&asset_path)
-        .ok_or_else(|| "读取已上传素材失败".to_string())?;
+    let data_uri =
+        materials::image_data_uri(&asset_path).ok_or_else(|| "读取已上传素材失败".to_string())?;
     Ok(Material {
         id: slug,
         name: stem,
