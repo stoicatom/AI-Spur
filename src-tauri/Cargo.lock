@@ -21,6 +21,9 @@ dependencies = [
 name = "aispur"
 version = "0.2.0"
 dependencies = [
+ "core-foundation",
+ "core-foundation-sys",
+ "core-graphics",
  "dirs 5.0.1",
  "enigo",
  "serde",

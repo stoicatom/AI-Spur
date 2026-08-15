@@ -188,6 +188,39 @@ function crackStyle(id: string): CrackStyle {
           return out;
         },
       };
+    case 'classic':
+      // 经典鞭：黑白线条复古风格，精灵弧形抡出，迸射白灰线段火花。
+      return {
+        hue: 0,
+        sprite: (t) => {
+          const ang = -Math.PI * 0.35 + t * Math.PI * 0.4;
+          const rx = 50 * Math.cos(ang);
+          const ry = 50 * Math.sin(ang);
+          return { dx: -rx, dy: -ry, scale: 1 + t * 0.7, rot: t * 0.8, alpha: 1 - t * t };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 白色/灰线 streak，沿鞭头方向散射。
+          for (let i = 0; i < 30; i++) {
+            const a = rand(-Math.PI * 0.6, Math.PI * 0.2);
+            const sp = rand(6, 15);
+            out.push({ x: cx + rand(-6, 6), y: cy + rand(-6, 6),
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.032), size: rand(2.5, 5.5),
+              hue: rand(200, 220), gravity: 0.04, shape: 'streak', angle: a });
+          }
+          // 白色/灰点微粒子。
+          for (let i = 0; i < 18; i++) {
+            const a = rand(0, TAU);
+            const sp = rand(2, 8);
+            out.push({ x: cx + rand(-14, 14), y: cy + rand(-10, 14),
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.5,
+              life: 1, decay: rand(0.024, 0.04), size: rand(1.8, 3.2),
+              hue: rand(200, 225), gravity: 0.06, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
     case 'rocket':
       // 升空：精灵向上加速冲出，尾部橙焰粒子向下喷、扩成烟云。
       return {

@@ -44,6 +44,7 @@ export interface Material {
  */
 export const BUILTIN_MATERIAL_IDS = [
   'whip',
+  'classic',
   'rocket',
   'lightning',
   'flame',

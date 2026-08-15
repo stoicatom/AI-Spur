@@ -58,3 +58,6 @@ tokio = { version = "1", features = ["time"] }
 # this crate is compiled in all profiles; the call site guard ensures it
 # is not reached in release binaries.
 tauri-plugin-wdio-webdriver = "1.3"
+core-graphics = "0.25"
+core-foundation = "0.10"
+core-foundation-sys = "0.8"

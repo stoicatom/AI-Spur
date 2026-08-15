@@ -122,8 +122,37 @@ pub fn trigger_macro(
 ) -> Result<(), String> {
     // Safety gate: never inject into a window we can't confirm is a terminal.
     // Unknown frontmost app should not be spammed with Ctrl+C + text.
+    //
+    // When the frontmost app is not a known terminal, we still try once at the
+    // pointer's location: if the cursor is over a safe terminal window, bring
+    // that app to the front so the macro lands in the right input box (the
+    // "鼠标下面是终端 → 聚焦并处理" strategy). Only if no safe window is under
+    // the cursor do we refuse.
     if !target_window::active_app_is_safe() {
-        return Err("当前前台应用不是终端，已跳过发送".to_string());
+        let ready = app
+            .get_webview_window("overlay")
+            .and_then(|w| w.cursor_position().ok())
+            .map(|pos| {
+                target_window::app_under_cursor(pos.x, pos.y)
+                    .map(|hit| {
+                        let ok = target_window::activate_app(hit.pid);
+                        if ok {
+                            eprintln!(
+                                "[macro] 光标下命中安全终端，已激活: {} (pid {})",
+                                hit.name, hit.pid
+                            );
+                        }
+                        ok
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap_or(false);
+
+        if !ready {
+            return Err("当前前台应用不是终端，已跳过发送".to_string());
+        }
+        // Give AppKit a tick to settle focus before synthesizing keystrokes.
+        std::thread::sleep(std::time::Duration::from_millis(90));
     }
 
     // Server-side phrase choice (random from config) unless the caller passed

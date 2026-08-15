@@ -22,6 +22,7 @@ pub struct SoundPresetMeta {
 const BUILTIN_PRESETS: &[(&str, &str)] = &[
     ("default", "默认"),
     ("whip", "皮鞭抽响"),
+    ("classic", "经典鞭声(初版)"),
     ("rocket", "火箭升空"),
     ("lightning", "闪电电击"),
     ("flame", "火焰呼啸"),
