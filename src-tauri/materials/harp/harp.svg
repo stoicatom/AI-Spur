@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs><linearGradient id="hpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DAA520"/><stop offset="1" stop-color="#B8860B"/></linearGradient></defs>
+  <path d="M64 224 Q64 120 108 64 Q132 32 152 28 Q172 24 180 32" fill="url(#hpg)" stroke="#8B6914" stroke-width="5" stroke-linecap="round"/>
+  <line x1="108" y1="64" x2="108" y2="200" stroke="#DAA520" stroke-width="1.5" opacity="0.6"/>
+  <line x1="124" y1="48" x2="124" y2="180" stroke="#DAA520" stroke-width="1.5" opacity="0.6"/>
+  <line x1="140" y1="36" x2="140" y2="160" stroke="#DAA520" stroke-width="1.5" opacity="0.6"/>
+  <line x1="156" y1="30" x2="156" y2="140" stroke="#DAA520" stroke-width="1.5" opacity="0.6"/>
+  <line x1="64" y1="224" x2="108" y2="200" stroke="#B8860B" stroke-width="4"/>
+</svg>

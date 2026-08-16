@@ -15,7 +15,7 @@ import type { Material } from '../shared/materials';
 
 const TAU = Math.PI * 2;
 const CURSOR_MAX_PX = 56; // 光标精灵最长边（48–64 区间）
-const CRACK_MS = 800; // 爆裂动画时长
+const CRACK_MS = 1200; // 爆裂动画时长
 // const MAX_PARTICLES = 50; // 每次发射的粒子上限
 // const FRAME_BUDGET_US = 8000; // 单帧CPU预算（8ms @ 120Hz）
 // 预计算HSL颜色缓存（0-359色相→CSS字符串），避免每帧每粒子拼接
@@ -1616,6 +1616,828 @@ function crackStyle(id: string): CrackStyle {
               vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
               hue: rand(30, 50), gravity: 0.08, shape: 0, angle: 0 });
+          }
+          return out;
+        },
+      };
+
+
+    // ══════════════════════════════════════════════════════════════════
+    // 自然类素材
+    // ══════════════════════════════════════════════════════════════════
+
+    // wind · 风：水平卷扫，粒子随风飘散
+    case 'wind':
+      return {
+        hue: 200,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { dx = 0; scale = 0.9; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            dx = s * 280;
+            dy = Math.sin(s * 6) * 30;
+            scale = 0.9 + s * 0.3;
+            rot = Math.sin(s * 4) * 0.15;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            dx = 280 + s * 60;
+            dy = Math.sin(s * 8) * 20;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 30; i++) {
+            const frac = i / 30;
+            out.push({
+              x: cx + frac * 280, y: cy + Math.sin(frac * 6) * 40,
+              vx: 8 + rand(0, 3), vy: Math.sin(frac * 4) * 2,
+              life: 1, decay: rand(0.015, 0.025), size: rand(2, 5),
+              hue: rand(190, 215), gravity: 0, shape: 1, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // snow · 雪花：旋转飘落，缓慢下降
+    case 'snow':
+      return {
+        hue: 210,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) { scale = 0.8; }
+          else if (t < 0.7) {
+            const s = (t - 0.2) / 0.5;
+            dy = s * 80;
+            dx = Math.sin(s * 8) * 30;
+            rot = s * 4;
+            scale = 0.8 + s * 0.4;
+          } else {
+            const s = (t - 0.7) / 0.3;
+            dy = 80 + s * 40;
+            dx = Math.sin(s * 10) * 20;
+            rot = 4 + s * 2;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 25; i++) {
+            const x = cx + rand(-60, 60);
+            const y = cy + rand(-30, 10);
+            const sp = rand(0.5, 2);
+            out.push({
+              x, y, vx: Math.sin(i * 0.8) * sp, vy: rand(0.5, 2),
+              life: 1, decay: rand(0.008, 0.014), size: rand(3, 7),
+              hue: rand(200, 220), gravity: 0.005, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // rain · 雨：垂直线性下落
+    case 'rain':
+      return {
+        hue: 210,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { scale = 0.7; }
+          else if (t < 0.7) {
+            const s = (t - 0.15) / 0.55;
+            dy = s * 160;
+            scale = 0.7 + s * 0.5;
+          } else {
+            const s = (t - 0.7) / 0.3;
+            dy = 160 + s * 60;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 35; i++) {
+            const x = cx + rand(-50, 50);
+            out.push({
+              x, y: cy + rand(-20, 10), vx: rand(-0.5, 0.5), vy: rand(8, 16),
+              life: 1, decay: rand(0.012, 0.02), size: rand(1, 3),
+              hue: rand(200, 215), gravity: 0.3, shape: 1, angle: Math.PI / 2
+            });
+          }
+          return out;
+        },
+      };
+
+    // water · 水滴：水花溅射
+    case 'water':
+      return {
+        hue: 200,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 1.3; }
+          else if (t < 0.4) {
+            const s = (t - 0.1) / 0.3;
+            dy = -s * 40 + s * s * 80;
+            scale = 1.3 - s * 0.3;
+          } else {
+            const s = (t - 0.4) / 0.6;
+            dy = 40 - s * 30;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 30; i++) {
+            const angle = rand(0.3, 2.8);
+            const sp = rand(3, 10);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp - 3,
+              life: 1, decay: rand(0.02, 0.035), size: rand(1.5, 4),
+              hue: rand(195, 210), gravity: 0.15, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // tornado · 龙卷风：旋转上升
+    case 'tornado':
+      return {
+        hue: 180,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 0.6; }
+          else if (t < 0.7) {
+            const s = (t - 0.1) / 0.6;
+            dy = -s * 120;
+            dx = Math.sin(s * 12) * 40;
+            rot = s * 6;
+            scale = 0.6 + s * 0.8;
+          } else {
+            const s = (t - 0.7) / 0.3;
+            dy = -120 - s * 40;
+            rot = 6 + s * 4;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 40; i++) {
+            const a = (i / 40) * TAU + rand(-0.3, 0.3);
+            const r = 20 + rand(0, 40);
+            const px = cx + Math.cos(a) * r;
+            const py = cy + Math.sin(a) * r;
+            const sp = rand(2, 6);
+            out.push({
+              x: px, y: py, vx: Math.cos(a + 1.5) * sp, vy: -rand(2, 6),
+              life: 1, decay: rand(0.01, 0.02), size: rand(1.5, 4),
+              hue: rand(170, 195), gravity: -0.1, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // aurora · 极光：彩色波浪飘动
+    case 'aurora':
+      return {
+        hue: 120,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { scale = 0.5; alpha = 0.3; }
+          else if (t < 0.65) {
+            const s = (t - 0.15) / 0.5;
+            dy = -s * 40;
+            scale = 0.5 + s * 1.5;
+            alpha = 0.3 + s * 0.7;
+            rot = Math.sin(s * 6) * 0.2;
+          } else {
+            const s = (t - 0.65) / 0.35;
+            scale = 2.0 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 30; i++) {
+            const x = cx + rand(-80, 80);
+            const y = cy + rand(-40, 20);
+            const hue = [120, 160, 280, 320][Math.floor(rand(0, 4))];
+            out.push({
+              x, y, vx: rand(-1, 1), vy: rand(-3, -1),
+              life: 1, decay: rand(0.006, 0.012), size: rand(3, 8),
+              hue, gravity: 0, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // earthquake · 地震：地面裂缝扩散
+    case 'earthquake':
+      return {
+        hue: 25,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { rot = Math.sin(t * 200) * 0.05; }
+          else if (t < 0.5) {
+            const s = (t - 0.1) / 0.4;
+            dx = Math.sin(s * 20) * 12 * (1 - s);
+            rot = Math.sin(s * 15) * 0.08 * (1 - s);
+            scale = 1 + s * 0.3;
+          } else {
+            const s = (t - 0.5) / 0.5;
+            scale = 1.3 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 30; i++) {
+            const x = cx + rand(-80, 80);
+            out.push({
+              x, y: cy + rand(-5, 5),
+              vx: rand(-6, 6), vy: rand(-8, -2),
+              life: 1, decay: rand(0.015, 0.03), size: rand(2, 5),
+              hue: rand(15, 35), gravity: 0.15, shape: 2, angle: rand(0, TAU)
+            });
+          }
+          return out;
+        },
+      };
+
+    // volcano · 火山：岩浆喷射
+    case 'volcano':
+      return {
+        hue: 10,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 0.9; }
+          else if (t < 0.5) {
+            const s = (t - 0.1) / 0.4;
+            dy = -s * 80;
+            scale = 0.9 + s * 0.6;
+            rot = Math.sin(s * 8) * 0.15;
+          } else {
+            const s = (t - 0.5) / 0.5;
+            dy = -80 - s * 30;
+            scale = 1.5 - s * 0.4;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 40; i++) {
+            const a = -Math.PI / 2 + rand(-0.6, 0.6);
+            const sp = rand(4, 12);
+            out.push({
+              x: cx + rand(-10, 10), y: cy,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4,
+              life: 1, decay: rand(0.012, 0.025), size: rand(2, 6),
+              hue: rand(5, 30), gravity: 0.12, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 乐器类素材
+    // ══════════════════════════════════════════════════════════════════
+
+    // guitar · 吉他：弦振动扩散
+    case 'guitar':
+      return {
+        hue: 30,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 0.95; }
+          else if (t < 0.4) {
+            const s = (t - 0.1) / 0.3;
+            dx = s * 30;
+            scale = 0.95 + s * 0.15;
+            rot = s * 0.2;
+          } else {
+            const s = (t - 0.4) / 0.6;
+            dx = 30 + s * 20;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 20; i++) {
+            const a = rand(0, TAU);
+            const sp = rand(1, 4);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.015, 0.025), size: rand(2, 5),
+              hue: rand(25, 40), gravity: 0, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // drum · 鼓：冲击波扩散
+    case 'drum':
+      return {
+        hue: 35,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            scale = 1 + Math.sin(t * 80) * 0.2;
+          } else if (t < 0.5) {
+            const s = (t - 0.15) / 0.35;
+            scale = 1.2 + s * 0.6;
+          } else {
+            const s = (t - 0.5) / 0.5;
+            scale = 1.8 + s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 25; i++) {
+            const a = (i / 25) * TAU;
+            const sp = rand(5, 12);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
+              hue: rand(30, 50), gravity: 0, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // bell · 钟：钟声共鸣，光晕扩散
+    case 'bell':
+      return {
+        hue: 45,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 1.1; }
+          else if (t < 0.5) {
+            const s = (t - 0.1) / 0.4;
+            scale = 1.1 + Math.sin(s * 12) * 0.15 * (1 - s);
+          } else {
+            const s = (t - 0.5) / 0.5;
+            scale = 1.25 + s * 0.3;
+            alpha = 1 - s * 0.8;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 20; i++) {
+            const a = (i / 20) * TAU;
+            const sp = rand(3, 8);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.012, 0.02), size: rand(2, 5),
+              hue: rand(40, 55), gravity: 0, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // horn · 号角：声波环扩散
+    case 'horn':
+      return {
+        hue: 40,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { dx = 0; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            dx = s * 100;
+            scale = 1 + s * 0.3;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            dx = 100 + s * 40;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let j = 0; j < 3; j++) {
+            for (let i = 0; i < 10; i++) {
+              const a = (i / 10) * TAU;
+              const sp = 3 + j * 3;
+              out.push({
+                x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+                life: 1, decay: rand(0.02, 0.03) + j * 0.01, size: rand(1.5, 3.5),
+                hue: rand(35, 50), gravity: 0, shape: 0, angle: 0
+              });
+            }
+          }
+          return out;
+        },
+      };
+
+    // flute · 笛子：悠扬粒子向上飘
+    case 'flute':
+      return {
+        hue: 170,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) { scale = 0.9; }
+          else if (t < 0.6) {
+            const s = (t - 0.2) / 0.4;
+            dy = -s * 60;
+            dx = Math.sin(s * 6) * 20;
+            scale = 0.9 + s * 0.3;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            dy = -60 - s * 30;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 20; i++) {
+            const x = cx + rand(-15, 15);
+            out.push({
+              x, y: cy, vx: Math.sin(i * 0.5) * 1.5, vy: rand(-3, -1),
+              life: 1, decay: rand(0.01, 0.02), size: rand(2, 5),
+              hue: rand(160, 185), gravity: -0.05, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // harp · 竖琴：竖琴弦振动，光点散落
+    case 'harp':
+      return {
+        hue: 48,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { scale = 0.9; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            scale = 0.9 + s * 0.3;
+            rot = Math.sin(s * 8) * 0.1;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            scale = 1.2 + s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 18; i++) {
+            const x = cx + rand(-30, 30);
+            out.push({
+              x, y: cy + rand(-20, 20),
+              vx: rand(-1, 1), vy: rand(-2, 0),
+              life: 1, decay: rand(0.012, 0.02), size: rand(2, 5),
+              hue: rand(42, 58), gravity: -0.02, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 运动类素材
+    // ══════════════════════════════════════════════════════════════════
+
+    // football · 足球：踢出弧线飞行
+    case 'football':
+      return {
+        hue: 35,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { dy = 5; scale = 0.9; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            dx = s * 200;
+            dy = 5 - s * 100 + s * s * 80;
+            rot = s * 8;
+            scale = 0.9 + s * 0.3;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            dx = 200 + s * 60;
+            dy = -15 + s * 40;
+            rot = 8 + s * 6;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 15; i++) {
+            const frac = i / 15;
+            out.push({
+              x: cx + frac * 180, y: cy - frac * 60 + frac * frac * 50,
+              vx: 4, vy: -1 + frac * 2,
+              life: 1, decay: rand(0.02, 0.035), size: rand(1, 3),
+              hue: rand(25, 45), gravity: 0.1, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // tennis · 网球：击打后旋转飞行
+    case 'tennis':
+      return {
+        hue: 60,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 1.2; }
+          else if (t < 0.5) {
+            const s = (t - 0.1) / 0.4;
+            dx = s * 200;
+            dy = -s * 80 + s * s * 60;
+            rot = s * 12;
+            scale = 1.2 - s * 0.4;
+          } else {
+            const s = (t - 0.5) / 0.5;
+            dx = 200 + s * 80;
+            dy = -20 + s * 30;
+            rot = 12 + s * 8;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 18; i++) {
+            const a = rand(0.2, 1.2);
+            const sp = rand(3, 8);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(1, 3),
+              hue: rand(55, 70), gravity: 0.05, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // boxing · 拳击：重拳冲击
+    case 'boxing':
+      return {
+        hue: 0,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { dx = -10; }
+          else if (t < 0.3) {
+            const s = (t - 0.1) / 0.2;
+            dx = -10 + s * 140;
+            dy = -s * 20;
+            rot = s * 0.5;
+            scale = 1 + s * 0.4;
+          } else {
+            const s = (t - 0.3) / 0.7;
+            dx = 130 + s * 30;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 25; i++) {
+            const a = rand(0.3, 2.8);
+            const sp = rand(4, 12);
+            out.push({
+              x: cx + 20, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(0, 15), gravity: 0.08, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // archery · 射箭：弓弦弹射
+    case 'archery':
+      return {
+        hue: 40,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { dx = -15; }
+          else if (t < 0.4) {
+            const s = (t - 0.15) / 0.25;
+            dx = -15 + s * 240;
+            dy = -s * 40;
+            rot = s * 0.3;
+            scale = 1 + s * 0.2;
+          } else {
+            const s = (t - 0.4) / 0.6;
+            dx = 225 + s * 60;
+            dy = -40 - s * 20;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 20; i++) {
+            const frac = i / 20;
+            out.push({
+              x: cx + frac * 220, y: cy - frac * 35,
+              vx: 6, vy: -1 + frac,
+              life: 1, decay: rand(0.02, 0.03), size: rand(1, 3),
+              hue: rand(35, 50), gravity: 0.05, shape: 1, angle: -0.2
+            });
+          }
+          return out;
+        },
+      };
+
+    // ══════════════════════════════════════════════════════════════════
+    // 其他素材
+    // ══════════════════════════════════════════════════════════════════
+
+    // fireworks · 烟花：多方向绽放
+    case 'fireworks':
+      return {
+        hue: 0,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { dy = 20; scale = 0.7; }
+          else if (t < 0.35) {
+            const s = (t - 0.15) / 0.2;
+            dy = 20 - s * 80;
+            scale = 0.7 + s * 1.3;
+          } else {
+            const s = (t - 0.35) / 0.65;
+            scale = 2.0 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          const colors = [0, 45, 120, 200, 280, 330];
+          for (let i = 0; i < 45; i++) {
+            const a = (i / 45) * TAU;
+            const sp = rand(4, 14);
+            const hue = colors[i % 6];
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.015, 0.025), size: rand(2, 5),
+              hue, gravity: 0.03, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // crystal · 水晶：折射光芒放射
+    case 'crystal':
+      return {
+        hue: 200,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) { scale = 0.8; }
+          else if (t < 0.4) {
+            const s = (t - 0.1) / 0.3;
+            scale = 0.8 + s * 1.0;
+            rot = s * 1.5;
+          } else {
+            const s = (t - 0.4) / 0.6;
+            scale = 1.8 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 25; i++) {
+            const a = (i / 25) * TAU;
+            const sp = rand(3, 10);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.015, 0.025), size: rand(2, 5),
+              hue: rand(190, 215), gravity: 0, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // bamboo · 竹子：断裂弹飞
+    case 'bamboo':
+      return {
+        hue: 120,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { rot = 0; }
+          else if (t < 0.4) {
+            const s = (t - 0.15) / 0.25;
+            dx = s * 60;
+            dy = -s * 30;
+            rot = s * 0.8;
+            scale = 1 + s * 0.2;
+          } else {
+            const s = (t - 0.4) / 0.6;
+            dx = 60 - s * 30;
+            dy = -30 + s * 60;
+            rot = 0.8 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 18; i++) {
+            const x = cx + rand(-20, 20);
+            out.push({
+              x, y: cy + rand(-10, 10),
+              vx: rand(-2, 2), vy: rand(-5, -1),
+              life: 1, decay: rand(0.015, 0.025), size: rand(2, 4),
+              hue: rand(100, 135), gravity: 0.1, shape: 2, angle: rand(0, TAU)
+            });
+          }
+          return out;
+        },
+      };
+
+    // lotus · 莲花：绽放旋转
+    case 'lotus':
+      return {
+        hue: 330,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { scale = 0.5; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            scale = 0.5 + s * 1.2;
+            rot = s * 3;
+            dy = -s * 20;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            scale = 1.7 + s * 0.3;
+            dy = -20 - s * 10;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 22; i++) {
+            const a = (i / 22) * TAU;
+            const sp = rand(2, 6);
+            out.push({
+              x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1,
+              life: 1, decay: rand(0.012, 0.02), size: rand(2, 5),
+              hue: rand(320, 345), gravity: -0.03, shape: 0, angle: 0
+            });
+          }
+          return out;
+        },
+      };
+
+    // dragonfly · 蜻蜓：轻盈飞行
+    case 'dragonfly':
+      return {
+        hue: 170,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) { scale = 0.7; }
+          else if (t < 0.6) {
+            const s = (t - 0.15) / 0.45;
+            dx = s * 180;
+            dy = Math.sin(s * 6) * 40;
+            rot = Math.sin(s * 8) * 0.3;
+            scale = 0.7 + s * 0.5;
+          } else {
+            const s = (t - 0.6) / 0.4;
+            dx = 180 + s * 60;
+            dy = Math.sin(s * 8) * 20;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          for (let i = 0; i < 15; i++) {
+            const frac = i / 15;
+            out.push({
+              x: cx + frac * 160, y: cy + Math.sin(frac * 6) * 30,
+              vx: 3, vy: Math.sin(frac * 4) * 1.5,
+              life: 1, decay: rand(0.018, 0.03), size: rand(1.5, 3.5),
+              hue: rand(160, 180), gravity: 0, shape: 0, angle: 0
+            });
           }
           return out;
         },

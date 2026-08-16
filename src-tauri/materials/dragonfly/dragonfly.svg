@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs><linearGradient id="dgg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00CED1"/><stop offset="1" stop-color="#008B8B"/></linearGradient></defs>
+  <ellipse cx="128" cy="140" rx="10" ry="40" fill="#008B8B" stroke="#006666" stroke-width="3"/>
+  <ellipse cx="100" cy="120" rx="28" ry="10" fill="url(#dgg)" stroke="#008B8B" stroke-width="2" transform="rotate(-15,100,120)" opacity="0.8"/>
+  <ellipse cx="156" cy="120" rx="28" ry="10" fill="url(#dgg)" stroke="#008B8B" stroke-width="2" transform="rotate(15,156,120)" opacity="0.8"/>
+  <ellipse cx="92" cy="136" rx="20" ry="7" fill="#00CED1" stroke="#008B8B" stroke-width="1.5" transform="rotate(-10,92,136)" opacity="0.65"/>
+  <ellipse cx="164" cy="136" rx="20" ry="7" fill="#00CED1" stroke="#008B8B" stroke-width="1.5" transform="rotate(10,164,136)" opacity="0.65"/>
+  <circle cx="122" cy="100" r="5" fill="#008B8B" stroke="#006666" stroke-width="2"/>
+  <circle cx="134" cy="100" r="5" fill="#008B8B" stroke="#006666" stroke-width="2"/>
+</svg>
