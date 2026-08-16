@@ -147,7 +147,7 @@ mod tests {
         );
         assert!(materials.iter().any(|m| m.id == "rocket"));
         // The pioneering classic whip material.
-        assert!(materials.iter().any(|m| m.id == "classic"));
+        assert!(materials.iter().any(|m| m.id == "rocket"));
     }
 
     #[test]

@@ -16,6 +16,17 @@ import type { Material } from '../shared/materials';
 const TAU = Math.PI * 2;
 const CURSOR_MAX_PX = 56; // 光标精灵最长边（48–64 区间）
 const CRACK_MS = 800; // 爆裂动画时长
+// const MAX_PARTICLES = 50; // 每次发射的粒子上限
+// const FRAME_BUDGET_US = 8000; // 单帧CPU预算（8ms @ 120Hz）
+// 预计算HSL颜色缓存（0-359色相→CSS字符串），避免每帧每粒子拼接
+const HSL_DOT_CACHE: string[] = [];
+const HSL_STREAK_CACHE: string[] = [];
+const HSL_SHARD_CACHE: string[] = [];
+for (let h = 0; h < 360; h++) {
+  HSL_DOT_CACHE[h] = `hsl(${h},100%,62%)`;
+  HSL_STREAK_CACHE[h] = `hsl(${h},100%,66%)`;
+  HSL_SHARD_CACHE[h] = `hsl(${h},90%,58%)`;
+}
 
 /** 解析后的渲染指令。所有素材均为图片，`url` 为 data: URI。 */
 export type ResolvedMaterial = { kind: 'image'; url: string; id: string };
@@ -126,7 +137,7 @@ interface Particle {
   size: number;
   hue: number;
   gravity: number;
-  shape: 'dot' | 'streak' | 'shard';
+  shape: 0 | 1 | 2;
   angle: number;
 }
 
@@ -214,7 +225,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(5, 12);
             out.push({ x: px, y: py, vx: Math.cos(tangent) * sp, vy: -Math.sin(tangent) * sp,
               life: 1, decay: rand(0.012, 0.02), size: rand(3, 8),
-              hue: rand(20, 42), gravity: 0.04, shape: 'streak', angle: tangent });
+              hue: rand(20, 42), gravity: 0.04, shape: 1, angle: tangent });
           }
           // 第二层：鞭梢爆破火花（末端散射）
           for (let i = 0; i < 25; i++) {
@@ -222,7 +233,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 14);
             out.push({ x: cx + 180, y: cy - 200, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(3, 7),
-              hue: rand(35, 55), gravity: 0.08, shape: 'dot', angle: 0 });
+              hue: rand(35, 55), gravity: 0.08, shape: 0, angle: 0 });
           }
           // 第三层：皮革碎片散落
           for (let i = 0; i < 18; i++) {
@@ -230,7 +241,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(2, 7);
             out.push({ x: cx + rand(60, 200), y: cy - rand(80, 220), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
-              hue: rand(12, 35), gravity: 0.12, shape: Math.random() < 0.4 ? 'shard' : 'dot', angle: rand(0, TAU) });
+              hue: rand(12, 35), gravity: 0.12, shape: Math.random() < 0.4 ? 2 : 0, angle: rand(0, TAU) });
           }
           return out;
         },
@@ -278,7 +289,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(8, 20);
             out.push({ x: px, y: py, vx: sp, vy: rand(-0.5, 0.5),
               life: 1, decay: rand(0.015, 0.025), size: rand(4, 10),
-              hue: rand(192, 215), gravity: 0.01, shape: 'streak', angle: 0.04 });
+              hue: rand(192, 215), gravity: 0.01, shape: 1, angle: 0.04 });
           }
           // 第二层：起点爆散光点
           for (let i = 0; i < 15; i++) {
@@ -287,7 +298,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-5, 5), y: cy + rand(-5, 5),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.025, 0.04), size: rand(2, 4),
-              hue: rand(210, 235), gravity: 0.05, shape: 'dot', angle: 0 });
+              hue: rand(210, 235), gravity: 0.05, shape: 0, angle: 0 });
           }
           // 第三层：终点灰烟
           for (let i = 0; i < 12; i++) {
@@ -296,7 +307,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx - 115 + rand(-6, 6), y: cy + 10 + rand(-4, 4),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp + 0.3,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
-              hue: rand(215, 235), gravity: 0.08, shape: 'dot', angle: 0 });
+              hue: rand(215, 235), gravity: 0.08, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -348,7 +359,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-4, 4), y: cy + 8,
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.01, 0.018), size: rand(6, 14),
-              hue: rand(40, 60), gravity: 0, shape: 'streak', angle: a });
+              hue: rand(40, 60), gravity: 0, shape: 1, angle: a });
           }
           // 第二层：橙红外层火焰
           for (let i = 0; i < 35; i++) {
@@ -357,7 +368,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-12, 12), y: cy + rand(10, 30),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.012, 0.022), size: rand(4, 10),
-              hue: rand(14, 32), gravity: 0, shape: 'dot', angle: 0 });
+              hue: rand(14, 32), gravity: 0, shape: 0, angle: 0 });
           }
           // 第三层：烟雾羽流（负重力飘浮）
           for (let i = 0; i < 25; i++) {
@@ -366,7 +377,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-20, 20), y: cy + rand(15, 45),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.015, 0.028), size: rand(3, 7),
-              hue: rand(10, 25), gravity: -0.02, shape: 'dot', angle: 0 });
+              hue: rand(10, 25), gravity: -0.02, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -406,7 +417,7 @@ function crackStyle(id: string): CrackStyle {
               out.push({ x: sx, y: sy,
                 vx: Math.cos(segAngle) * sp, vy: Math.sin(segAngle) * sp,
                 life: 1, decay: rand(0.02, 0.035) + delay, size: rand(5, 12),
-                hue: rand(195, 215), gravity: 0, shape: 'streak', angle: segAngle });
+                hue: rand(195, 215), gravity: 0, shape: 1, angle: segAngle });
             }
           }
           // 第二层：次级分叉（短而亮）
@@ -416,7 +427,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-40, 40), y: cy + rand(-40, 40),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.025, 0.04), size: rand(2.5, 5),
-              hue: rand(200, 230), gravity: 0, shape: 'streak', angle: a });
+              hue: rand(200, 230), gravity: 0, shape: 1, angle: a });
           }
           // 第三层：电弧余辉光点
           for (let i = 0; i < 20; i++) {
@@ -425,7 +436,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-60, 60), y: cy + rand(-60, 60),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.03, 0.05), size: rand(2, 4),
-              hue: rand(190, 220), gravity: 0, shape: 'dot', angle: 0 });
+              hue: rand(190, 220), gravity: 0, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -473,7 +484,7 @@ function crackStyle(id: string): CrackStyle {
             const vx = base * 0.4 + Math.sin(i * 0.5) * 2;
             out.push({ x: cx + rand(-6, 6), y: cy + rand(-4, 4),
               vx, vy: -sp, life: 1, decay: rand(0.008, 0.015),
-              size: rand(5, 11), hue: rand(38, 55), gravity: -0.04, shape: 'dot', angle: 0 });
+              size: rand(5, 11), hue: rand(38, 55), gravity: -0.04, shape: 0, angle: 0 });
           }
           // 第二层：橙红外焰（涡旋上升）
           for (let i = 0; i < 40; i++) {
@@ -484,7 +495,7 @@ function crackStyle(id: string): CrackStyle {
             const hue = 14 + frac * 28;
             out.push({ x: cx + rand(-14, 14), y: cy + rand(-2, 8),
               vx, vy: -sp, life: 1, decay: rand(0.01, 0.02),
-              size: rand(3.5, 8), hue, gravity: -0.03, shape: 'dot', angle: 0 });
+              size: rand(3.5, 8), hue, gravity: -0.03, shape: 0, angle: 0 });
           }
           // 第三层：烟雾（横向扩散+下沉）
           for (let i = 0; i < 18; i++) {
@@ -493,7 +504,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-14, 14), y: cy - rand(14, 30),
               vx: Math.cos(a) * sp, vy: -0.3,
               life: 1, decay: rand(0.012, 0.02), size: rand(3, 6),
-              hue: rand(0, 8), gravity: 0.07, shape: 'dot', angle: 0 });
+              hue: rand(0, 8), gravity: 0.07, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -537,7 +548,7 @@ function crackStyle(id: string): CrackStyle {
               out.push({ x: cx, y: cy,
                 vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
                 life: 1, decay: rand(0.015, 0.028), size: rand(4, 9),
-                hue: rand(38, 58), gravity: 0.01, shape: 'dot', angle: 0 });
+                hue: rand(38, 58), gravity: 0.01, shape: 0, angle: 0 });
             }
           }
           // 第二层：五芒间填充光点（5个间隙方向）
@@ -548,7 +559,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx, y: cy,
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(50, 65), gravity: 0.02, shape: 'dot', angle: 0 });
+              hue: rand(50, 65), gravity: 0.02, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -596,7 +607,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(3, 8);
             out.push({ x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.015, 0.025), size: rand(3.5, 8),
-              hue: rand(18, 40), gravity: 0.1, shape: 'streak', angle: a });
+              hue: rand(18, 40), gravity: 0.1, shape: 1, angle: a });
           }
           // 第二层：撞击冲击波（扇形爆开）
           for (let i = 0; i < 25; i++) {
@@ -604,7 +615,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(8, 22);
             out.push({ x: cx + 320, y: cy + 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.015, 0.025), size: rand(4, 10),
-              hue: rand(20, 45), gravity: 0.06, shape: 'streak', angle: a });
+              hue: rand(20, 45), gravity: 0.06, shape: 1, angle: a });
           }
           // 第三层：碎岩+火星
           for (let i = 0; i < 15; i++) {
@@ -612,7 +623,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(6, 18);
             out.push({ x: cx + 320, y: cy + 20, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.015, 0.028), size: rand(4, 10),
-              hue: rand(10, 35), gravity: 0.22, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(10, 35), gravity: 0.22, shape: 2, angle: rand(0, TAU) });
           }
           return out;
         },
@@ -662,7 +673,7 @@ function crackStyle(id: string): CrackStyle {
             const vy = isTop ? rand(-3, 1.5) : rand(1.5, 5);
             out.push({ x: cx + ox, y: cy + oy, vx, vy,
               life: 1, decay: rand(0.015, 0.03), size: rand(5, 11),
-              hue: rand(8, 22), gravity: 0.25, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(8, 22), gravity: 0.25, shape: 2, angle: rand(0, TAU) });
           }
           // 第二层：小碎骨
           for (let i = 0; i < 20; i++) {
@@ -671,7 +682,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-25, 25), y: cy + rand(-20, 20),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.018, 0.032), size: rand(2.5, 5),
-              hue: rand(12, 28), gravity: 0.18, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(12, 28), gravity: 0.18, shape: 2, angle: rand(0, TAU) });
           }
           // 第三层：灰烬烟雾
           for (let i = 0; i < 18; i++) {
@@ -680,7 +691,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-20, 20), y: cy + rand(-12, 12),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.3,
               life: 1, decay: rand(0.012, 0.022), size: rand(2, 4.5),
-              hue: rand(0, 10), gravity: 0.06, shape: 'dot', angle: 0 });
+              hue: rand(0, 10), gravity: 0.06, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -726,7 +737,7 @@ function crackStyle(id: string): CrackStyle {
               vx: Math.cos(angle) * 0.5, vy: Math.sin(angle) * 0.5,
               life: 1, decay: rand(0.008, 0.015), size: rand(4, 9),
               hue: i % 3 === 0 ? rand(195, 215) : i % 3 === 1 ? rand(0, 10) : rand(40, 55),
-              gravity: -0.02, shape: 'dot', angle: 0 });
+              gravity: -0.02, shape: 0, angle: 0 });
           }
           // 第二层：上抛弧光迹
           for (let i = 0; i < 25; i++) {
@@ -736,7 +747,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(3, 8);
             out.push({ x: cx + rand(-5, 5), y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.012, 0.022), size: rand(2.5, 5),
-              hue: rand(40, 58), gravity: -0.01, shape: 'dot', angle: 0 });
+              hue: rand(40, 58), gravity: -0.01, shape: 0, angle: 0 });
           }
           // 第三层：落点光晕
           for (let i = 0; i < 12; i++) {
@@ -745,7 +756,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(-8, 8), y: cy + rand(-4, 4),
               vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
-              hue: rand(35, 55), gravity: 0.04, shape: 'dot', angle: 0 });
+              hue: rand(35, 55), gravity: 0.04, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -809,7 +820,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: px, y: py,
               vx: Math.cos(tangent) * sp, vy: Math.sin(tangent) * sp,
               life: 1, decay: rand(0.015, 0.028), size: rand(4, 10),
-              hue: rand(38, 58), gravity: 0.02, shape: 'streak', angle: tangent });
+              hue: rand(38, 58), gravity: 0.02, shape: 1, angle: tangent });
           }
           // 第二层：劈斩端点火花爆溅
           for (let i = 0; i < 18; i++) {
@@ -817,7 +828,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(5, 14);
             out.push({ x: cx + 60, y: cy + 80, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.018, 0.032), size: rand(3, 7),
-              hue: rand(18, 46), gravity: 0.12, shape: 'dot', angle: 0 });
+              hue: rand(18, 46), gravity: 0.12, shape: 0, angle: 0 });
           }
           // 第三层：铁屑碎片
           for (let i = 0; i < 10; i++) {
@@ -825,7 +836,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 10);
             out.push({ x: cx + 60, y: cy + 80, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 5),
-              hue: rand(25, 42), gravity: 0.18, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(25, 42), gravity: 0.18, shape: 2, angle: rand(0, TAU) });
           }
           return out;
         },
@@ -865,7 +876,7 @@ function crackStyle(id: string): CrackStyle {
             const frac = i / 25;
             out.push({ x: cx + frac * 280, y: cy - frac * 70, vx: 12 + rand(0, 3), vy: -2 + rand(-0.5, 0.5),
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(38, 52), gravity: 0.02, shape: 'streak', angle: -0.25 });
+              hue: rand(38, 52), gravity: 0.02, shape: 1, angle: -0.25 });
           }
           // 弦弹火花
           for (let i = 0; i < 15; i++) {
@@ -873,7 +884,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(3, 8);
             out.push({ x: cx - 20, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
               life: 1, decay: rand(0.025, 0.04), size: rand(2, 4),
-              hue: rand(20, 40), gravity: 0.1, shape: 'dot', angle: 0 });
+              hue: rand(20, 40), gravity: 0.1, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -910,7 +921,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(5, 12);
             out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.018, 0.03), size: rand(3, 6),
-              hue: rand(195, 215), gravity: 0, shape: 'streak', angle: angle });
+              hue: rand(195, 215), gravity: 0, shape: 1, angle: angle });
           }
           return out;
         },
@@ -946,7 +957,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(6, 18);
             out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 5),
-              hue: rand(10, 30), gravity: 0.15, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(10, 30), gravity: 0.15, shape: 2, angle: rand(0, TAU) });
           }
           return out;
         },
@@ -985,7 +996,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 10);
             out.push({ x: cx + 40, y: cy + 120, vx: Math.cos(angle) * sp, vy: -Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(25, 45), gravity: 0.12, shape: 'dot', angle: 0 });
+              hue: rand(25, 45), gravity: 0.12, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1022,7 +1033,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 14);
             out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 6),
-              hue: rand(40, 58), gravity: 0, shape: 'dot', angle: 0 });
+              hue: rand(40, 58), gravity: 0, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1058,7 +1069,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 12);
             out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
-              hue: rand(250, 290), gravity: 0, shape: 'dot', angle: 0 });
+              hue: rand(250, 290), gravity: 0, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1099,7 +1110,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(3, 9);
             out.push({ x: cx + 30, y: cy - 10, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
-              hue: rand(350, 15), gravity: 0.1, shape: 'dot', angle: 0 });
+              hue: rand(350, 15), gravity: 0.1, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1144,7 +1155,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: px + Math.cos(angle) * 8, y: py + Math.sin(angle) * 8,
               vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
-              hue: rand(15, 30), gravity: 0.05, shape: 'dot', angle: angle });
+              hue: rand(15, 30), gravity: 0.05, shape: 0, angle: angle });
           }
           return out;
         },
@@ -1186,7 +1197,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx - 30 + frac * 260, y: cy + 15 - frac * 70,
               vx: 8 + rand(0, 2), vy: -1.5 + rand(-0.3, 0.3),
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
-              hue: rand(20, 40), gravity: 0.05, shape: 'streak', angle: -0.2 });
+              hue: rand(20, 40), gravity: 0.05, shape: 1, angle: -0.2 });
           }
           return out;
         },
@@ -1230,7 +1241,7 @@ function crackStyle(id: string): CrackStyle {
             const py = cy - 80 + Math.sin(angle + 1.5) * 80 * frac + 160 * frac;
             out.push({ x: px, y: py, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
               life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 5),
-              hue: rand(10, 30), gravity: 0.08, shape: 'streak', angle: angle });
+              hue: rand(10, 30), gravity: 0.08, shape: 1, angle: angle });
           }
           return out;
         },
@@ -1270,7 +1281,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(2, 6);
             out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp - 1,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(0, 15), gravity: 0.02, shape: 'dot', angle: 0 });
+              hue: rand(0, 15), gravity: 0.02, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1308,7 +1319,7 @@ function crackStyle(id: string): CrackStyle {
               const sp = 4 + j * 4 + rand(0, 3);
               out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
                 life: 1, decay: rand(0.02 + j * 0.005, 0.035 + j * 0.005),
-                size: rand(2.5, 5), hue: rand(190, 215), gravity: 0, shape: 'streak', angle: angle });
+                size: rand(2.5, 5), hue: rand(190, 215), gravity: 0, shape: 1, angle: angle });
             }
           }
           return out;
@@ -1351,7 +1362,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(3, 9);
             out.push({ x: cx + 30, y: cy + 120, vx: Math.cos(angle) * sp, vy: -Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(30, 50), gravity: 0.12, shape: 'shard', angle: rand(0, TAU) });
+              hue: rand(30, 50), gravity: 0.12, shape: 2, angle: rand(0, TAU) });
           }
           return out;
         },
@@ -1397,7 +1408,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: px + Math.cos(angle) * 10, y: py + Math.sin(angle) * 10,
               vx: Math.cos(angle) * 4, vy: Math.sin(angle) * 4,
               life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
-              hue: rand(40, 60), gravity: 0, shape: 'dot', angle: angle });
+              hue: rand(40, 60), gravity: 0, shape: 0, angle: angle });
           }
           return out;
         },
@@ -1441,7 +1452,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx - 30 + frac * 220, y: cy - 50 + frac * 110,
               vx: 7 + rand(0, 2), vy: 2 + rand(-0.5, 0.5),
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(5, 25), gravity: 0.06, shape: 'streak', angle: 0.4 });
+              hue: rand(5, 25), gravity: 0.06, shape: 1, angle: 0.4 });
           }
           return out;
         },
@@ -1482,7 +1493,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + frac * 170, y: cy - frac * 55,
               vx: 8 + rand(0, 2), vy: -2 + rand(-0.3, 0.3),
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
-              hue: rand(25, 45), gravity: 0.08, shape: 'dot', angle: 0 });
+              hue: rand(25, 45), gravity: 0.08, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1519,7 +1530,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + frac * 200, y: cy + rand(-2, 2),
               vx: 10 + rand(0, 3), vy: rand(-0.2, 0.2),
               life: 1, decay: rand(0.02, 0.035), size: rand(1.5, 3.5),
-              hue: rand(40, 60), gravity: 0, shape: 'dot', angle: 0 });
+              hue: rand(40, 60), gravity: 0, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1560,7 +1571,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 10);
             out.push({ x: cx + 30, y: cy - 10, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
-              hue: rand(25, 45), gravity: 0.05, shape: 'streak', angle: angle });
+              hue: rand(25, 45), gravity: 0.05, shape: 1, angle: angle });
           }
           return out;
         },
@@ -1604,7 +1615,7 @@ function crackStyle(id: string): CrackStyle {
             out.push({ x: cx + rand(0, 80), y: cy + rand(-30, 30),
               vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
-              hue: rand(30, 50), gravity: 0.08, shape: 'dot', angle: 0 });
+              hue: rand(30, 50), gravity: 0.08, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1648,7 +1659,7 @@ function crackStyle(id: string): CrackStyle {
             const sp = rand(4, 12);
             out.push({ x: cx + 80, y: cy + 20, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
               life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(20, 40), gravity: 0.08, shape: 'dot', angle: 0 });
+              hue: rand(20, 40), gravity: 0.08, shape: 0, angle: 0 });
           }
           return out;
         },
@@ -1659,7 +1670,7 @@ function crackStyle(id: string): CrackStyle {
       return {
         hue: 24,
         sprite: (t) => ({ dx: 0, dy: 0, scale: 1 + t * 1.4, rot: 0, alpha: 1 - t * t }),
-        emit: (cx, cy) => ring(cx, cy, 28, 3, 10, () => rand(16, 40), 'dot', 0.06),
+        emit: (cx, cy) => ring(cx, cy, 28, 3, 10, () => rand(16, 40), 0, 0.06),
       };
   }
 }
@@ -1770,41 +1781,66 @@ export class ImageMaterial {
     }
     ps.length = write;
 
-    // Phase 2: 按 shape 批量绘制（最小化 ctx 状态切换）
+    // Phase 2: 按 shape 批量绘制（最小化 ctx 状态切换 + 预计算颜色缓存）
     ctx.save();
-    // Dot 批次
-    ctx.fillStyle = 'rgba(255,255,255,1)';
+
+    // Dot 批次：合并所有 dot 到单一 path，一次 fill（消除逐粒子 fill 调用）
     ctx.beginPath();
-    for (let i = 0; i < ps.length; i++) {
+    for (let i = 0; i < write; i++) {
       const p = ps[i];
-      if (p.shape !== 'dot') continue;
-      ctx.globalAlpha = Math.min(1, p.life * 1.4);
+      if (p.shape !== 0) continue; // 0 = dot
       const sz = p.size * p.life;
       ctx.moveTo(p.x + sz, p.y);
       ctx.arc(p.x, p.y, sz, 0, TAU);
     }
+    ctx.fillStyle = HSL_DOT_CACHE[0];
+    ctx.globalAlpha = 1;
     ctx.fill();
-    // Streak 批次
+
+    // Streak 批次：同色合并路径
     ctx.lineCap = 'round';
-    for (let i = 0; i < ps.length; i++) {
+    let lastHue = -1;
+    ctx.beginPath();
+    for (let i = 0; i < write; i++) {
       const p = ps[i];
-      if (p.shape !== 'streak') continue;
+      if (p.shape !== 1) continue; // 1 = streak
+      const hue = p.hue;
+      if (hue !== lastHue) {
+        if (lastHue >= 0) {
+          ctx.strokeStyle = HSL_STREAK_CACHE[lastHue];
+          ctx.stroke();
+          ctx.beginPath();
+        }
+        lastHue = hue;
+      }
       ctx.globalAlpha = Math.min(1, p.life * 1.4);
-      ctx.strokeStyle = `hsl(${p.hue},100%,66%)`;
       ctx.lineWidth = p.size * p.life;
       const len = 10 + p.life * 14;
       const a = Math.atan2(p.vy, p.vx);
-      ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
+    }
+    if (lastHue >= 0) {
+      ctx.strokeStyle = HSL_STREAK_CACHE[lastHue];
       ctx.stroke();
     }
-    // Shard 批次
-    for (let i = 0; i < ps.length; i++) {
+
+    // Shard 批次：同色合并路径
+    ctx.beginPath();
+    lastHue = -1;
+    for (let i = 0; i < write; i++) {
       const p = ps[i];
-      if (p.shape !== 'shard') continue;
+      if (p.shape !== 2) continue; // 2 = shard
+      const hue = p.hue;
+      if (hue !== lastHue) {
+        if (lastHue >= 0) {
+          ctx.fillStyle = HSL_SHARD_CACHE[lastHue];
+          ctx.fill();
+          ctx.beginPath();
+        }
+        lastHue = hue;
+      }
       ctx.globalAlpha = Math.min(1, p.life * 1.4);
-      ctx.fillStyle = `hsl(${p.hue},90%,58%)`;
       const sz = p.size * p.life;
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -1812,6 +1848,11 @@ export class ImageMaterial {
       ctx.fillRect(-sz, -sz * 0.5, sz * 2, sz);
       ctx.restore();
     }
+    if (lastHue >= 0) {
+      ctx.fillStyle = HSL_SHARD_CACHE[lastHue];
+      ctx.fill();
+    }
+
     ctx.restore();
 
     // 素材精灵：按专属运动轨迹位移 / 缩放 / 旋转 / 淡出。
