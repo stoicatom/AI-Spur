@@ -19,20 +19,6 @@ pub struct SoundPresetMeta {
     pub name: String,
 }
 
-const BUILTIN_PRESETS: &[(&str, &str)] = &[
-    ("default", "默认"),
-    ("whip", "皮鞭抽响"),
-    ("classic", "经典鞭声(初版)"),
-    ("rocket", "火箭升空"),
-    ("lightning", "闪电电击"),
-    ("flame", "火焰呼啸"),
-    ("star", "星光叮咚"),
-    ("meteor", "流星坠击"),
-    ("skull", "骷髅碎裂"),
-    ("crown", "王冠加冕"),
-    ("sword", "利刃挥斩"),
-];
-
 /// Collect all audio file names in a directory.
 pub fn collect_audio_files(dir: &Path) -> Vec<String> {
     let mut files = Vec::new();
@@ -99,6 +85,38 @@ pub fn audio_data_uri(path: &Path) -> Option<String> {
     };
     Some(format!("data:{mime};base64,{}", base64_encode(&bytes)))
 }
+
+const BUILTIN_PRESETS: &[(&str, &str)] = &[
+    ("default", "默认"),
+    ("classic", "经典鞭声"),
+    ("rocket", "火箭升空"),
+    ("lightning", "闪电电击"),
+    ("flame", "火焰呼啸"),
+    ("star", "星光叮咚"),
+    ("meteor", "流星坠击"),
+    ("skull", "骷髅碎裂"),
+    ("crown", "王冠加冕"),
+    ("sword", "利刃挥斩"),
+    ("bow", "弓箭齐射"),
+    ("shield", "盾牌防护"),
+    ("bomb", "炸弹爆炸"),
+    ("hammer", "铁锤重击"),
+    ("scepter", "权杖加冕"),
+    ("amulet", "护符魔力"),
+    ("dagger", "匕首刺击"),
+    ("boomerang", "回旋镖飞回"),
+    ("spear", "长矛投掷"),
+    ("axe", "战斧劈砍"),
+    ("scythe", "镰刀挥舞"),
+    ("trident", "三叉戟海啸"),
+    ("flail", "连枷横扫"),
+    ("chakram", "轮刃旋转"),
+    ("halberd", "戟刺击"),
+    ("slingshot", "弹弓发射"),
+    ("blowgun", "吹箭破空"),
+    ("tessen", "铁扇展开"),
+    ("chain", "锁链拖曳"),
+];
 
 /// Scan the bundled sounds directory for preset subdirectories.
 pub fn builtin_presets(sounds_dir: &Path) -> Vec<SoundPreset> {
@@ -227,7 +245,7 @@ mod tests {
             .join("..")
             .join("sounds");
         let presets = builtin_presets(&sounds_dir);
-        for id in ["whip", "rocket", "lightning", "flame", "sword"] {
+        for id in ["classic", "rocket", "lightning", "flame", "sword"] {
             let p = presets
                 .iter()
                 .find(|p| p.id == id)

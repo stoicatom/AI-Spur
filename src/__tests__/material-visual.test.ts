@@ -101,16 +101,15 @@ describe('ImageMaterial（零分配粒子爆裂）', () => {
     const before = internals.particles;
 
     const { ctx } = mockCtx();
-    // 动画窗口 = 1200ms。在动画进行中逐帧推进：每帧数组引用必须保持不变
-    // （原地压缩），否则就是回退到了 `filter` 逐帧分配。
-    for (let i = 0; i < 28; i++) {
-      const t = i * 40; // 0..1080ms，均 < 1200ms
+    // 动画窗口 = 800ms。在动画进行中逐帧推进：每帧数组引用必须保持不变
+    for (let i = 0; i < 20; i++) {
+      const t = i * 35; // 0..665ms，均 < 800ms
       material.updateAndDrawCrack(ctx, t);
       expect(internals.crackOn, `at t=${t}`).toBe(true);
       expect(internals.particles).toBe(before);
     }
-    // 动画结束帧：一次性清空数组（释放内存，每 1200ms 仅一次，非热路径）。
-    material.updateAndDrawCrack(ctx, 1200);
+    // 动画结束帧：一次性清空数组
+    material.updateAndDrawCrack(ctx, 800);
     expect(internals.crackOn).toBe(false);
   });
 
@@ -124,10 +123,10 @@ describe('ImageMaterial（零分配粒子爆裂）', () => {
     // 固定起点为 0。
     internals.crackT0 = 0;
     const { ctx } = mockCtx();
-    // CRACK_MS = 1200ms。分别在 600ms（未结束）与 1200ms（结束）采样。
-    material.updateAndDrawCrack(ctx, 600);
+    // CRACK_MS = 800ms。分别在 400ms（未结束）与 800ms（结束）采样。
+    material.updateAndDrawCrack(ctx, 400);
     expect(internals.crackOn).toBe(true);
-    material.updateAndDrawCrack(ctx, 1200);
+    material.updateAndDrawCrack(ctx, 800);
     expect(internals.crackOn).toBe(false);
   });
 });

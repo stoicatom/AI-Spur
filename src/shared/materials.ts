@@ -43,7 +43,6 @@ export interface Material {
  * 默认活跃素材为 `rocket`（见 config.ts activeMaterialId 默认值）。
  */
 export const BUILTIN_MATERIAL_IDS = [
-  'whip',
   'classic',
   'rocket',
   'lightning',
@@ -53,6 +52,25 @@ export const BUILTIN_MATERIAL_IDS = [
   'skull',
   'crown',
   'sword',
+  'bow',
+  'shield',
+  'bomb',
+  'hammer',
+  'scepter',
+  'amulet',
+  'dagger',
+  'boomerang',
+  'spear',
+  'axe',
+  'scythe',
+  'trident',
+  'flail',
+  'chakram',
+  'halberd',
+  'slingshot',
+  'blowgun',
+  'tessen',
+  'chain',
 ] as const;
 
 export type BuiltinMaterialId = (typeof BUILTIN_MATERIAL_IDS)[number];

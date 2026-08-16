@@ -15,7 +15,7 @@ import type { Material } from '../shared/materials';
 
 const TAU = Math.PI * 2;
 const CURSOR_MAX_PX = 56; // 光标精灵最长边（48–64 区间）
-const CRACK_MS = 1200; // 爆裂动画时长
+const CRACK_MS = 800; // 爆裂动画时长
 
 /** 解析后的渲染指令。所有素材均为图片，`url` 为 data: URI。 */
 export type ResolvedMaterial = { kind: 'image'; url: string; id: string };
@@ -830,6 +830,830 @@ function crackStyle(id: string): CrackStyle {
           return out;
         },
       };
+    // ── bow · 弓箭齐射：拉弦→蓄力→射出箭矢 ─────────────────────────────
+    case 'bow':
+      return {
+        hue: 42,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.3) {
+            // 拉弦蓄力
+            const s = t / 0.3;
+            dx = -s * 30;
+            scale = 0.8 + s * 0.2;
+            rot = s * 0.2;
+          } else if (t < 0.6) {
+            // 箭矢射出
+            const s = (t - 0.3) / 0.3;
+            dx = -30 + s * 300;
+            dy = -s * 80;
+            scale = 1 + s * 0.3;
+            rot = s * 0.5;
+          } else {
+            // 远去淡出
+            const s = (t - 0.6) / 0.4;
+            dx = 270 + s * 100;
+            dy = -80 - s * 40;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 箭矢轨迹
+          for (let i = 0; i < 25; i++) {
+            const frac = i / 25;
+            out.push({ x: cx + frac * 280, y: cy - frac * 70, vx: 12 + rand(0, 3), vy: -2 + rand(-0.5, 0.5),
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(38, 52), gravity: 0.02, shape: 'streak', angle: -0.25 });
+          }
+          // 弦弹火花
+          for (let i = 0; i < 15; i++) {
+            const a = rand(0.5, 1.5);
+            const sp = rand(3, 8);
+            out.push({ x: cx - 20, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 1, decay: rand(0.025, 0.04), size: rand(2, 4),
+              hue: rand(20, 40), gravity: 0.1, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── shield · 盾牌防护：冲击波扩散+光晕 ─────────────────────────────
+    case 'shield':
+      return {
+        hue: 205,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 收缩蓄力
+            const s = t / 0.2;
+            scale = 1.2 - s * 0.4;
+          } else if (t < 0.6) {
+            // 冲击波扩散
+            const s = (t - 0.2) / 0.4;
+            scale = 0.8 + s * 1.2;
+            rot = s * 0.3;
+          } else {
+            // 光晕淡出
+            const s = (t - 0.6) / 0.4;
+            scale = 2.0 + s * 0.5;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 冲击波环
+          for (let i = 0; i < 30; i++) {
+            const angle = (i / 30) * TAU;
+            const sp = rand(5, 12);
+            out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.018, 0.03), size: rand(3, 6),
+              hue: rand(195, 215), gravity: 0, shape: 'streak', angle: angle });
+          }
+          return out;
+        },
+      };
+
+    // ── bomb · 炸弹爆炸：爆炸扩散+碎片飞溅 ─────────────────────────────
+    case 'bomb':
+      return {
+        hue: 15,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) {
+            // 点火闪烁
+            scale = 1 + Math.sin(t * 80) * 0.3;
+          } else if (t < 0.4) {
+            // 爆炸扩散
+            const s = (t - 0.1) / 0.3;
+            scale = 1.3 + s * 1.7;
+            rot = s * 0.5;
+          } else {
+            // 消散
+            const s = (t - 0.4) / 0.6;
+            scale = 3.0 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 爆炸碎片
+          for (let i = 0; i < 35; i++) {
+            const angle = (i / 35) * TAU + rand(-0.2, 0.2);
+            const sp = rand(6, 18);
+            out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 5),
+              hue: rand(10, 30), gravity: 0.15, shape: 'shard', angle: rand(0, TAU) });
+          }
+          return out;
+        },
+      };
+
+    // ── hammer · 铁锤重击：向下猛击+地面震荡 ─────────────────────────────
+    case 'hammer':
+      return {
+        hue: 30,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            // 举起蓄力
+            const s = t / 0.15;
+            dy = -s * 120;
+            rot = -s * 0.8;
+          } else if (t < 0.35) {
+            // 猛击下落
+            const s = (t - 0.15) / 0.2;
+            dy = -120 + s * 240;
+            rot = -0.8 + s * 1.2;
+          } else {
+            // 震荡淡出
+            const s = (t - 0.35) / 0.65;
+            dy = 120 + Math.sin(s * 15) * 10 * (1 - s);
+            scale = 1.3 - s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 地面震荡波
+          for (let i = 0; i < 20; i++) {
+            const angle = rand(0.3, 0.8);
+            const sp = rand(4, 10);
+            out.push({ x: cx + 40, y: cy + 120, vx: Math.cos(angle) * sp, vy: -Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(25, 45), gravity: 0.12, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── scepter · 权杖加冕：光芒四射+旋转上升 ─────────────────────────────
+    case 'scepter':
+      return {
+        hue: 45,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 预备
+            scale = 0.9;
+          } else if (t < 0.5) {
+            // 光芒扩散
+            const s = (t - 0.2) / 0.3;
+            scale = 0.9 + s * 1.1;
+            rot = s * 1.0;
+          } else {
+            // 上升淡出
+            const s = (t - 0.5) / 0.5;
+            dy = -s * 80;
+            scale = 2.0 + s * 0.3;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 光芒四射
+          for (let i = 0; i < 30; i++) {
+            const angle = (i / 30) * TAU;
+            const sp = rand(4, 14);
+            out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 6),
+              hue: rand(40, 58), gravity: 0, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── amulet · 护符魔力：魔法光环旋转扩散 ─────────────────────────────
+    case 'amulet':
+      return {
+        hue: 270,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 凝聚
+            scale = 1.3 - t / 0.2 * 0.5;
+          } else if (t < 0.5) {
+            // 释放光环
+            const s = (t - 0.2) / 0.3;
+            scale = 0.8 + s * 1.2;
+            rot = s * 1.5;
+          } else {
+            // 扩散淡出
+            const s = (t - 0.5) / 0.5;
+            scale = 2.0 + s * 0.5;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 魔法光环
+          for (let i = 0; i < 35; i++) {
+            const angle = (i / 35) * TAU;
+            const sp = rand(4, 12);
+            out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
+              hue: rand(250, 290), gravity: 0, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── dagger · 匕首刺击：快速穿刺+血花飞溅 ─────────────────────────────
+    case 'dagger':
+      return {
+        hue: 0,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) {
+            // 蓄力
+            const s = t / 0.1;
+            dx = -s * 20;
+            rot = -s * 0.5;
+          } else if (t < 0.3) {
+            // 快速穿刺
+            const s = (t - 0.1) / 0.2;
+            dx = -20 + s * 180;
+            dy = -s * 40;
+            rot = -0.5 + s * 1.0;
+            scale = 1 + s * 0.4;
+          } else {
+            // 淡出
+            const s = (t - 0.3) / 0.7;
+            dx = 160 + s * 30;
+            dy = -40 - s * 20;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 血花飞溅
+          for (let i = 0; i < 20; i++) {
+            const angle = rand(0.3, 1.2);
+            const sp = rand(3, 9);
+            out.push({ x: cx + 30, y: cy - 10, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
+              hue: rand(350, 15), gravity: 0.1, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── boomerang · 回旋镖飞回：抛出→弧线→飞回 ─────────────────────────────
+    case 'boomerang':
+      return {
+        hue: 20,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.3) {
+            // 抛出
+            const s = t / 0.3;
+            dx = s * 200;
+            dy = -s * 60;
+            rot = s * 4;
+          } else if (t < 0.7) {
+            // 弧线飞行
+            const s = (t - 0.3) / 0.4;
+            dx = 200 - s * 120;
+            dy = -60 + Math.sin(s * Math.PI) * 40;
+            rot = 1.2 + s * 3;
+          } else {
+            // 飞回
+            const s = (t - 0.7) / 0.3;
+            dx = 80 - s * 80;
+            dy = -20 + s * 20;
+            rot = 4.2 + s * 2;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 旋转轨迹
+          for (let i = 0; i < 20; i++) {
+            const frac = i / 20;
+            const angle = frac * 4;
+            const px = cx + frac * 200;
+            const py = cy - Math.sin(frac * Math.PI) * 60;
+            out.push({ x: px + Math.cos(angle) * 8, y: py + Math.sin(angle) * 8,
+              vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
+              hue: rand(15, 30), gravity: 0.05, shape: 'dot', angle: angle });
+          }
+          return out;
+        },
+      };
+
+    // ── spear · 长矛投掷：蓄力→投掷→穿刺 ─────────────────────────────
+    case 'spear':
+      return {
+        hue: 25,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 蓄力
+            const s = t / 0.2;
+            dx = -s * 40;
+            dy = s * 20;
+            rot = -s * 0.8;
+          } else if (t < 0.5) {
+            // 投掷飞行
+            const s = (t - 0.2) / 0.3;
+            dx = -40 + s * 280;
+            dy = 20 - s * 80;
+            rot = -0.8 + s * 1.5;
+            scale = 1 + s * 0.4;
+          } else {
+            // 远去淡出
+            const s = (t - 0.5) / 0.5;
+            dx = 240 + s * 60;
+            dy = -60 - s * 30;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 穿刺轨迹
+          for (let i = 0; i < 20; i++) {
+            const frac = i / 20;
+            out.push({ x: cx - 30 + frac * 260, y: cy + 15 - frac * 70,
+              vx: 8 + rand(0, 2), vy: -1.5 + rand(-0.3, 0.3),
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
+              hue: rand(20, 40), gravity: 0.05, shape: 'streak', angle: -0.2 });
+          }
+          return out;
+        },
+      };
+
+    // ── axe · 战斧劈砍：旋转挥砍→落地冲击 ─────────────────────────────
+    case 'axe':
+      return {
+        hue: 15,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            // 举起
+            const s = t / 0.15;
+            dx = -s * 30;
+            dy = -s * 80;
+            rot = -s * 1.2;
+          } else if (t < 0.4) {
+            // 挥砍
+            const s = (t - 0.15) / 0.25;
+            dx = -30 + s * 160;
+            dy = -80 + s * 180;
+            rot = -1.2 + s * 2.5;
+            scale = 1 + s * 0.5;
+          } else {
+            // 震荡淡出
+            const s = (t - 0.4) / 0.6;
+            dy = 100 + Math.sin(s * 12) * 8 * (1 - s);
+            scale = 1.5 - s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 挥砍弧线
+          for (let i = 0; i < 22; i++) {
+            const frac = i / 22;
+            const angle = -1.2 + frac * 2.5;
+            const px = cx - 30 + Math.cos(angle + 1.5) * 80 * frac;
+            const py = cy - 80 + Math.sin(angle + 1.5) * 80 * frac + 160 * frac;
+            out.push({ x: px, y: py, vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2.5, 5),
+              hue: rand(10, 30), gravity: 0.08, shape: 'streak', angle: angle });
+          }
+          return out;
+        },
+      };
+
+    // ── scythe · 镰刀挥舞：弧形挥割+死亡气息 ─────────────────────────────
+    case 'scythe':
+      return {
+        hue: 0,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 举起
+            const s = t / 0.2;
+            dy = -s * 80;
+            rot = -s * 1.0;
+          } else if (t < 0.5) {
+            // 弧形挥割
+            const s = (t - 0.2) / 0.3;
+            dy = -80 + Math.sin(s * Math.PI) * 120;
+            rot = -1.0 + s * 2.0;
+            scale = 1 + s * 0.6;
+          } else {
+            // 死亡气息扩散
+            const s = (t - 0.5) / 0.5;
+            dy = 40 - s * 40;
+            scale = 1.6 - s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 死亡气息
+          for (let i = 0; i < 25; i++) {
+            const angle = rand(0, TAU);
+            const sp = rand(2, 6);
+            out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp - 1,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(0, 15), gravity: 0.02, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── trident · 三叉戟海啸：三重冲击波 ─────────────────────────────
+    case 'trident':
+      return {
+        hue: 200,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            // 蓄力
+            const s = t / 0.15;
+            scale = 1.2 - s * 0.3;
+          } else if (t < 0.4) {
+            // 冲击
+            const s = (t - 0.15) / 0.25;
+            scale = 0.9 + s * 1.6;
+            rot = s * 0.8;
+          } else {
+            // 波纹消散
+            const s = (t - 0.4) / 0.6;
+            scale = 2.5 + s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 三重冲击波
+          for (let j = 0; j < 3; j++) {
+            for (let i = 0; i < 12; i++) {
+              const angle = (i / 12) * TAU;
+              const sp = 4 + j * 4 + rand(0, 3);
+              out.push({ x: cx, y: cy, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+                life: 1, decay: rand(0.02 + j * 0.005, 0.035 + j * 0.005),
+                size: rand(2.5, 5), hue: rand(190, 215), gravity: 0, shape: 'streak', angle: angle });
+            }
+          }
+          return out;
+        },
+      };
+
+    // ── flail · 连枷横扫：甩链→砸地 ─────────────────────────────
+    case 'flail':
+      return {
+        hue: 35,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 甩链
+            const s = t / 0.2;
+            dx = s * 60;
+            dy = -s * 30;
+            rot = s * 1.5;
+          } else if (t < 0.5) {
+            // 砸落
+            const s = (t - 0.2) / 0.3;
+            dx = 60 - s * 40;
+            dy = -30 + s * 150;
+            rot = 1.5 + s * 1.0;
+          } else {
+            // 震动
+            const s = (t - 0.5) / 0.5;
+            dx = 20 + Math.sin(s * 15) * 8 * (1 - s);
+            dy = 120 + Math.sin(s * 12) * 6 * (1 - s);
+            scale = 1.3 - s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 撞击碎片
+          for (let i = 0; i < 18; i++) {
+            const angle = rand(0.2, 1.0);
+            const sp = rand(3, 9);
+            out.push({ x: cx + 30, y: cy + 120, vx: Math.cos(angle) * sp, vy: -Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(30, 50), gravity: 0.12, shape: 'shard', angle: rand(0, TAU) });
+          }
+          return out;
+        },
+      };
+
+    // ── chakram · 轮刃旋转：旋转飞出→环切→飞回 ─────────────────────────────
+    case 'chakram':
+      return {
+        hue: 45,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.3) {
+            // 旋转飞出
+            const s = t / 0.3;
+            dx = s * 150;
+            dy = -s * 50;
+            rot = s * 8;
+            scale = 1 + s * 0.3;
+          } else if (t < 0.7) {
+            // 环切
+            const s = (t - 0.3) / 0.4;
+            dx = 150 - s * 80;
+            dy = -50 + Math.sin(s * Math.PI) * 30;
+            rot = 2.4 + s * 6;
+          } else {
+            // 飞回
+            const s = (t - 0.7) / 0.3;
+            dx = 70 - s * 70;
+            dy = 0 + s * 0;
+            rot = 8.4 + s * 4;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 旋转轨迹
+          for (let i = 0; i < 25; i++) {
+            const frac = i / 25;
+            const angle = frac * 10;
+            const px = cx + frac * 150;
+            const py = cy - Math.sin(frac * Math.PI) * 50;
+            out.push({ x: px + Math.cos(angle) * 10, y: py + Math.sin(angle) * 10,
+              vx: Math.cos(angle) * 4, vy: Math.sin(angle) * 4,
+              life: 1, decay: rand(0.018, 0.03), size: rand(2, 5),
+              hue: rand(40, 60), gravity: 0, shape: 'dot', angle: angle });
+          }
+          return out;
+        },
+      };
+
+    // ── halberd · 戟刺击：刺穿+回旋 ─────────────────────────────
+    case 'halberd':
+      return {
+        hue: 10,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            // 后撤蓄力
+            const s = t / 0.15;
+            dx = -s * 40;
+            dy = -s * 60;
+            rot = -s * 0.8;
+          } else if (t < 0.4) {
+            // 刺出
+            const s = (t - 0.15) / 0.25;
+            dx = -40 + s * 240;
+            dy = -60 + s * 120;
+            rot = -0.8 + s * 2.0;
+            scale = 1 + s * 0.5;
+          } else {
+            // 回旋淡出
+            const s = (t - 0.4) / 0.6;
+            dx = 200 - s * 60;
+            dy = 60 - s * 40;
+            rot = 1.2 + s * 0.8;
+            scale = 1.5 - s * 0.3;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 刺击轨迹
+          for (let i = 0; i < 18; i++) {
+            const frac = i / 18;
+            out.push({ x: cx - 30 + frac * 220, y: cy - 50 + frac * 110,
+              vx: 7 + rand(0, 2), vy: 2 + rand(-0.5, 0.5),
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(5, 25), gravity: 0.06, shape: 'streak', angle: 0.4 });
+          }
+          return out;
+        },
+      };
+
+    // ── slingshot · 弹弓发射：拉伸→弹射→飞远 ─────────────────────────────
+    case 'slingshot':
+      return {
+        hue: 30,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 拉伸蓄力
+            const s = t / 0.2;
+            dx = s * 20;
+            scale = 1 - s * 0.1;
+          } else if (t < 0.4) {
+            // 弹射
+            const s = (t - 0.2) / 0.2;
+            dx = 20 + s * 160;
+            dy = -s * 60;
+            scale = 0.9 + s * 0.6;
+            rot = s * 0.5;
+          } else {
+            // 飞远
+            const s = (t - 0.4) / 0.6;
+            dx = 180 + s * 80;
+            dy = -60 - s * 30;
+            alpha = 1 - s * s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 弹射轨迹
+          for (let i = 0; i < 15; i++) {
+            const frac = i / 15;
+            out.push({ x: cx + frac * 170, y: cy - frac * 55,
+              vx: 8 + rand(0, 2), vy: -2 + rand(-0.3, 0.3),
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
+              hue: rand(25, 45), gravity: 0.08, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── blowgun · 吹箭破空：吹气→箭矢飞出 ─────────────────────────────
+    case 'blowgun':
+      return {
+        hue: 50,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.1) {
+            // 吹气
+            const s = t / 0.1;
+            scale = 1 + s * 0.1;
+          } else if (t < 0.3) {
+            // 箭矢飞出
+            const s = (t - 0.1) / 0.2;
+            dx = s * 220;
+            rot = s * 0.2;
+          } else {
+            // 远去
+            const s = (t - 0.3) / 0.7;
+            dx = 220 + s * 60;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 气流轨迹
+          for (let i = 0; i < 12; i++) {
+            const frac = i / 12;
+            out.push({ x: cx + frac * 200, y: cy + rand(-2, 2),
+              vx: 10 + rand(0, 3), vy: rand(-0.2, 0.2),
+              life: 1, decay: rand(0.02, 0.035), size: rand(1.5, 3.5),
+              hue: rand(40, 60), gravity: 0, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── tessen · 铁扇展开：展开→扇面切割 ─────────────────────────────
+    case 'tessen':
+      return {
+        hue: 30,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.15) {
+            // 预备
+            const s = t / 0.15;
+            rot = -s * 0.5;
+          } else if (t < 0.4) {
+            // 展开挥出
+            const s = (t - 0.15) / 0.25;
+            dx = s * 140;
+            dy = -s * 40;
+            rot = -0.5 + s * 1.5;
+            scale = 1 + s * 0.4;
+          } else {
+            // 收回淡出
+            const s = (t - 0.4) / 0.6;
+            dx = 140 - s * 80;
+            dy = -40 + s * 20;
+            rot = 1.0 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 扇面切割轨迹
+          for (let i = 0; i < 16; i++) {
+            const angle = rand(0, 0.8);
+            const sp = rand(4, 10);
+            out.push({ x: cx + 30, y: cy - 10, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4.5),
+              hue: rand(25, 45), gravity: 0.05, shape: 'streak', angle: angle });
+          }
+          return out;
+        },
+      };
+
+    // ── chain · 锁链拖曳：甩链→缠绕→拖拽 ─────────────────────────────
+    case 'chain':
+      return {
+        hue: 35,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 甩链
+            const s = t / 0.2;
+            dx = s * 80;
+            dy = -s * 30;
+            rot = s * 1.0;
+          } else if (t < 0.5) {
+            // 缠绕
+            const s = (t - 0.2) / 0.3;
+            dx = 80 - s * 30;
+            dy = -30 + Math.sin(s * Math.PI * 2) * 20;
+            rot = 1.0 + s * 2.0;
+          } else {
+            // 拖拽淡出
+            const s = (t - 0.5) / 0.5;
+            dx = 50 + s * 30;
+            dy = 0 + s * 40;
+            rot = 3.0 + s * 1.5;
+            scale = 1.2 - s * 0.2;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 锁链碎片
+          for (let i = 0; i < 15; i++) {
+            const angle = rand(0, TAU);
+            const sp = rand(2, 5);
+            out.push({ x: cx + rand(0, 80), y: cy + rand(-30, 30),
+              vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 4),
+              hue: rand(30, 50), gravity: 0.08, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
+    // ── whip · 皮鞭甩动：蓄力→弧线→鞭梢爆裂 ─────────────────────────────
+    case 'whip':
+      return {
+        hue: 25,
+        sprite: (t) => {
+          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
+          if (t < 0.2) {
+            // 蓄力后拉
+            const s = t / 0.2;
+            dx = -s * 40;
+            dy = s * 20;
+            rot = -s * 0.8;
+          } else if (t < 0.5) {
+            // 甩出弧线
+            const s = (t - 0.2) / 0.3;
+            const angle = -0.8 + s * 2.0;
+            dx = -40 + Math.cos(angle) * 160;
+            dy = 20 + Math.sin(angle) * 80;
+            rot = -0.8 + s * 1.8;
+            scale = 1 + s * 0.6;
+          } else {
+            // 鞭梢回弹
+            const s = (t - 0.5) / 0.5;
+            dx = 120 - s * 60;
+            dy = 60 - s * 40;
+            rot = 1.0 + s * 0.5;
+            alpha = 1 - s;
+          }
+          return { dx, dy, scale, rot, alpha };
+        },
+        emit: (cx, cy) => {
+          const out: Particle[] = [];
+          // 鞭梢火花
+          for (let i = 0; i < 20; i++) {
+            const angle = rand(0.2, 1.2);
+            const sp = rand(4, 12);
+            out.push({ x: cx + 80, y: cy + 20, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
+              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
+              hue: rand(20, 40), gravity: 0.08, shape: 'dot', angle: 0 });
+          }
+          return out;
+        },
+      };
+
     default:
       // 通用锻造橙爆裂（自定义素材）。
       return {
@@ -926,11 +1750,12 @@ export class ImageMaterial {
     const cx = this.crackX;
     const cy = this.crackY;
 
-    // 粒子：物理推进 + 绘制 + 「原地压缩」在单遍内完成。活粒子写入数组前段，
-    // 最后截断 length——不再每帧 `filter` 分配新数组（爆裂期间 720ms 内的
-    // 主要 GC 压力来源）。
+    // 粒子：物理推进 + 按 shape 批量绘制 + 原地压缩。
+    // 按 shape 分组绘制，减少 ctx.save/restore 和 style 切换次数。
     let write = 0;
     const ps = this.particles;
+
+    // Phase 1: 物理推进，收集活粒子，标记形状
     for (let i = 0; i < ps.length; i++) {
       const p = ps[i];
       p.vy += p.gravity;
@@ -939,41 +1764,55 @@ export class ImageMaterial {
       p.vx *= 0.98;
       p.vy *= 0.98;
       p.life -= p.decay;
-      if (p.life <= 0) continue; // 死粒子：不画也不压实（后面统一截断）。
-
-      // 绘制活粒子。
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, p.life * 1.4);
-      const sz = p.size * p.life;
-      if (p.shape === 'dot') {
-        ctx.fillStyle = `hsl(${p.hue}, 100%, 62%)`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, sz, 0, TAU);
-        ctx.fill();
-      } else if (p.shape === 'streak') {
-        ctx.strokeStyle = `hsl(${p.hue}, 100%, 66%)`;
-        ctx.lineWidth = sz;
-        ctx.lineCap = 'round';
-        const len = 10 + p.life * 14;
-        const a = Math.atan2(p.vy, p.vx);
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
-        ctx.stroke();
-      } else {
-        // shard：小方片
-        ctx.fillStyle = `hsl(${p.hue}, 90%, 58%)`;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle + now * 0.01);
-        ctx.fillRect(-sz, -sz * 0.5, sz * 2, sz);
-      }
-      ctx.restore();
-
-      // 压实：活粒子留在前段（原位或前移覆盖死粒子）。
+      if (p.life <= 0) continue;
       if (write !== i) ps[write] = p;
       write++;
     }
     ps.length = write;
+
+    // Phase 2: 按 shape 批量绘制（最小化 ctx 状态切换）
+    ctx.save();
+    // Dot 批次
+    ctx.fillStyle = 'rgba(255,255,255,1)';
+    ctx.beginPath();
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      if (p.shape !== 'dot') continue;
+      ctx.globalAlpha = Math.min(1, p.life * 1.4);
+      const sz = p.size * p.life;
+      ctx.moveTo(p.x + sz, p.y);
+      ctx.arc(p.x, p.y, sz, 0, TAU);
+    }
+    ctx.fill();
+    // Streak 批次
+    ctx.lineCap = 'round';
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      if (p.shape !== 'streak') continue;
+      ctx.globalAlpha = Math.min(1, p.life * 1.4);
+      ctx.strokeStyle = `hsl(${p.hue},100%,66%)`;
+      ctx.lineWidth = p.size * p.life;
+      const len = 10 + p.life * 14;
+      const a = Math.atan2(p.vy, p.vx);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - Math.cos(a) * len, p.y - Math.sin(a) * len);
+      ctx.stroke();
+    }
+    // Shard 批次
+    for (let i = 0; i < ps.length; i++) {
+      const p = ps[i];
+      if (p.shape !== 'shard') continue;
+      ctx.globalAlpha = Math.min(1, p.life * 1.4);
+      ctx.fillStyle = `hsl(${p.hue},90%,58%)`;
+      const sz = p.size * p.life;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle + now * 0.01);
+      ctx.fillRect(-sz, -sz * 0.5, sz * 2, sz);
+      ctx.restore();
+    }
+    ctx.restore();
 
     // 素材精灵：按专属运动轨迹位移 / 缩放 / 旋转 / 淡出。
     if (this.ready) {
