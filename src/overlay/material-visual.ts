@@ -1621,50 +1621,6 @@ function crackStyle(id: string): CrackStyle {
         },
       };
 
-    // ── whip · 皮鞭甩动：蓄力→弧线→鞭梢爆裂 ─────────────────────────────
-    case 'whip':
-      return {
-        hue: 25,
-        sprite: (t) => {
-          let dx = 0, dy = 0, scale = 1, rot = 0, alpha = 1;
-          if (t < 0.2) {
-            // 蓄力后拉
-            const s = t / 0.2;
-            dx = -s * 40;
-            dy = s * 20;
-            rot = -s * 0.8;
-          } else if (t < 0.5) {
-            // 甩出弧线
-            const s = (t - 0.2) / 0.3;
-            const angle = -0.8 + s * 2.0;
-            dx = -40 + Math.cos(angle) * 160;
-            dy = 20 + Math.sin(angle) * 80;
-            rot = -0.8 + s * 1.8;
-            scale = 1 + s * 0.6;
-          } else {
-            // 鞭梢回弹
-            const s = (t - 0.5) / 0.5;
-            dx = 120 - s * 60;
-            dy = 60 - s * 40;
-            rot = 1.0 + s * 0.5;
-            alpha = 1 - s;
-          }
-          return { dx, dy, scale, rot, alpha };
-        },
-        emit: (cx, cy) => {
-          const out: Particle[] = [];
-          // 鞭梢火花
-          for (let i = 0; i < 20; i++) {
-            const angle = rand(0.2, 1.2);
-            const sp = rand(4, 12);
-            out.push({ x: cx + 80, y: cy + 20, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp,
-              life: 1, decay: rand(0.02, 0.035), size: rand(2, 5),
-              hue: rand(20, 40), gravity: 0.08, shape: 0, angle: 0 });
-          }
-          return out;
-        },
-      };
-
     default:
       // 通用锻造橙爆裂（自定义素材）。
       return {
