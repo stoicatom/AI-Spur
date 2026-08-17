@@ -116,4 +116,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(32);
     expect(crackStyle('scepter').hue).toBe(285);
   });
+
+  it('amulet 粒子层数 ≥30 且色相=270', () => {
+    const ps = crackStyle('amulet').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(30);
+    expect(crackStyle('amulet').hue).toBe(270);
+  });
 });

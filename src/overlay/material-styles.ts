@@ -1203,6 +1203,19 @@ function scepter(): CrackStyle {
   };
 }
 
+/** amulet · 护符：旋转符文环 */
+function amulet(): CrackStyle {
+  const H = MATERIAL_HUE.amulet; // 270
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: 0, dy: -t * 80, scale: 1 + t * 2.5, rot: t * Math.PI * 4, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.spiral(cx, cy, 16, 3, 120, { hue: [H - 15, H + 15] }),
+      ...P.shockRing(cx, cy, 14, 40, 90, { hue: [H - 20, H + 20], gravity: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1230,6 +1243,7 @@ export function crackStyle(id: string): CrackStyle {
     bomb,
     hammer,
     scepter,
+    amulet,
   };
   const fn =
     M[id] ??
