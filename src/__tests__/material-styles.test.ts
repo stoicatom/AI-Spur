@@ -236,4 +236,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('bell').hue).toBe(40);
   });
+
+  it('flute 粒子层数 ≥24 且色相=195', () => {
+    const ps = crackStyle('flute').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('flute').hue).toBe(195);
+  });
 });

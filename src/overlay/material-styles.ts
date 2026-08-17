@@ -1493,6 +1493,25 @@ function bell(): CrackStyle {
   };
 }
 
+/** flute · 笛子：横向音符流 + 螺旋波 */
+function flute(): CrackStyle {
+  const H = MATERIAL_HUE.flute; // 195
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 200,
+      dy: Math.sin(t * Math.PI * 3) * 40,
+      scale: 1 + t * 2.2,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.notes(cx, cy, 16, { hue: [H - 10, H + 10] }),
+      ...P.spiral(cx, cy, 10, 1.5, 120, { hue: [H - 5, H + 5], gravity: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1540,6 +1559,7 @@ export function crackStyle(id: string): CrackStyle {
     guitar,
     drum,
     bell,
+    flute,
   };
   const fn =
     M[id] ??
