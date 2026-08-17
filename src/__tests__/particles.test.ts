@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MATERIAL_HUE, type Particle, type WhipVel, P } from '../overlay/particles';
+import { MATERIAL_HUE, type Particle, type WhipVel, P, IMPACT } from '../overlay/particles';
 
 describe('MATERIAL_HUE 专属主题色表', () => {
   it('52 内置素材全部有独立主题色', () => {
@@ -85,5 +85,14 @@ describe('粒子发射原语', () => {
     // 粒子在水平方向展开
     const xValues = ps.map(p => p.x);
     expect(xValues[xValues.length - 1]).toBeGreaterThan(xValues[0]);
+  });
+});
+
+describe('冲击增强层', () => {
+  it('冲击增强参数：CURSOR_MAX_PX 放大到 96 且冲击光环半径随速度', () => {
+    expect(IMPACT.maxPx).toBe(96);
+    const rSlow = IMPACT.ringRadius(1);   // 慢甩
+    const rFast = IMPACT.ringRadius(3);   // 快甩
+    expect(rFast).toBeGreaterThan(rSlow);
   });
 });

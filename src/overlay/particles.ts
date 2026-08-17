@@ -33,6 +33,17 @@ export const MATERIAL_HUE: Record<string, number> = {
 /** 默认 WhipVel：物理绑定缺失时（测试/兜底）用水平中速。 */
 export const DEFAULT_VEL: WhipVel = { vx: 1, vy: 0, speed: 1, dir: 0 };
 
+/** 冲击增强全局参数（spec §6）。 */
+export const IMPACT = {
+  maxPx: 96,                                  // 精灵基座最长边（原 56 → 96）
+  ringRadius(speed: number): number {         // 光环扩散半径 ∝ 速度
+    return 90 + speed * 70;                   // 慢 ≈160，快 ≈300
+  },
+  flashAlpha(speed: number): number {         // 中心闪光强度 ∝ 速度
+    return Math.min(1, 0.5 + speed * 0.16);
+  },
+};
+
 /** 把任意速度向量归一化为 WhipVel（dir = 方位角）。 */
 export function toWhipVel(vx: number, vy: number, speed: number): WhipVel {
   const m = Math.hypot(vx, vy) || 1;
@@ -236,3 +247,32 @@ export const P = {
     return out;
   },
 };
+
+/** 绘制横切的冲击光环 + 中心闪光。全屏覆盖，方向无关，只随速度缩放。 */
+export function drawImpact(ctx: CanvasRenderingContext2D, now: number, cx: number, cy: number, vel: WhipVel, t: number): void {
+  if (t >= 0.35) return;                       // 冲击只在起爆前半程
+  const R = IMPACT.ringRadius(vel.speed);
+  const ease = t / 0.35;
+  const r = ease * R;
+  const alpha = (1 - ease) * 0.55;
+  const hue = 42;                              // 暖金冲击光（与素材 hue 不同源，横切全局）
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = `hsl(${hue},100%,66%)`;
+  ctx.lineWidth = 6 * (1 - ease) + 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, TAU);
+  ctx.stroke();
+
+  // 中心闪光：起爆 0–0.15 最亮，之后衰减
+  if (t < 0.15) {
+    const fa = IMPACT.flashAlpha(vel.speed) * (1 - t / 0.15);
+    ctx.globalAlpha = fa;
+    ctx.fillStyle = '#FFF6D8';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 26 * (1 - t / 0.15) + 8, 0, TAU);
+    ctx.fill();
+  }
+  ctx.restore();
+}
