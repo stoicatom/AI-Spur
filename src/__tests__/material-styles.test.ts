@@ -230,4 +230,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('drum').hue).toBe(25);
   });
+
+  it('bell 粒子层数 ≥24 且色相=40', () => {
+    const ps = crackStyle('bell').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('bell').hue).toBe(40);
+  });
 });

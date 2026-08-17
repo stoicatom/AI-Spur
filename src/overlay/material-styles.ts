@@ -1474,6 +1474,25 @@ function drum(): CrackStyle {
   };
 }
 
+/** bell · 铃铛：环形音波 + 轻微上浮音符 */
+function bell(): CrackStyle {
+  const H = MATERIAL_HUE.bell; // 40
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 80,
+      dy: -t * 120,
+      scale: 1 + Math.sin(t * Math.PI * 5) * 0.3 + t * 2,
+      rot: Math.sin(t * Math.PI * 4) * 0.3,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 16, 40, 90, { hue: [H - 15, H + 15], gravity: 0 }),
+      ...P.burst(cx, cy, 10, 2, 6, { hue: [H - 5, H + 10], shape: 0, gravity: 0.05 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1520,6 +1539,7 @@ export function crackStyle(id: string): CrackStyle {
     volcano,
     guitar,
     drum,
+    bell,
   };
   const fn =
     M[id] ??
