@@ -1531,6 +1531,25 @@ function flute(): CrackStyle {
   };
 }
 
+/** tennis · 网球：拍击弹跳 + 弧线轨迹 */
+function tennis(): CrackStyle {
+  const H = MATERIAL_HUE.tennis; // 80
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 220,
+      dy: -Math.abs(Math.sin(t * Math.PI * 2)) * 100,
+      scale: 1 + t * 2,
+      rot: t * Math.PI * 4,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.parabola(cx, cy, 14, 200, 80, { hue: [H - 10, H + 20] }),
+      ...P.burst(cx, cy, 12, 2, 6, { hue: [H - 5, H + 10], shape: 0, gravity: 0.08 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1580,6 +1599,7 @@ export function crackStyle(id: string): CrackStyle {
     drum,
     bell,
     flute,
+    tennis,
   };
   const fn =
     M[id] ??

@@ -248,4 +248,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('flute').hue).toBe(195);
   });
+
+  it('tennis 粒子层数 ≥24 且色相=80', () => {
+    const ps = crackStyle('tennis').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('tennis').hue).toBe(80);
+  });
 });
