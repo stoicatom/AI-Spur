@@ -1141,6 +1141,19 @@ function bow(): CrackStyle {
   };
 }
 
+/** shield · 盾：冲击波+光晕 */
+function shield(): CrackStyle {
+  const H = MATERIAL_HUE.shield; // 215
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 60, dy: 0, scale: 1 + t * 2.5, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 18, 50, 100, { hue: [H - 15, H + 15], gravity: 0 }),
+      ...P.shockRing(cx, cy, 12, 80, 150, { hue: [H - 10, H + 10], gravity: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1164,6 +1177,7 @@ export function crackStyle(id: string): CrackStyle {
     dragonfly,
     tessen,
     bow,
+    shield,
   };
   const fn =
     M[id] ??

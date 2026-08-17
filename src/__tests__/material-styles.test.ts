@@ -92,4 +92,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('bow').hue).toBe(33);
   });
+
+  it('shield 粒子层数 ≥28 且色相=215', () => {
+    const ps = crackStyle('shield').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('shield').hue).toBe(215);
+  });
 });
