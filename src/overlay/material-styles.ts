@@ -1344,6 +1344,19 @@ function wind(): CrackStyle {
   };
 }
 
+/** snow · 雪：飘落晶体 + 重力下沉 */
+function snow(): CrackStyle {
+  const H = MATERIAL_HUE.snow; // 210
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 120, dy: t * 80, scale: 1 + t * 2, rot: t * Math.PI * 2, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.burst(cx, cy, 20, 1, 5, { hue: [H - 10, H + 10], shape: 0, gravity: 0.08 }),
+      ...P.spiral(cx, cy, 10, 1.5, 100, { hue: [H - 5, H + 5], gravity: 0.05 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1381,6 +1394,7 @@ export function crackStyle(id: string): CrackStyle {
     chakram,
     halberd,
     wind,
+    snow,
   };
   const fn =
     M[id] ??
