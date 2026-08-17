@@ -1084,6 +1084,26 @@ function sword(): CrackStyle {
   };
 }
 
+/** dragonfly · 蜻蜓：双翅光轨镜像 + 疾掠 */
+function dragonfly(): CrackStyle {
+  const H = MATERIAL_HUE.dragonfly; // 140
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 240,
+      dy: Math.sin(t * Math.PI * 6) * 30,
+      scale: 1 + t * 2.3,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 12, vel.dir + Math.PI / 4, vel.dir + Math.PI / 2, 200, { hue: [H - 10, H + 10] }),
+      ...P.arcSweep(cx, cy, 12, vel.dir - Math.PI / 2, vel.dir - Math.PI / 4, 200, { hue: [H - 10, H + 10] }),
+      ...P.burst(cx, cy, 6, 8, 14, { hue: [H - 5, H + 5], shape: 1 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1104,6 +1124,7 @@ export function crackStyle(id: string): CrackStyle {
     star,
     horn,
     trident,
+    dragonfly,
   };
   const fn =
     M[id] ??
