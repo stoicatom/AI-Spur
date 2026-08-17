@@ -50,4 +50,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(36);
     expect(crackStyle('trident').hue).toBe(205);
   });
+
+  it('blowgun 粒子层数 ≥20 且色相=120', () => {
+    const ps = crackStyle('blowgun').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(20);
+    expect(crackStyle('blowgun').hue).toBe(120);
+  });
 });

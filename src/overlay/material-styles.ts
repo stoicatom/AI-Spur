@@ -832,6 +832,25 @@ function crown(): CrackStyle {
   };
 }
 
+/** blowgun · 吹箭筒：单支细长尾迹 + 吹气雾 */
+function blowgun(): CrackStyle {
+  const H = MATERIAL_HUE.blowgun; // 120
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 200,
+      dy: 0,
+      scale: 1 + t * 2,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 10, vel.dir - 0.1, vel.dir + 0.1, 180, { hue: [H - 10, H + 10] }),
+      ...P.burst(cx, cy, 12, 1, 4, { hue: [H - 5, H + 5], shape: 0 }),
+    ],
+  };
+}
+
 /** star · 五芒星叙事：5 束光丝 + 星尘 */
 function star(): CrackStyle {
   const H = MATERIAL_HUE.star; // 45
@@ -1021,6 +1040,7 @@ export function crackStyle(id: string): CrackStyle {
     skull,
     crown,
     sword,
+    blowgun,
     star,
     horn,
     trident,
