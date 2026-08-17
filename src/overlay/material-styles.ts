@@ -1626,6 +1626,25 @@ function crystal(): CrackStyle {
   };
 }
 
+/** bamboo · 竹：竹节断裂（P4 第 9 个） */
+function bamboo(): CrackStyle {
+  const H = MATERIAL_HUE.bamboo; // 110
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 140,
+      dy: t * 60,
+      scale: 1 + t * 2.2,
+      rot: t * 0.5,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.shards(cx, cy, 14, 4, 10, { hue: [H - 15, H + 15] }),
+      ...P.burst(cx, cy, 12, 2, 6, { hue: [H - 10, H + 10], shape: 0, gravity: 0.1 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1680,6 +1699,7 @@ export function crackStyle(id: string): CrackStyle {
     archery,
     fireworks,
     crystal,
+    bamboo,
   };
   const fn =
     M[id] ??
