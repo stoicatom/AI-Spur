@@ -1287,6 +1287,24 @@ function scythe(): CrackStyle {
   };
 }
 
+/** flail · 连枷：链球旋转 */
+function flail(): CrackStyle {
+  const H = MATERIAL_HUE.flail; // 20
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const angle = t * Math.PI * 2.5;
+      const dx = Math.cos(angle) * 140 * Math.min(1, t * 3);
+      const dy = Math.sin(angle) * 60 * Math.min(1, t * 3);
+      return { dx, dy, scale: 1 + t * 2, rot: angle, alpha: 1 - t };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.spiral(cx, cy, 16, 2, 130, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy, 14, 4, 10, { hue: [H - 5, H + 15], shape: 2 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1320,6 +1338,7 @@ export function crackStyle(id: string): CrackStyle {
     spear,
     axe,
     scythe,
+    flail,
   };
   const fn =
     M[id] ??

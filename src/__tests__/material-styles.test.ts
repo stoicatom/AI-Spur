@@ -152,4 +152,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('scythe').hue).toBe(280);
   });
+
+  it('flail 粒子层数 ≥28 且色相=20', () => {
+    const ps = crackStyle('flail').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('flail').hue).toBe(20);
+  });
 });
