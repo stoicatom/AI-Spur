@@ -1216,6 +1216,19 @@ function amulet(): CrackStyle {
   };
 }
 
+/** dagger · 匕首：刺击+喷溅 */
+function dagger(): CrackStyle {
+  const H = MATERIAL_HUE.dagger; // 200
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 220, dy: t * 40, scale: 1 + t * 2.4, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 12, vel.dir - 0.15, vel.dir + 0.15, 200, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy, 14, 4, 12, { hue: [350, 360], shape: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1244,6 +1257,7 @@ export function crackStyle(id: string): CrackStyle {
     hammer,
     scepter,
     amulet,
+    dagger,
   };
   const fn =
     M[id] ??

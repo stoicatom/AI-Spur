@@ -122,4 +122,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(30);
     expect(crackStyle('amulet').hue).toBe(270);
   });
+
+  it('dagger 粒子层数 ≥24 且色相=200', () => {
+    const ps = crackStyle('dagger').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('dagger').hue).toBe(200);
+  });
 });
