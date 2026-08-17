@@ -1247,6 +1247,19 @@ function boomerang(): CrackStyle {
   };
 }
 
+/** spear · 长矛：直线尾迹+钉地 */
+function spear(): CrackStyle {
+  const H = MATERIAL_HUE.spear; // 200
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 240, dy: t * 60, scale: 1 + t * 2.3, rot: 0.4, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 14, vel.dir - 0.08, vel.dir + 0.08, 220, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy + 60, 10, 2, 7, { hue: [25, 45], shape: 0, gravity: 0.12 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1277,6 +1290,7 @@ export function crackStyle(id: string): CrackStyle {
     amulet,
     dagger,
     boomerang,
+    spear,
   };
   const fn =
     M[id] ??
