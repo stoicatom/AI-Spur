@@ -1273,6 +1273,20 @@ function axe(): CrackStyle {
   };
 }
 
+/** scythe · 镰刀：暗紫弧+冥火 */
+function scythe(): CrackStyle {
+  const H = MATERIAL_HUE.scythe; // 280
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 200, dy: -t * 30, scale: 1 + t * 2.8, rot: -t * Math.PI, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 16, vel.dir - Math.PI * 0.6, vel.dir + Math.PI * 0.3, 200, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.pillar(cx, cy, 10, 100, { hue: [120, 150] }),
+      ...P.burst(cx, cy, 8, 2, 6, { hue: [H - 10, H + 10], shape: 0, gravity: -0.03 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1305,6 +1319,7 @@ export function crackStyle(id: string): CrackStyle {
     boomerang,
     spear,
     axe,
+    scythe,
   };
   const fn =
     M[id] ??

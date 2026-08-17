@@ -146,4 +146,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('axe').hue).toBe(210);
   });
+
+  it('scythe 粒子层数 ≥28 且色相=280', () => {
+    const ps = crackStyle('scythe').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('scythe').hue).toBe(280);
+  });
 });
