@@ -1357,6 +1357,19 @@ function snow(): CrackStyle {
   };
 }
 
+/** rain · 雨：斜线雨丝 + 下方喷溅 */
+function rain(): CrackStyle {
+  const H = MATERIAL_HUE.rain; // 215
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 160, dy: t * 200, scale: 1 + t * 1.8, rot: 0.3, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 16, vel.dir + 0.3, vel.dir + 0.5, 180, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy + 40, 10, 1, 4, { hue: [H - 5, H + 5], shape: 0, gravity: 0.12 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1395,6 +1408,7 @@ export function crackStyle(id: string): CrackStyle {
     halberd,
     wind,
     snow,
+    rain,
   };
   const fn =
     M[id] ??
