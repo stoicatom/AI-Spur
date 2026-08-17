@@ -1260,6 +1260,19 @@ function spear(): CrackStyle {
   };
 }
 
+/** axe · 战斧：回旋劈砍 */
+function axe(): CrackStyle {
+  const H = MATERIAL_HUE.axe; // 210
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 180, dy: t * 80, scale: 1 + t * 2.5, rot: t * Math.PI * 2.5, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 18, vel.dir - Math.PI * 0.5, vel.dir + Math.PI * 0.3, 180, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.shards(cx, cy, 12, 3, 9, { hue: [35, 55] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1291,6 +1304,7 @@ export function crackStyle(id: string): CrackStyle {
     dagger,
     boomerang,
     spear,
+    axe,
   };
   const fn =
     M[id] ??

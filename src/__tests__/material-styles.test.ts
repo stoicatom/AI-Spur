@@ -140,4 +140,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('spear').hue).toBe(200);
   });
+
+  it('axe 粒子层数 ≥28 且色相=210', () => {
+    const ps = crackStyle('axe').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('axe').hue).toBe(210);
+  });
 });
