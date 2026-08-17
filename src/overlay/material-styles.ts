@@ -1569,6 +1569,25 @@ function boxing(): CrackStyle {
   };
 }
 
+/** archery · 射箭：箭矢直线尾迹 + 碎裂喷溅 */
+function archery(): CrackStyle {
+  const H = MATERIAL_HUE.archery; // 350
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 260,
+      dy: t * 40,
+      scale: 1 + t * 1.8,
+      rot: 0.1,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 14, vel.dir, vel.dir + 0.1, 200, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy, 12, 2, 5, { hue: [H - 5, H + 15], shape: 0, gravity: 0.1 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1620,6 +1639,7 @@ export function crackStyle(id: string): CrackStyle {
     flute,
     tennis,
     boxing,
+    archery,
   };
   const fn =
     M[id] ??

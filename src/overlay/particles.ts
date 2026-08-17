@@ -27,7 +27,7 @@ export const MATERIAL_HUE: Record<string, number> = {
   horn: 48, flute: 195, harp: 45, football: 110, tennis: 80,
   boxing: 0, fireworks: 350, crystal: 270, bamboo: 110, lotus: 310,
   dragonfly: 140,
-  archery: 33,  // 并入 bow（spec 决策1），与 bow 共用色相
+  archery: 350,
 };
 
 /** 默认 WhipVel：物理绑定缺失时（测试/兜底）用水平中速。 */
