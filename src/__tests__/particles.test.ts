@@ -3,7 +3,7 @@ import { MATERIAL_HUE, type Particle, type WhipVel } from '../overlay/particles'
 
 describe('MATERIAL_HUE 专属主题色表', () => {
   it('52 内置素材全部有独立主题色', () => {
-    const ids = ['whip','classic','rocket','lightning','flame','star','meteor','skull','crown','sword','bow','shield','bomb','hammer','scepter','amulet','dagger','boomerang','spear','axe','scythe','trident','flail','chakram','halberd','slingshot','blowgun','tessen','chain','wind','snow','rain','water','tornado','aurora','earthquake','volcano','guitar','drum','bell','horn','flute','harp','football','tennis','boxing','fireworks','crystal','bamboo','lotus','dragonfly'];
+    const ids = ['whip','classic','rocket','lightning','flame','star','meteor','skull','crown','sword','bow','shield','bomb','hammer','scepter','amulet','dagger','boomerang','spear','axe','scythe','trident','flail','chakram','halberd','slingshot','blowgun','tessen','chain','wind','snow','rain','water','tornado','aurora','earthquake','volcano','guitar','drum','bell','horn','flute','harp','football','tennis','boxing','archery','fireworks','crystal','bamboo','lotus','dragonfly'];
     for (const id of ids) expect(MATERIAL_HUE[id], id).toBeTypeOf('number');
     // 验证 WhipVel 类型
     const vel: WhipVel = { vx: 1, vy: 0, speed: 1, dir: 0 };
