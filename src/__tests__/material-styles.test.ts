@@ -104,4 +104,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(40);
     expect(crackStyle('bomb').hue).toBe(15);
   });
+
+  it('hammer 粒子层数 ≥32 且色相=220', () => {
+    const ps = crackStyle('hammer').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(32);
+    expect(crackStyle('hammer').hue).toBe(220);
+  });
 });

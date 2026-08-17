@@ -1171,6 +1171,24 @@ function bomb(): CrackStyle {
   };
 }
 
+/** hammer · 战锤：砸地裂纹 */
+function hammer(): CrackStyle {
+  const H = MATERIAL_HUE.hammer; // 220
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const dy = t < 0.4 ? -t * 80 : (t - 0.4) * 300 - 32;
+      const scale = 1 + t * 2;
+      return { dx: 0, dy, scale, rot: t < 0.4 ? -t * 0.5 : -0.2, alpha: 1 - t * 0.8 };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.arcSweep(cx, cy + 40, 16, Math.PI * 1.1, Math.PI * 1.9, 180, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.burst(cx, cy + 40, 14, 2, 8, { hue: [H - 10, H + 10], shape: 2, gravity: 0.15 }),
+      ...P.pillar(cx, cy + 40, 8, 60, { hue: [H - 20, H] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1196,6 +1214,7 @@ export function crackStyle(id: string): CrackStyle {
     bow,
     shield,
     bomb,
+    hammer,
   };
   const fn =
     M[id] ??
