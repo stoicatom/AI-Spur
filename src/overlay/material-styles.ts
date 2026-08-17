@@ -851,21 +851,21 @@ function slingshot(): CrackStyle {
   };
 }
 
-/** blowgun · 吹箭筒：单支细长尾迹 + 吹气雾 */
+/** blowgun · 吹箭筒：直线飞镖 + 吹气雾 */
 function blowgun(): CrackStyle {
   const H = MATERIAL_HUE.blowgun; // 120
   return {
     hue: H,
     sprite: (t, _vel) => ({
-      dx: t * 200,
-      dy: 0,
-      scale: 1 + t * 2,
+      dx: t * 280,
+      dy: t * 20,
+      scale: 1 + t * 1.6,
       rot: 0,
       alpha: 1 - t,
     }),
     emit: (cx, cy, vel) => [
-      ...P.arcSweep(cx, cy, 10, vel.dir - 0.1, vel.dir + 0.1, 180, { hue: [H - 10, H + 10] }),
-      ...P.burst(cx, cy, 12, 1, 4, { hue: [H - 5, H + 5], shape: 0 }),
+      ...P.arcSweep(cx, cy, 14, vel.dir, vel.dir + 0.05, 220, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.burst(cx, cy, 12, 1, 4, { hue: [H - 5, H + 5], shape: 0, gravity: 0.08 }),
     ],
   };
 }
