@@ -1428,6 +1428,20 @@ function earthquake(): CrackStyle {
   };
 }
 
+/** volcano · 火山：喷发柱+岩浆+碎屑 */
+function volcano(): CrackStyle {
+  const H = MATERIAL_HUE.volcano; // 20
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: 0, dy: -t * 200, scale: 1 + t * 3, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.pillar(cx, cy, 18, 180, { hue: [H - 5, H + 30] }),
+      ...P.burst(cx, cy, 12, 8, 16, { hue: [H, H + 40], shape: 0 }),
+      ...P.shards(cx, cy, 10, 5, 12, { hue: [H - 10, H + 10] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1471,6 +1485,7 @@ export function crackStyle(id: string): CrackStyle {
     tornado,
     aurora,
     earthquake,
+    volcano,
   };
   const fn =
     M[id] ??

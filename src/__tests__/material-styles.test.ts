@@ -212,4 +212,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('earthquake').hue).toBe(25);
   });
+
+  it('volcano 粒子层数 ≥36 且色相=20', () => {
+    const ps = crackStyle('volcano').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(36);
+    expect(crackStyle('volcano').hue).toBe(20);
+  });
 });
