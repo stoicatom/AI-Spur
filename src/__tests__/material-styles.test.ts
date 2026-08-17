@@ -68,4 +68,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('chain').hue).toBe(220);
   });
+
+  it('football 粒子层数 ≥24 且色相=110', () => {
+    const ps = crackStyle('football').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('football').hue).toBe(110);
+  });
 });

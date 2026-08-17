@@ -889,6 +889,25 @@ function chain(): CrackStyle {
   };
 }
 
+/** football · 足球：草地弹跳 + 草屑 */
+function football(): CrackStyle {
+  const H = MATERIAL_HUE.football; // 110
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 240,
+      dy: -Math.abs(Math.sin(t * Math.PI * 2)) * 80,
+      scale: 1 + t * 2.5,
+      rot: t * Math.PI * 4,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.parabola(cx, cy, 16, 250, 120, { hue: [H - 15, H + 15] }),
+      ...P.shards(cx, cy, 10, 2, 6, { hue: [H - 20, H - 10], shape: 2 }),
+    ],
+  };
+}
+
 /** star · 五芒星叙事：5 束光丝 + 星尘 */
 function star(): CrackStyle {
   const H = MATERIAL_HUE.star; // 45
@@ -1081,6 +1100,7 @@ export function crackStyle(id: string): CrackStyle {
     slingshot,
     blowgun,
     chain,
+    football,
     star,
     horn,
     trident,
