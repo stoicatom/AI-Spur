@@ -1409,6 +1409,25 @@ function aurora(): CrackStyle {
   };
 }
 
+/** earthquake · 地震：裂地冲击（上冲 → 下落） */
+function earthquake(): CrackStyle {
+  const H = MATERIAL_HUE.earthquake; // 25
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: 0,
+      dy: t < 0.3 ? -t * 40 : (t - 0.3) * 200 - 12,
+      scale: 1 + t * 2.2,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.arcSweep(cx, cy + 40, 16, Math.PI * 1.1, Math.PI * 1.9, 180, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.shards(cx, cy + 40, 14, 3, 9, { hue: [35, 55] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1451,6 +1470,7 @@ export function crackStyle(id: string): CrackStyle {
     water,
     tornado,
     aurora,
+    earthquake,
   };
   const fn =
     M[id] ??
