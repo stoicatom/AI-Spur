@@ -266,4 +266,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('archery').hue).toBe(350);
   });
+
+  it('fireworks 粒子层数 ≥40 且色相=350', () => {
+    const ps = crackStyle('fireworks').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(40);
+    expect(crackStyle('fireworks').hue).toBe(350);
+  });
 });

@@ -1588,6 +1588,25 @@ function archery(): CrackStyle {
   };
 }
 
+/** fireworks · 烟花：爆裂绽放 */
+function fireworks(): CrackStyle {
+  const H = MATERIAL_HUE.fireworks; // 350
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: 0,
+      dy: -t * 200,
+      scale: 1 + t * 3,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.burst(cx, cy, 24, 8, 16, { hue: [H - 20, H + 40], shape: 0, gravity: 0.15 }),
+      ...P.burst(cx, cy, 18, 4, 10, { hue: [H + 20, H + 60], shape: 0, gravity: 0.12 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1640,6 +1659,7 @@ export function crackStyle(id: string): CrackStyle {
     tennis,
     boxing,
     archery,
+    fireworks,
   };
   const fn =
     M[id] ??
