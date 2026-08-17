@@ -950,6 +950,25 @@ function horn(): CrackStyle {
   };
 }
 
+/** harp · 竖琴：琴弦波纹（P.parabola）+ 螺旋波（P.spiral） */
+function harp(): CrackStyle {
+  const H = MATERIAL_HUE.harp; // 45
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 160,
+      dy: -t * 80,
+      scale: 1 + t * 2.5,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.parabola(cx, cy, 14, 240, 100, { hue: [H - 15, H + 15] }),
+      ...P.spiral(cx, cy, 12, 2, 120, { hue: [H - 10, H + 10], gravity: 0 }),
+    ],
+  };
+}
+
 /** trident · 三海浪：P.parabola 3 组 */
 function trident(): CrackStyle {
   const H = MATERIAL_HUE.trident; // 205
@@ -1531,6 +1550,7 @@ export function crackStyle(id: string): CrackStyle {
     football,
     star,
     horn,
+    harp,
     trident,
     dragonfly,
     tessen,

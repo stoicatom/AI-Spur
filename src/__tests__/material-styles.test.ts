@@ -45,6 +45,12 @@ describe('material-styles 素材差异化', () => {
     expect(crackStyle('horn').hue).toBe(48);
   });
 
+  it('harp 粒子层数 ≥24 且色相=45', () => {
+    const ps = crackStyle('harp').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('harp').hue).toBe(45);
+  });
+
   it('trident 粒子层数 ≥36 且色相=205', () => {
     const ps = crackStyle('trident').emit(0, 0, DEFAULT_VEL);
     expect(ps.length).toBeGreaterThanOrEqual(36);
