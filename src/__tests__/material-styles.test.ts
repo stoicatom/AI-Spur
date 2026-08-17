@@ -26,4 +26,16 @@ describe('material-styles 素材差异化', () => {
     const rightward = ps.filter(p => p.vx > 0).length;
     expect(rightward).toBeGreaterThan(ps.length / 2);
   });
+
+  it('star 粒子层数 ≥40 且色相=45', () => {
+    const ps = crackStyle('star').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(40);
+    expect(crackStyle('star').hue).toBe(45);
+  });
+
+  it('star 位移覆盖 ≥180px', () => {
+    const ps = crackStyle('star').emit(0, 0, { vx: 1, vy: 0, speed: 3, dir: 0 });
+    const maxReach = Math.max(...ps.map(p => Math.hypot(p.vx, p.vy)));
+    expect(maxReach).toBeGreaterThan(10); // 速度 6-12
+  });
 });

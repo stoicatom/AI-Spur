@@ -3,7 +3,7 @@
  * 本模块从 material-visual.ts 拆分，承载 52 素材的差异化叙事。
  */
 
-import { MATERIAL_HUE, type WhipVel, type Particle } from './particles';
+import { MATERIAL_HUE, type WhipVel, type Particle, P } from './particles';
 
 const TAU = Math.PI * 2;
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
@@ -832,6 +832,32 @@ function crown(): CrackStyle {
   };
 }
 
+/** star · 五芒星叙事：5 束光丝 + 星尘 */
+function star(): CrackStyle {
+  const H = MATERIAL_HUE.star; // 45
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      // 五芒星旋转放大
+      const rot = t * Math.PI * 2;
+      const scale = 1 + t * 2.5;
+      return { dx: t * 150, dy: 0, scale, rot, alpha: 1 - t };
+    },
+    emit: (cx, cy, _vel) => {
+      const out: Particle[] = [];
+      // 5 束光丝（每束窄扇 8 粒子）
+      out.push(...P.burst(cx, cy, 8, 6, 12, { hue: [H - 10, H + 10], shape: 1, angleLo: 0, angleHi: Math.PI / 5 }));
+      out.push(...P.burst(cx, cy, 8, 6, 12, { hue: [H - 10, H + 10], shape: 1, angleLo: (Math.PI * 2) / 5, angleHi: (Math.PI * 3) / 5 }));
+      out.push(...P.burst(cx, cy, 8, 6, 12, { hue: [H - 10, H + 10], shape: 1, angleLo: (Math.PI * 4) / 5, angleHi: Math.PI }));
+      out.push(...P.burst(cx, cy, 8, 6, 12, { hue: [H - 10, H + 10], shape: 1, angleLo: (Math.PI * 6) / 5, angleHi: (Math.PI * 7) / 5 }));
+      out.push(...P.burst(cx, cy, 8, 6, 12, { hue: [H - 10, H + 10], shape: 1, angleLo: (Math.PI * 8) / 5, angleHi: (Math.PI * 9) / 5 }));
+      // 星尘
+      out.push(...P.burst(cx, cy, 12, 2, 5, { hue: [H - 5, H + 5], shape: 0 }));
+      return out;
+    },
+  };
+}
+
 /** sword · 三段式剑斩：提刀→劈下→收刀 */
 function sword(): CrackStyle {
   return {
@@ -961,6 +987,7 @@ export function crackStyle(id: string): CrackStyle {
     skull,
     crown,
     sword,
+    star,
   };
   const fn =
     M[id] ??
