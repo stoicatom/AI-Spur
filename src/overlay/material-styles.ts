@@ -1550,6 +1550,25 @@ function tennis(): CrackStyle {
   };
 }
 
+/** boxing · 拳击：拳头冲击波 + 碎屑爆发 */
+function boxing(): CrackStyle {
+  const H = MATERIAL_HUE.boxing; // 0
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 240,
+      dy: 0,
+      scale: 1 + t * 2.6,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 16, 30, 80, { hue: [H, H + 20], gravity: 0 }),
+      ...P.burst(cx, cy, 14, 5, 12, { hue: [H + 10, H + 30], shape: 0, gravity: 0.05 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1600,6 +1619,7 @@ export function crackStyle(id: string): CrackStyle {
     bell,
     flute,
     tennis,
+    boxing,
   };
   const fn =
     M[id] ??

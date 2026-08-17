@@ -254,4 +254,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('tennis').hue).toBe(80);
   });
+
+  it('boxing 粒子层数 ≥28 且色相=0', () => {
+    const ps = crackStyle('boxing').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('boxing').hue).toBe(0);
+  });
 });
