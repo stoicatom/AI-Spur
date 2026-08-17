@@ -832,6 +832,25 @@ function crown(): CrackStyle {
   };
 }
 
+/** slingshot · 弹弓：皮筋绷紧 + 高速弹道 */
+function slingshot(): CrackStyle {
+  const H = MATERIAL_HUE.slingshot; // 25
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 220,
+      dy: -t * 50,
+      scale: 1 + Math.pow(t, 0.5) * 2.5,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 18, vel.dir - 0.2, vel.dir + 0.2, 240, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.burst(cx, cy, 8, 3, 8, { hue: [H - 5, H + 5], shape: 2 }),
+    ],
+  };
+}
+
 /** blowgun · 吹箭筒：单支细长尾迹 + 吹气雾 */
 function blowgun(): CrackStyle {
   const H = MATERIAL_HUE.blowgun; // 120
@@ -1040,6 +1059,7 @@ export function crackStyle(id: string): CrackStyle {
     skull,
     crown,
     sword,
+    slingshot,
     blowgun,
     star,
     horn,
