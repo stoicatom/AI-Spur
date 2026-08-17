@@ -1154,6 +1154,23 @@ function shield(): CrackStyle {
   };
 }
 
+/** bomb · 炸弹：球状爆炸 */
+function bomb(): CrackStyle {
+  const H = MATERIAL_HUE.bomb; // 15
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const scale = t < 0.2 ? 1 - t * 2 : (t - 0.2) * 4;
+      return { dx: 0, dy: 0, scale, rot: 0, alpha: t < 0.2 ? 1 : 1 - (t - 0.2) / 0.8 };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.burst(cx, cy, 18, 8, 16, { hue: [H - 5, H + 20], shape: 0 }),
+      ...P.shockRing(cx, cy, 14, 30, 80, { hue: [H, H + 30], gravity: 0 }),
+      ...P.shards(cx, cy, 12, 5, 12, { hue: [H - 10, H + 10] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1178,6 +1195,7 @@ export function crackStyle(id: string): CrackStyle {
     tessen,
     bow,
     shield,
+    bomb,
   };
   const fn =
     M[id] ??

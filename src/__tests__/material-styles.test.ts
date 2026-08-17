@@ -98,4 +98,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('shield').hue).toBe(215);
   });
+
+  it('bomb 粒子层数 ≥40 且色相=15', () => {
+    const ps = crackStyle('bomb').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(40);
+    expect(crackStyle('bomb').hue).toBe(15);
+  });
 });
