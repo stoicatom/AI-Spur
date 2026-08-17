@@ -1229,6 +1229,24 @@ function dagger(): CrackStyle {
   };
 }
 
+/** boomerang · 回旋镖：椭圆弧线+旋转 */
+function boomerang(): CrackStyle {
+  const H = MATERIAL_HUE.boomerang; // 25
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const angle = t * Math.PI * 2;
+      const dx = Math.sin(angle) * 160;
+      const dy = -Math.sin(angle * 0.5) * 60;
+      return { dx, dy, scale: 1 + Math.sin(angle * 0.5) * 1.5 + 0.5, rot: angle * 3, alpha: 1 - t * 0.7 };
+    },
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 16, vel.dir - Math.PI * 0.4, vel.dir + Math.PI * 0.4, 180, { hue: [H - 15, H + 15] }),
+      ...P.burst(cx, cy, 10, 3, 7, { hue: [H - 5, H + 5], shape: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1258,6 +1276,7 @@ export function crackStyle(id: string): CrackStyle {
     scepter,
     amulet,
     dagger,
+    boomerang,
   };
   const fn =
     M[id] ??
