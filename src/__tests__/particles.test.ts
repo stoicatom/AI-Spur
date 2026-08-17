@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MATERIAL_HUE, type Particle, type WhipVel } from '../overlay/particles';
+import { MATERIAL_HUE, type Particle, type WhipVel, P } from '../overlay/particles';
 
 describe('MATERIAL_HUE 专属主题色表', () => {
   it('52 内置素材全部有独立主题色', () => {
@@ -18,5 +18,25 @@ describe('MATERIAL_HUE 专属主题色表', () => {
   it('Particle 结构完整', () => {
     const p: Particle = { x:0,y:0,vx:0,vy:0,life:1,decay:0.02,size:3,hue:0,gravity:0,shape:0,angle:0 };
     expect(p).toBeDefined();
+  });
+});
+
+describe('粒子发射原语', () => {
+  it('shockRing 生成 count 个圆环粒子，等角分布', () => {
+    const ps = P.shockRing(100, 100, 24, 10, 60);
+    expect(ps).toHaveLength(24);
+    for (const p of ps) expect(p.shape).toBe(1);
+  });
+  it('parabola 生成的粒子沿弧线分布（y 随 frac 先上后落）', () => {
+    const ps = P.parabola(0, 0, 20, 300, 120);
+    expect(ps).toHaveLength(20);
+    const ys = ps.map(p => p.y);
+    // 存在高于起点的点（抛物线拱起）
+    expect(Math.min(...ys)).toBeLessThan(0);
+  });
+  it('burst 粒子速度在给定区间且重力默认 >0', () => {
+    const ps = P.burst(0, 0, 40, 3, 10);
+    expect(ps).toHaveLength(40);
+    expect(Math.min(...ps.map(p => p.gravity))).toBeGreaterThan(0);
   });
 });
