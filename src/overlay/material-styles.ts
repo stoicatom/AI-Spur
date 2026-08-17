@@ -1396,6 +1396,19 @@ function tornado(): CrackStyle {
   };
 }
 
+/** aurora · 极光：波浪光带 + 紫光柱 */
+function aurora(): CrackStyle {
+  const H = MATERIAL_HUE.aurora; // 140
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 160, dy: -t * 100, scale: 1 + t * 2.5, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.parabola(cx, cy, 14, 260, 100, { hue: [H - 20, H + 20] }),
+      ...P.pillar(cx, cy, 14, 120, { hue: [280, 320] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1437,6 +1450,7 @@ export function crackStyle(id: string): CrackStyle {
     rain,
     water,
     tornado,
+    aurora,
   };
   const fn =
     M[id] ??
