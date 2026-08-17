@@ -1305,6 +1305,19 @@ function flail(): CrackStyle {
   };
 }
 
+/** chakram · 环刃：旋转飞出+冲击波 */
+function chakram(): CrackStyle {
+  const H = MATERIAL_HUE.chakram; // 215
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 200, dy: -t * 40, scale: 1 + t * 2.6, rot: t * Math.PI * 6, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 18, 30, 60, { hue: [H - 10, H + 10], gravity: 0 }),
+      ...P.burst(cx, cy, 12, 6, 12, { hue: [H - 5, H + 5], shape: 1 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1339,6 +1352,7 @@ export function crackStyle(id: string): CrackStyle {
     axe,
     scythe,
     flail,
+    chakram,
   };
   const fn =
     M[id] ??

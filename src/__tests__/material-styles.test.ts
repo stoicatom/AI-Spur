@@ -158,4 +158,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('flail').hue).toBe(20);
   });
+
+  it('chakram 粒子层数 ≥28 且色相=215', () => {
+    const ps = crackStyle('chakram').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('chakram').hue).toBe(215);
+  });
 });
