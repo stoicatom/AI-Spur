@@ -12,6 +12,7 @@
  * 帧循环内只做 drawImage / 画粒子，图片仅在 `load()` 时解码一次，满足 60fps。
  */
 import type { Material } from '../shared/materials';
+import { DEFAULT_VEL, type WhipVel } from './particles';
 
 const TAU = Math.PI * 2;
 const CURSOR_MAX_PX = 56; // 光标精灵最长边（48–64 区间）
@@ -2469,6 +2470,7 @@ export class ImageMaterial {
   private crackX = 0;
   private crackY = 0;
   private crackOn = false;
+  private crackVel: WhipVel = DEFAULT_VEL;
   private style: CrackStyle = crackStyle('rocket');
   private particles: Particle[] = [];
 
@@ -2515,12 +2517,13 @@ export class ImageMaterial {
   }
 
   /** 触发该素材的专属爆裂动画。 */
-  startCrack(x: number, y: number): void {
+  startCrack(x: number, y: number, vel: WhipVel = DEFAULT_VEL): void {
     this.crackOn = true;
     this.crackT0 = performance.now();
     this.crackX = x;
     this.crackY = y;
-    this.particles = this.style.emit(x, y);
+    this.crackVel = vel;
+    this.particles = this.style.emit(x, y); // Task 5 将 emit 改为接受 vel
   }
 
   /**
@@ -2633,6 +2636,9 @@ export class ImageMaterial {
 
     ctx.restore();
 
+    // 冲击增强层：光环 + 中心闪光（Task 5 实现）
+    this.drawImpact(ctx, now);
+
     // 素材精灵：按专属运动轨迹位移 / 缩放 / 旋转 / 淡出。
     if (this.ready) {
       const s = this.style.sprite(t);
@@ -2645,5 +2651,11 @@ export class ImageMaterial {
       ctx.drawImage(this.img, -iw / 2, -ih / 2, iw, ih);
       ctx.restore();
     }
+  }
+
+  /** 冲击增强层：光环 + 中心闪光（Task 5 实现） */
+  private drawImpact(_ctx: CanvasRenderingContext2D, _now: number): void {
+    // 占位空实现 - Task 5 将基于 this.crackVel 绘制方向性冲击效果
+    void this.crackVel;
   }
 }

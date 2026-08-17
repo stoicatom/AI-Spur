@@ -27,6 +27,7 @@ import {
 } from '../shared/ipc';
 import { ImageMaterial, MaterialTrail, resolveMaterial } from './material-visual';
 import { SwingDetector, DEFAULT_SWING, type SwingParams } from './swing';
+import { toWhipVel, type WhipVel } from './particles';
 
 // ── Canvas ────────────────────────────────────────────────────────────────
 
@@ -141,13 +142,13 @@ async function playEffectSound() {
 
 // ── Crack ─────────────────────────────────────────────────────────────────
 
-function triggerCrack(x: number, y: number) {
+function triggerCrack(x: number, y: number, vel: WhipVel) {
   if (material.crackAlive || !active) return;
   // 判定瞬间即发键：终端仍是聚焦窗口（overlay 非激活），早发早生效。
   triggerMacro().catch((err) => console.error('[overlay] macro failed:', err));
   active = false; // 锁定，避免爆裂动画期间二次触发
   playEffectSound();
-  material.startCrack(x, y);
+  material.startCrack(x, y, vel);
   trail.clear();
   incrementUsage().catch(() => {});
 }
@@ -243,8 +244,10 @@ let unlistenCursor: (() => void) | null = null;
     const now = performance.now();
     trail.push(mouseX, mouseY, now);
     // 甩动检测：达 snap 阈值即 crack。
-    if (swing.push({ x: mouseX, y: mouseY, t: now }, swingParams).cracked) {
-      triggerCrack(mouseX, mouseY);
+    const swingRes = swing.push({ x: mouseX, y: mouseY, t: now }, swingParams);
+    if (swingRes.cracked) {
+      const vel = toWhipVel(swingRes.vx, swingRes.vy, swingRes.peakSpeed * 60); // px/ms→px/f 放大
+      triggerCrack(mouseX, mouseY, vel);
     }
   });
 
