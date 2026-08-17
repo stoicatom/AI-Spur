@@ -1103,22 +1103,21 @@ function sword(): CrackStyle {
   };
 }
 
-/** dragonfly · 蜻蜓：双翅光轨镜像 + 疾掠 */
+/** dragonfly · 蜻蜓：振翅轨迹 + 蜻蜓低空疾掠 */
 function dragonfly(): CrackStyle {
   const H = MATERIAL_HUE.dragonfly; // 140
   return {
     hue: H,
     sprite: (t, _vel) => ({
-      dx: t * 240,
-      dy: Math.sin(t * Math.PI * 6) * 30,
-      scale: 1 + t * 2.3,
-      rot: 0,
+      dx: t * 180,
+      dy: Math.sin(t * Math.PI * 4) * 60,
+      scale: 1 + t * 2,
+      rot: Math.sin(t * Math.PI * 3) * 0.3,
       alpha: 1 - t,
     }),
     emit: (cx, cy, vel) => [
-      ...P.arcSweep(cx, cy, 12, vel.dir + Math.PI / 4, vel.dir + Math.PI / 2, 200, { hue: [H - 10, H + 10] }),
-      ...P.arcSweep(cx, cy, 12, vel.dir - Math.PI / 2, vel.dir - Math.PI / 4, 200, { hue: [H - 10, H + 10] }),
-      ...P.burst(cx, cy, 6, 8, 14, { hue: [H - 5, H + 5], shape: 1 }),
+      ...P.arcSweep(cx, cy, 14, vel.dir - 0.2, vel.dir + 0.2, 140, { hue: [H - 15, H + 15] }),
+      ...P.burst(cx, cy, 12, 2, 5, { hue: [H - 10, H + 10], shape: 0, gravity: 0.05 }),
     ],
   };
 }
