@@ -38,4 +38,10 @@ describe('material-styles 素材差异化', () => {
     const maxReach = Math.max(...ps.map(p => Math.hypot(p.vx, p.vy)));
     expect(maxReach).toBeGreaterThan(10); // 速度 6-12
   });
+
+  it('horn 粒子层数 ≥30 且色相=48', () => {
+    const ps = crackStyle('horn').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(30);
+    expect(crackStyle('horn').hue).toBe(48);
+  });
 });

@@ -858,6 +858,22 @@ function star(): CrackStyle {
   };
 }
 
+/** horn · 环形声波：环形冲击波（P.shockRing）+ 音符（P.notes） */
+function horn(): CrackStyle {
+  const H = MATERIAL_HUE.horn; // 48
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const scale = 1 + Math.sin(t * Math.PI * 4) * 0.3 + t * 2;
+      return { dx: t * 120, dy: -t * 80, scale, rot: t * Math.PI, alpha: 1 - t };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 16, 40, 80, { hue: [H - 10, H + 10], gravity: 0 }),
+      ...P.notes(cx, cy, 14, { hue: [H - 5, H + 5] }),
+    ],
+  };
+}
+
 /** sword · 三段式剑斩：提刀→劈下→收刀 */
 function sword(): CrackStyle {
   return {
@@ -988,6 +1004,7 @@ export function crackStyle(id: string): CrackStyle {
     crown,
     sword,
     star,
+    horn,
   };
   const fn =
     M[id] ??
