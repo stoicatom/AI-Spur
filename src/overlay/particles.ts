@@ -46,11 +46,65 @@ export function toWhipVel(vx: number, vy: number, speed: number): WhipVel {
 const TAU = Math.PI * 2;
 const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
 
+/** 粒子参数常量：统一管理速度、衰减、尺寸等 magic numbers */
+const PARTICLE_PARAMS = {
+  // 速度范围
+  SPEED: {
+    ARC_SWEEP: { min: 5, max: 12 },
+    PARABOLA: { min: 1, max: 3 },
+    SHOCK_RING: { min: 3, max: 8 },
+    SHOCK_RING_WITH_GRAVITY: 3,
+    SPIRAL: 2,
+    PILLAR_BASE: 2,
+    PILLAR_MULTIPLIER: 3,
+    NOTES: 3,
+  },
+  // 衰减率范围
+  DECAY: {
+    DOT: { min: 0.015, max: 0.028 },
+    SHARD: { min: 0.02, max: 0.035 },
+    SHOCK_RING: { min: 0.012, max: 0.02 },
+    SPIRAL: { min: 0.018, max: 0.03 },
+    NOTES: { min: 0.015, max: 0.025 },
+  },
+  // 尺寸范围
+  SIZE: {
+    DEFAULT: { min: 2, max: 5 },
+    SHOCK_RING: { min: 3, max: 7 },
+    SPIRAL: { min: 2, max: 4 },
+    NOTES: { min: 3, max: 6 },
+  },
+  // 重力值
+  GRAVITY: {
+    DOT: 0.05,
+    SHARD: 0.1,
+    PARABOLA: 0.05,
+    PILLAR: -0.03,
+    NOTES: 0.08,
+    NONE: 0,
+  },
+  // 角度偏移
+  ANGLE: {
+    BURST_JITTER: { min: -0.15, max: 0.15 },
+  },
+  // 几何参数
+  GEOMETRY: {
+    PILLAR_SPREAD: 20,
+    PILLAR_SIZE_BASE: 0.6,
+    PARABOLA_Y_MULT: 2,
+    PARABOLA_Y_OFFSET: 0.3,
+    NOTES_WIDTH: 160,
+    NOTES_HEIGHT: 40,
+    NOTES_JITTER: { min: -4, max: 4 },
+    PILLAR_VX_RANGE: { min: -1, max: 1 },
+  },
+};
+
 type Opts = Partial<{ decay:[number,number]; size:[number,number]; hue:[number,number]; gravity:number; shape:0|1|2; angleLo:number; angleHi:number }>;
 function base(shape: 0|1|2): { decay:[number,number]; size:[number,number]; gravity:number } {
   return shape === 2
-    ? { decay:[0.02,0.035], size:[2,5], gravity:0.1 }
-    : { decay:[0.015,0.028], size:[2,5], gravity:0.05 };
+    ? { decay:[PARTICLE_PARAMS.DECAY.SHARD.min, PARTICLE_PARAMS.DECAY.SHARD.max], size:[PARTICLE_PARAMS.SIZE.DEFAULT.min, PARTICLE_PARAMS.SIZE.DEFAULT.max], gravity: PARTICLE_PARAMS.GRAVITY.SHARD }
+    : { decay:[PARTICLE_PARAMS.DECAY.DOT.min, PARTICLE_PARAMS.DECAY.DOT.max], size:[PARTICLE_PARAMS.SIZE.DEFAULT.min, PARTICLE_PARAMS.SIZE.DEFAULT.max], gravity: PARTICLE_PARAMS.GRAVITY.DOT };
 }
 
 export const P = {
@@ -66,7 +120,7 @@ export const P = {
       const x = cx + Math.cos(ang) * r;
       const y = cy + Math.sin(ang) * r;
       const tan = ang + Math.PI / 2;
-      const sp = rand(5, 12);
+      const sp = rand(PARTICLE_PARAMS.SPEED.ARC_SWEEP.min, PARTICLE_PARAMS.SPEED.ARC_SWEEP.max);
       out.push({ x, y, vx: Math.cos(tan) * sp, vy: Math.sin(tan) * sp,
         life: 1, decay: rand(...(o.decay ?? d.decay)), size: rand(...(o.size ?? d.size)),
         hue: rand(...hue), gravity: o.gravity ?? d.gravity, shape: o.shape ?? 1, angle: tan });
@@ -83,10 +137,10 @@ export const P = {
       const f = i / count;
       const x = cx + f * dx;
       const y = cy - Math.sin(f * Math.PI) * dz;
-      const sp = rand(1, 3);
-      out.push({ x, y, vx: sp, vy: (Math.cos(f * Math.PI) - 0.3) * 2,
+      const sp = rand(PARTICLE_PARAMS.SPEED.PARABOLA.min, PARTICLE_PARAMS.SPEED.PARABOLA.max);
+      out.push({ x, y, vx: sp, vy: (Math.cos(f * Math.PI) - PARTICLE_PARAMS.GEOMETRY.PARABOLA_Y_OFFSET) * PARTICLE_PARAMS.GEOMETRY.PARABOLA_Y_MULT,
         life: 1, decay: rand(...(o.decay ?? d.decay)), size: rand(...(o.size ?? d.size)),
-        hue: rand(...hue), gravity: o.gravity ?? 0.05, shape: o.shape ?? 1, angle: 0 });
+        hue: rand(...hue), gravity: o.gravity ?? PARTICLE_PARAMS.GRAVITY.PARABOLA, shape: o.shape ?? 1, angle: 0 });
     }
     return out;
   },
@@ -100,10 +154,13 @@ export const P = {
       const r = rand(radiusLo, radiusHi);
       const x = cx + Math.cos(ang) * r;
       const y = cy + Math.sin(ang) * r;
-      const sp = (o.gravity ?? 0) === 0 ? rand(3, 8) : 3;
+      const sp = (o.gravity ?? PARTICLE_PARAMS.GRAVITY.NONE) === PARTICLE_PARAMS.GRAVITY.NONE
+        ? rand(PARTICLE_PARAMS.SPEED.SHOCK_RING.min, PARTICLE_PARAMS.SPEED.SHOCK_RING.max)
+        : PARTICLE_PARAMS.SPEED.SHOCK_RING_WITH_GRAVITY;
       out.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
-        life: 1, decay: rand(0.012, 0.02), size: rand(3, 7),
-        hue: rand(...hue), gravity: o.gravity ?? 0, shape: 1, angle: ang + Math.PI / 2 });
+        life: 1, decay: rand(PARTICLE_PARAMS.DECAY.SHOCK_RING.min, PARTICLE_PARAMS.DECAY.SHOCK_RING.max),
+        size: rand(PARTICLE_PARAMS.SIZE.SHOCK_RING.min, PARTICLE_PARAMS.SIZE.SHOCK_RING.max),
+        hue: rand(...hue), gravity: o.gravity ?? PARTICLE_PARAMS.GRAVITY.NONE, shape: 1, angle: ang + Math.PI / 2 });
     }
     return out;
   },
@@ -119,9 +176,10 @@ export const P = {
       const x = cx + Math.cos(ang) * r;
       const y = cy + Math.sin(ang) * r;
       const tan = ang + Math.PI / 2;
-      out.push({ x, y, vx: Math.cos(tan) * 2, vy: Math.sin(tan) * 2,
-        life: 1, decay: rand(0.018, 0.03), size: rand(2, 4),
-        hue: rand(...hue), gravity: o.gravity ?? 0, shape: 1, angle: tan });
+      out.push({ x, y, vx: Math.cos(tan) * PARTICLE_PARAMS.SPEED.SPIRAL, vy: Math.sin(tan) * PARTICLE_PARAMS.SPEED.SPIRAL,
+        life: 1, decay: rand(PARTICLE_PARAMS.DECAY.SPIRAL.min, PARTICLE_PARAMS.DECAY.SPIRAL.max),
+        size: rand(PARTICLE_PARAMS.SIZE.SPIRAL.min, PARTICLE_PARAMS.SIZE.SPIRAL.max),
+        hue: rand(...hue), gravity: o.gravity ?? PARTICLE_PARAMS.GRAVITY.NONE, shape: 1, angle: tan });
     }
     return out;
   },
@@ -132,11 +190,12 @@ export const P = {
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
       const f = i / count;
-      const x = cx + rand(-1, 1) * f * 20;
+      const x = cx + rand(PARTICLE_PARAMS.GEOMETRY.PILLAR_VX_RANGE.min, PARTICLE_PARAMS.GEOMETRY.PILLAR_VX_RANGE.max) * f * PARTICLE_PARAMS.GEOMETRY.PILLAR_SPREAD;
       const y = cy - f * height;
-      out.push({ x, y, vx: rand(-1, 1) * f, vy: -2 - f * 3,
-        life: 1, decay: rand(0.02, 0.035), size: rand(2, 5) * (0.6 + f),
-        hue: rand(...hue), gravity: -0.03, shape: o.shape ?? 0, angle: 0 });
+      out.push({ x, y, vx: rand(PARTICLE_PARAMS.GEOMETRY.PILLAR_VX_RANGE.min, PARTICLE_PARAMS.GEOMETRY.PILLAR_VX_RANGE.max) * f, vy: -PARTICLE_PARAMS.SPEED.PILLAR_BASE - f * PARTICLE_PARAMS.SPEED.PILLAR_MULTIPLIER,
+        life: 1, decay: rand(PARTICLE_PARAMS.DECAY.SHARD.min, PARTICLE_PARAMS.DECAY.SHARD.max),
+        size: rand(PARTICLE_PARAMS.SIZE.DEFAULT.min, PARTICLE_PARAMS.SIZE.DEFAULT.max) * (PARTICLE_PARAMS.GEOMETRY.PILLAR_SIZE_BASE + f),
+        hue: rand(...hue), gravity: PARTICLE_PARAMS.GRAVITY.PILLAR, shape: o.shape ?? 0, angle: 0 });
     }
     return out;
   },
@@ -152,7 +211,7 @@ export const P = {
     const d = base(o.shape ?? 0);
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
-      const ang = (i / count) * TAU + rand(-0.15, 0.15);
+      const ang = (i / count) * TAU + rand(PARTICLE_PARAMS.ANGLE.BURST_JITTER.min, PARTICLE_PARAMS.ANGLE.BURST_JITTER.max);
       const sp = rand(speedLo, speedHi);
       out.push({ x: cx, y: cy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
         life: 1, decay: rand(...(o.decay ?? d.decay)), size: rand(...(o.size ?? d.size)),
@@ -167,11 +226,12 @@ export const P = {
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
       const f = i / count;
-      const x = cx + f * 160 + rand(-4, 4);
-      const y = cy - Math.abs(Math.sin(f * Math.PI * 2)) * 40;
-      out.push({ x, y, vx: 3, vy: -Math.cos(f * Math.PI * 2) * 2,
-        life: 1, decay: rand(0.015, 0.025), size: rand(3, 6),
-        hue: rand(...hue), gravity: 0.08, shape: 2, angle: 0 });
+      const x = cx + f * PARTICLE_PARAMS.GEOMETRY.NOTES_WIDTH + rand(PARTICLE_PARAMS.GEOMETRY.NOTES_JITTER.min, PARTICLE_PARAMS.GEOMETRY.NOTES_JITTER.max);
+      const y = cy - Math.abs(Math.sin(f * Math.PI * 2)) * PARTICLE_PARAMS.GEOMETRY.NOTES_HEIGHT;
+      out.push({ x, y, vx: PARTICLE_PARAMS.SPEED.NOTES, vy: -Math.cos(f * Math.PI * 2) * PARTICLE_PARAMS.SPEED.PILLAR_BASE,
+        life: 1, decay: rand(PARTICLE_PARAMS.DECAY.NOTES.min, PARTICLE_PARAMS.DECAY.NOTES.max),
+        size: rand(PARTICLE_PARAMS.SIZE.NOTES.min, PARTICLE_PARAMS.SIZE.NOTES.max),
+        hue: rand(...hue), gravity: PARTICLE_PARAMS.GRAVITY.NOTES, shape: 2, angle: 0 });
     }
     return out;
   },

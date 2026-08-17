@@ -39,4 +39,51 @@ describe('粒子发射原语', () => {
     expect(ps).toHaveLength(40);
     expect(Math.min(...ps.map(p => p.gravity))).toBeGreaterThan(0);
   });
+
+  it('arcSweep 沿弧线分布，速度沿切线方向', () => {
+    const ps = P.arcSweep(100, 100, 15, 0, Math.PI / 2, 50);
+    expect(ps).toHaveLength(15);
+    // arcSweep 默认使用 streak 形状
+    expect(ps[0].shape).toBe(1);
+    // 验证粒子在不同角度分布
+    const angles = ps.map(p => Math.atan2(p.y - 100, p.x - 100));
+    expect(angles[0]).toBeLessThan(angles[angles.length - 1]);
+  });
+
+  it('spiral 从中心螺旋旋出，半径递增', () => {
+    const ps = P.spiral(50, 50, 20, 2, 80);
+    expect(ps).toHaveLength(20);
+    // 验证半径递增
+    const distances = ps.map(p => Math.hypot(p.x - 50, p.y - 50));
+    expect(distances[0]).toBeLessThan(distances[distances.length - 1]);
+    expect(ps[0].shape).toBe(1);
+  });
+
+  it('pillar 竖直光柱，粒子向上运动', () => {
+    const ps = P.pillar(100, 200, 12, 150);
+    expect(ps).toHaveLength(12);
+    // 所有粒子 vy 为负（向上）
+    for (const p of ps) expect(p.vy).toBeLessThan(0);
+    // 粒子 y 坐标由高到低分布
+    expect(ps[0].y).toBeGreaterThan(ps[ps.length - 1].y);
+  });
+
+  it('shards 碎屑四散，默认使用 shard 形状', () => {
+    const ps = P.shards(0, 0, 30, 2, 8);
+    expect(ps).toHaveLength(30);
+    // shards 强制使用 shape=2
+    for (const p of ps) expect(p.shape).toBe(2);
+    // 受明显重力影响
+    expect(Math.min(...ps.map(p => p.gravity))).toBeGreaterThan(0);
+  });
+
+  it('notes 音符排列成弹跳曲线', () => {
+    const ps = P.notes(0, 0, 10);
+    expect(ps).toHaveLength(10);
+    // notes 使用 shard 形状
+    for (const p of ps) expect(p.shape).toBe(2);
+    // 粒子在水平方向展开
+    const xValues = ps.map(p => p.x);
+    expect(xValues[xValues.length - 1]).toBeGreaterThan(xValues[0]);
+  });
 });
