@@ -1442,6 +1442,19 @@ function volcano(): CrackStyle {
   };
 }
 
+/** guitar · 吉他：音符+弦振 */
+function guitar(): CrackStyle {
+  const H = MATERIAL_HUE.guitar; // 35
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 140, dy: -t * 80, scale: 1 + t * 2.3, rot: t * 0.5, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.notes(cx, cy, 14, { hue: [H - 10, H + 10] }),
+      ...P.parabola(cx, cy, 10, 200, 80, { hue: [H - 5, H + 15] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1486,6 +1499,7 @@ export function crackStyle(id: string): CrackStyle {
     aurora,
     earthquake,
     volcano,
+    guitar,
   };
   const fn =
     M[id] ??

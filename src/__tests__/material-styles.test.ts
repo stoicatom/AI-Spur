@@ -218,4 +218,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(36);
     expect(crackStyle('volcano').hue).toBe(20);
   });
+
+  it('guitar 粒子层数 ≥24 且色相=35', () => {
+    const ps = crackStyle('guitar').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('guitar').hue).toBe(35);
+  });
 });
