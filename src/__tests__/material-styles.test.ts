@@ -44,4 +44,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(30);
     expect(crackStyle('horn').hue).toBe(48);
   });
+
+  it('trident 粒子层数 ≥36 且色相=205', () => {
+    const ps = crackStyle('trident').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(36);
+    expect(crackStyle('trident').hue).toBe(205);
+  });
 });

@@ -874,6 +874,24 @@ function horn(): CrackStyle {
   };
 }
 
+/** trident · 三海浪：P.parabola 3 组 */
+function trident(): CrackStyle {
+  const H = MATERIAL_HUE.trident; // 205
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const scale = 1 + t * 2.8;
+      const dy = -Math.sin(t * Math.PI) * 60;
+      return { dx: t * 180, dy, scale, rot: Math.sin(t * Math.PI * 3) * 0.4, alpha: 1 - t };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.parabola(cx, cy - 20, 12, 280, 80, { hue: [H - 15, H + 15] }),
+      ...P.parabola(cx, cy, 12, 260, 100, { hue: [H - 10, H + 10] }),
+      ...P.parabola(cx, cy + 20, 12, 240, 90, { hue: [H - 5, H + 5] }),
+    ],
+  };
+}
+
 /** sword · 三段式剑斩：提刀→劈下→收刀 */
 function sword(): CrackStyle {
   return {
@@ -1005,6 +1023,7 @@ export function crackStyle(id: string): CrackStyle {
     sword,
     star,
     horn,
+    trident,
   };
   const fn =
     M[id] ??
