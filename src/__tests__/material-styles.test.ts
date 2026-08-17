@@ -170,4 +170,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('halberd').hue).toBe(210);
   });
+
+  it('wind 粒子层数 ≥24 且色相=175', () => {
+    const ps = crackStyle('wind').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('wind').hue).toBe(175);
+  });
 });

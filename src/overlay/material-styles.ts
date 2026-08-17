@@ -1331,6 +1331,19 @@ function halberd(): CrackStyle {
   };
 }
 
+/** wind · 风：旋风螺旋 + 青绿飘动 */
+function wind(): CrackStyle {
+  const H = MATERIAL_HUE.wind; // 175
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 180, dy: -t * 60, scale: 1 + t * 2.4, rot: t * Math.PI * 4, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.spiral(cx, cy, 18, 3, 150, { hue: [H - 15, H + 15], gravity: -0.02 }),
+      ...P.burst(cx, cy, 8, 2, 6, { hue: [H - 10, H + 10], shape: 0, gravity: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1367,6 +1380,7 @@ export function crackStyle(id: string): CrackStyle {
     flail,
     chakram,
     halberd,
+    wind,
   };
   const fn =
     M[id] ??

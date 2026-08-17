@@ -21,7 +21,7 @@ export const MATERIAL_HUE: Record<string, number> = {
   bow: 33, shield: 215, bomb: 15, hammer: 220, scepter: 285,
   amulet: 270, dagger: 200, boomerang: 25, spear: 200, axe: 210,
   scythe: 280, trident: 205, flail: 20, chakram: 215, halberd: 210,
-  slingshot: 25, blowgun: 120, tessen: 30, chain: 220, wind: 200,
+  slingshot: 25, blowgun: 120, tessen: 30, chain: 220, wind: 175,
   snow: 210, rain: 215, water: 205, tornado: 185, aurora: 140,
   earthquake: 25, volcano: 20, guitar: 35, drum: 25, bell: 40,
   horn: 48, flute: 195, harp: 45, football: 110, tennis: 80,
