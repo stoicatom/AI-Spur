@@ -1383,6 +1383,19 @@ function water(): CrackStyle {
   };
 }
 
+/** tornado · 龙卷风：螺旋上升 + 负重力柱 */
+function tornado(): CrackStyle {
+  const H = MATERIAL_HUE.tornado; // 185
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 100, dy: -t * 180, scale: 1 + t * 2.8, rot: t * Math.PI * 6, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.spiral(cx, cy, 20, 4, 160, { hue: [H - 15, H + 15], gravity: -0.04 }),
+      ...P.pillar(cx, cy, 12, 140, { hue: [H - 10, H + 10] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1423,6 +1436,7 @@ export function crackStyle(id: string): CrackStyle {
     snow,
     rain,
     water,
+    tornado,
   };
   const fn =
     M[id] ??
