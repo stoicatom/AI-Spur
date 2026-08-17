@@ -80,4 +80,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('dragonfly').hue).toBe(140);
   });
+
+  it('tessen 粒子层数 ≥28 且色相=30', () => {
+    const ps = crackStyle('tessen').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('tessen').hue).toBe(30);
+  });
 });

@@ -1104,6 +1104,25 @@ function dragonfly(): CrackStyle {
   };
 }
 
+/** tessen · 铁扇：扇形展开 + 斜切弧 */
+function tessen(): CrackStyle {
+  const H = MATERIAL_HUE.tessen; // 30
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 200,
+      dy: -t * 60,
+      scale: 1 + t * 2.8,
+      rot: t * Math.PI * 0.8,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 20, vel.dir - Math.PI / 3, vel.dir + Math.PI / 3, 180, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.burst(cx, cy, 10, 4, 9, { hue: [H - 5, H + 5], shape: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1125,6 +1144,7 @@ export function crackStyle(id: string): CrackStyle {
     horn,
     trident,
     dragonfly,
+    tessen,
   };
   const fn =
     M[id] ??
