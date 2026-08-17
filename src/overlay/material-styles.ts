@@ -1318,6 +1318,19 @@ function chakram(): CrackStyle {
   };
 }
 
+/** halberd · 戟：突刺+回旋 */
+function halberd(): CrackStyle {
+  const H = MATERIAL_HUE.halberd; // 210
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 220, dy: t * 20, scale: 1 + t * 2.4, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, vel) => [
+      ...P.arcSweep(cx, cy, 12, vel.dir - 0.12, vel.dir + 0.12, 210, { hue: [H - 10, H + 10], shape: 1 }),
+      ...P.arcSweep(cx, cy, 14, vel.dir - Math.PI * 0.5, vel.dir + Math.PI * 0.5, 120, { hue: [H - 15, H + 15], shape: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1353,6 +1366,7 @@ export function crackStyle(id: string): CrackStyle {
     scythe,
     flail,
     chakram,
+    halberd,
   };
   const fn =
     M[id] ??
