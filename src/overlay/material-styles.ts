@@ -1455,6 +1455,25 @@ function guitar(): CrackStyle {
   };
 }
 
+/** drum · 鼓：冲击波+音符 */
+function drum(): CrackStyle {
+  const H = MATERIAL_HUE.drum; // 25
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: 0,
+      dy: -t * 60,
+      scale: 1 + Math.sin(t * Math.PI * 4) * 0.4 + t * 2,
+      rot: 0,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 14, 50, 110, { hue: [H - 10, H + 10], gravity: 0 }),
+      ...P.notes(cx, cy, 12, { hue: [H - 5, H + 15] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1500,6 +1519,7 @@ export function crackStyle(id: string): CrackStyle {
     earthquake,
     volcano,
     guitar,
+    drum,
   };
   const fn =
     M[id] ??

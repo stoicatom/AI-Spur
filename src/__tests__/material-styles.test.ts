@@ -224,4 +224,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('guitar').hue).toBe(35);
   });
+
+  it('drum 粒子层数 ≥24 且色相=25', () => {
+    const ps = crackStyle('drum').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('drum').hue).toBe(25);
+  });
 });
