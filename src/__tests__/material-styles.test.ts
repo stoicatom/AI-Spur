@@ -110,4 +110,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(32);
     expect(crackStyle('hammer').hue).toBe(220);
   });
+
+  it('scepter 粒子层数 ≥32 且色相=285', () => {
+    const ps = crackStyle('scepter').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(32);
+    expect(crackStyle('scepter').hue).toBe(285);
+  });
 });

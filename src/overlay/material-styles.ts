@@ -1189,6 +1189,20 @@ function hammer(): CrackStyle {
   };
 }
 
+/** scepter · 权杖：八芒星芒+光环 */
+function scepter(): CrackStyle {
+  const H = MATERIAL_HUE.scepter; // 285
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 80, dy: -t * 120, scale: 1 + t * 2.8, rot: t * Math.PI, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.burst(cx, cy, 16, 8, 14, { hue: [H - 15, H + 15], shape: 1 }),
+      ...P.spiral(cx, cy, 12, 2, 100, { hue: [H - 10, H + 10] }),
+      ...P.pillar(cx, cy, 8, 80, { hue: [285, 340] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1215,6 +1229,7 @@ export function crackStyle(id: string): CrackStyle {
     shield,
     bomb,
     hammer,
+    scepter,
   };
   const fn =
     M[id] ??
