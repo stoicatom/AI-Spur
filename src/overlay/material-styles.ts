@@ -1645,6 +1645,25 @@ function bamboo(): CrackStyle {
   };
 }
 
+/** lotus · 莲花：花瓣飘散（P4 第 10 个） */
+function lotus(): CrackStyle {
+  const H = MATERIAL_HUE.lotus; // 310
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 120,
+      dy: -t * 80,
+      scale: 1 + t * 2.6,
+      rot: t * Math.PI * 2,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.spiral(cx, cy, 16, 2.5, 140, { hue: [H - 20, H + 20], gravity: 0.05 }),
+      ...P.burst(cx, cy, 14, 2, 6, { hue: [H - 10, H + 10], shape: 0, gravity: 0.08 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1700,6 +1719,7 @@ export function crackStyle(id: string): CrackStyle {
     fireworks,
     crystal,
     bamboo,
+    lotus,
   };
   const fn =
     M[id] ??

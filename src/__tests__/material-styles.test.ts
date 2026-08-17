@@ -284,4 +284,16 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('crystal').hue).toBe(270);
   });
+
+  it('bamboo 粒子层数 ≥24 且色相=110', () => {
+    const ps = crackStyle('bamboo').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(24);
+    expect(crackStyle('bamboo').hue).toBe(110);
+  });
+
+  it('lotus 粒子层数 ≥28 且色相=310', () => {
+    const ps = crackStyle('lotus').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('lotus').hue).toBe(310);
+  });
 });
