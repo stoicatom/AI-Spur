@@ -870,6 +870,25 @@ function blowgun(): CrackStyle {
   };
 }
 
+/** chain · 链条：spiral 缠绕 + shards 链节 */
+function chain(): CrackStyle {
+  const H = MATERIAL_HUE.chain; // 220
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 160,
+      dy: Math.sin(t * Math.PI * 2) * 40,
+      scale: 1 + t * 2.2,
+      rot: t * Math.PI * 3,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, vel) => [
+      ...P.spiral(cx, cy, 18, 2, 140, { hue: [H - 15, H + 15] }),
+      ...P.shards(cx, cy, 12, 4, 10, { hue: [H - 10, H + 10] }),
+    ],
+  };
+}
+
 /** star · 五芒星叙事：5 束光丝 + 星尘 */
 function star(): CrackStyle {
   const H = MATERIAL_HUE.star; // 45
@@ -1061,6 +1080,7 @@ export function crackStyle(id: string): CrackStyle {
     sword,
     slingshot,
     blowgun,
+    chain,
     star,
     horn,
     trident,
