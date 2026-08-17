@@ -272,4 +272,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(40);
     expect(crackStyle('fireworks').hue).toBe(350);
   });
+
+  it('crystal 粒子层数 ≥28 且色相=270', () => {
+    const ps = crackStyle('crystal').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('crystal').hue).toBe(270);
+  });
 });

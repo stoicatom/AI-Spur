@@ -1607,6 +1607,25 @@ function fireworks(): CrackStyle {
   };
 }
 
+/** crystal · 水晶：晶体碎裂（P4 第 8 个） */
+function crystal(): CrackStyle {
+  const H = MATERIAL_HUE.crystal; // 270
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({
+      dx: t * 100,
+      dy: -t * 60,
+      scale: 1 + t * 2.8,
+      rot: t * Math.PI * 3,
+      alpha: 1 - t,
+    }),
+    emit: (cx, cy, _vel) => [
+      ...P.shards(cx, cy, 18, 5, 12, { hue: [H - 15, H + 15] }),
+      ...P.burst(cx, cy, 12, 3, 8, { hue: [H - 10, H + 10], shape: 0, gravity: 0.08 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1660,6 +1679,7 @@ export function crackStyle(id: string): CrackStyle {
     boxing,
     archery,
     fireworks,
+    crystal,
   };
   const fn =
     M[id] ??
