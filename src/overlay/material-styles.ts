@@ -1370,6 +1370,19 @@ function rain(): CrackStyle {
   };
 }
 
+/** water · 水：波纹扩散 + 浅色光环 */
+function water(): CrackStyle {
+  const H = MATERIAL_HUE.water; // 205
+  return {
+    hue: H,
+    sprite: (t, _vel) => ({ dx: t * 140, dy: t * 20, scale: 1 + t * 2.6, rot: 0, alpha: 1 - t }),
+    emit: (cx, cy, _vel) => [
+      ...P.shockRing(cx, cy, 16, 40, 100, { hue: [H - 15, H + 15], gravity: 0 }),
+      ...P.shockRing(cx, cy, 14, 80, 140, { hue: [H - 10, H + 10], gravity: 0 }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1409,6 +1422,7 @@ export function crackStyle(id: string): CrackStyle {
     wind,
     snow,
     rain,
+    water,
   };
   const fn =
     M[id] ??

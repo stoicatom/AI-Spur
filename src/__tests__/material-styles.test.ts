@@ -188,4 +188,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(24);
     expect(crackStyle('rain').hue).toBe(215);
   });
+
+  it('water 粒子层数 ≥28 且色相=205', () => {
+    const ps = crackStyle('water').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('water').hue).toBe(205);
+  });
 });
