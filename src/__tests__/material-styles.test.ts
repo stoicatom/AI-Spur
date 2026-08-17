@@ -86,4 +86,10 @@ describe('material-styles 素材差异化', () => {
     expect(ps.length).toBeGreaterThanOrEqual(28);
     expect(crackStyle('tessen').hue).toBe(30);
   });
+
+  it('bow 粒子层数 ≥28 且色相=33', () => {
+    const ps = crackStyle('bow').emit(0, 0, DEFAULT_VEL);
+    expect(ps.length).toBeGreaterThanOrEqual(28);
+    expect(crackStyle('bow').hue).toBe(33);
+  });
 });

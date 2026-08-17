@@ -1123,6 +1123,24 @@ function tessen(): CrackStyle {
   };
 }
 
+/** bow · 弓：拉弦→抛物线齐射 */
+function bow(): CrackStyle {
+  const H = MATERIAL_HUE.bow; // 33
+  return {
+    hue: H,
+    sprite: (t, _vel) => {
+      const scale = 1 + t * 2.6;
+      const dx = t < 0.3 ? -t * 30 : (t - 0.3) * 260;
+      return { dx, dy: -t * 40, scale, rot: 0, alpha: 1 - t };
+    },
+    emit: (cx, cy, _vel) => [
+      ...P.parabola(cx, cy, 10, 240, 100, { hue: [H - 10, H + 10] }),
+      ...P.parabola(cx, cy - 15, 10, 260, 80, { hue: [H - 5, H + 5] }),
+      ...P.parabola(cx, cy + 15, 8, 220, 90, { hue: [H - 8, H + 8] }),
+    ],
+  };
+}
+
 // ── 导出入口 ──────────────────────────────────────────────────────────
 
 export function crackStyle(id: string): CrackStyle {
@@ -1145,6 +1163,7 @@ export function crackStyle(id: string): CrackStyle {
     trident,
     dragonfly,
     tessen,
+    bow,
   };
   const fn =
     M[id] ??
