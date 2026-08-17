@@ -243,7 +243,7 @@ let unlistenCursor: (() => void) | null = null;
     const now = performance.now();
     trail.push(mouseX, mouseY, now);
     // 甩动检测：达 snap 阈值即 crack。
-    if (swing.push({ x: mouseX, y: mouseY, t: now }, swingParams)) {
+    if (swing.push({ x: mouseX, y: mouseY, t: now }, swingParams).cracked) {
       triggerCrack(mouseX, mouseY);
     }
   });

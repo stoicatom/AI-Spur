@@ -30,6 +30,13 @@ export interface SwingParams {
   graceMs: number;
 }
 
+export interface SwingResult {
+  cracked: boolean;
+  vx: number;
+  vy: number; // snap 瞬间速度向量（px/ms）
+  peakSpeed: number; // 本次甩动累计峰值速度
+}
+
 export const DEFAULT_SWING: SwingParams = {
   // 60fps 下 px/ms：~1.4 相当于约 84px/帧的快速甩动，是明显的「甩」而非滑动。
   baseSpeed: 1.4,
@@ -62,20 +69,20 @@ export class SwingDetector {
   }
 
   /**
-   * 送入一帧光标位置，返回本帧是否判定 crack。
+   * 送入一帧光标位置，返回本帧的甩动检测结果。
    * @param s   当前光标采样
    * @param p   参数（含实时灵敏度）
    */
-  push(s: SwingSample, p: SwingParams): boolean {
+  push(s: SwingSample, p: SwingParams): SwingResult {
     this.samples.push(s);
     if (this.samples.length > HISTORY) this.samples.shift();
 
     // 需要至少 3 帧才能判断「加速后 snap」。
-    if (this.samples.length < 3) return false;
+    if (this.samples.length < 3) return { cracked: false, vx: 0, vy: 0, peakSpeed: this.peakSpeed };
 
     // 宽限期与冷却窗口。
-    if (s.t - this.spawnT < p.graceMs) return false;
-    if (s.t - this.lastCrackT < p.cooldownMs) return false;
+    if (s.t - this.spawnT < p.graceMs) return { cracked: false, vx: 0, vy: 0, peakSpeed: this.peakSpeed };
+    if (s.t - this.lastCrackT < p.cooldownMs) return { cracked: false, vx: 0, vy: 0, peakSpeed: this.peakSpeed };
 
     const n = this.samples.length;
     const prev = this.samples[n - 2];
@@ -92,23 +99,24 @@ export class SwingDetector {
     const threshold = p.baseSpeed / clamp(p.sensitivity, 0.5, 2.0);
 
     // 总位移门槛，过滤原地微抖。
-    if (this.travel() < p.minTravel) return false;
+    if (this.travel() < p.minTravel) return { cracked: false, vx: vCur.x, vy: vCur.y, peakSpeed: this.peakSpeed };
 
     // snap 判定：前一段达到过高速（peak 超阈值），且当前发生
     //   (a) 急减速：速度掉到峰值的一半以下，或
     //   (b) 方向反转：前后速度向量夹角 > 120°。
     const hadPeak = this.peakSpeed >= threshold;
-    if (!hadPeak) return false;
+    if (!hadPeak) return { cracked: false, vx: vCur.x, vy: vCur.y, peakSpeed: this.peakSpeed };
 
     const decel = speedCur < this.peakSpeed * 0.5;
     const reversed = speedPrev > 0.2 && speedCur > 0.2 && angleBetween(vPrev, vCur) > (2 * Math.PI) / 3;
 
     if (decel || reversed) {
       this.lastCrackT = s.t;
+      const out = { cracked: true, vx: vCur.x, vy: vCur.y, peakSpeed: this.peakSpeed };
       this.peakSpeed = 0; // 触发后重置峰值，为下一次甩动重新蓄力
-      return true;
+      return out;
     }
-    return false;
+    return { cracked: false, vx: vCur.x, vy: vCur.y, peakSpeed: this.peakSpeed };
   }
 
   /** 当前历史窗口内的累计位移（px）。 */

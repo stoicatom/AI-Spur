@@ -47,7 +47,7 @@ function feedSnap(det: SwingDetector, params: SwingParams, startT: number): bool
   let t = startT;
   for (let i = 0; i < xs.length; i++) {
     // The stop (repeated 300) is the snap: high peak speed then abrupt halt.
-    fired = det.push({ x: xs[i], y: 200, t }, params) || fired;
+    fired = det.push({ x: xs[i], y: 200, t }, params).cracked || fired;
     t += 16;
   }
   return fired;
@@ -61,7 +61,7 @@ describe('SwingDetector', () => {
     let fired = false;
     for (let i = 0; i < 10; i++) {
       // 5px per 16ms ≈ 0.3 px/ms — well under threshold.
-      fired = det.push({ x: i * 5, y: 100, t: i * 16 }, params) || fired;
+      fired = det.push({ x: i * 5, y: 100, t: i * 16 }, params).cracked || fired;
     }
     expect(fired).toBe(false);
   });
@@ -87,7 +87,7 @@ describe('SwingDetector', () => {
       const xs = [0, 16, 34, 52, 52, 52];
       let t = 0;
       for (const x of xs) {
-        fired = det.push({ x, y: 100, t }, p) || fired;
+        fired = det.push({ x, y: 100, t }, p).cracked || fired;
         t += 16;
       }
       return fired;
