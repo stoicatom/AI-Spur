@@ -889,21 +889,21 @@ function chain(): CrackStyle {
   };
 }
 
-/** football · 足球：草地弹跳 + 草屑 */
+/** football · 足球：踢球轨迹 + 草屑 */
 function football(): CrackStyle {
   const H = MATERIAL_HUE.football; // 110
   return {
     hue: H,
     sprite: (t, _vel) => ({
-      dx: t * 240,
-      dy: -Math.abs(Math.sin(t * Math.PI * 2)) * 80,
-      scale: 1 + t * 2.5,
-      rot: t * Math.PI * 4,
+      dx: t * 200,
+      dy: -Math.sin(t * Math.PI) * 120,
+      scale: 1 + t * 2.2,
+      rot: t * Math.PI * 3,
       alpha: 1 - t,
     }),
     emit: (cx, cy, vel) => [
-      ...P.parabola(cx, cy, 16, 250, 120, { hue: [H - 15, H + 15] }),
-      ...P.shards(cx, cy, 10, 2, 6, { hue: [H - 20, H - 10], shape: 2 }),
+      ...P.arcSweep(cx, cy, 14, vel.dir - 0.3, vel.dir + 0.3, 160, { hue: [H - 15, H + 15] }),
+      ...P.burst(cx, cy, 12, 3, 8, { hue: [H - 10, H + 10], shape: 0, gravity: 0.1 }),
     ],
   };
 }
