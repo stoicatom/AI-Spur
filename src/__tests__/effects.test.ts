@@ -40,7 +40,8 @@ describe('特效预设库', () => {
         expect(Number.isFinite(p.vy)).toBe(true);
         expect(p.life).toBeGreaterThan(0);
         expect(p.decay).toBeGreaterThan(0);
-        expect(p.shape === 0 || p.shape === 1 || p.shape === 2).toBe(true);
+        // 8 种粒子形状均为合法发射（0-2 基础 + 3-7 扩展：ring/beam/spark/flare/glyph）
+        expect([0, 1, 2, 3, 4, 5, 6, 7]).toContain(p.shape);
       }
     }
   });
