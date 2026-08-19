@@ -76,21 +76,23 @@ pub async fn set_active_material(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
-    // Persist before committing to in-memory state (see `activate_skin`): a
-    // failed write must not leave the running app ahead of the config file.
+    // Deprecated (v3): the material axis was merged into the material pack.
+    // This is a compatibility shim mapping the old material id onto the pack id
+    // (built-in material ids largely coincide with pack ids). The frontend
+    // will call `set_active_pack` after the UI overhaul; this command stays
+    // registered so a stale caller never 404s.
     let mut guard = state
         .config
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
-    updated.active_material_id = id.clone();
+    updated.active_pack_id = id.clone();
     config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
     *guard = updated.clone();
     drop(guard);
 
     usage::emit_config_updated(&app, &updated);
 
-    // Notify the overlay so it can swap the cursor/burst asset without reload.
     if let Some(w) = app.get_webview_window("overlay") {
         w.emit("material-changed", serde_json::json!({ "materialId": id }))
             .map_err(|e| e.to_string())?;

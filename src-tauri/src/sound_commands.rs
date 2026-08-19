@@ -120,14 +120,14 @@ pub async fn set_crack_sound(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
-    // Persist before committing to in-memory state, matching `activate_skin`:
-    // a failed write must not leave the running app ahead of the config file.
+    // Deprecated (v3): the sound axis was merged into the material pack.
+    // Compatibility shim mapping the old sound preset id onto the pack id.
     let mut guard = state
         .config
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
-    updated.crack_sound_id = preset_id;
+    updated.active_pack_id = preset_id;
     config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
     *guard = updated.clone();
     drop(guard);

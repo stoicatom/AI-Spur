@@ -268,7 +268,7 @@ pub async fn activate_skin(
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
-    updated.active_skin = skin_id.clone();
+    updated.active_pack_id = skin_id.clone();
     config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
     *guard = updated.clone();
     drop(guard);

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Config, ConfigSchema } from './config';
 import { SkinManifest, SkinManifestSchema } from './skins';
 import { Material, MaterialSchema } from './materials';
+import { MaterialPack, MaterialPackSchema } from './material-packs';
 
 const PartialConfigSchema = ConfigSchema.partial();
 const SkinChangedPayloadSchema = z.object({ skinId: z.string().min(1) });
@@ -131,6 +132,40 @@ export async function deleteCustomMaterial(id: string): Promise<void> {
   return invoke('delete_custom_material', { id });
 }
 
+// ============ Material Packs (v3 single axis) ============
+
+/** 列出全部素材包：内置 + 用户自定义。 */
+export async function listPacks(): Promise<MaterialPack[]> {
+  const raw = await invoke<unknown[]>('list_packs');
+  return raw.map((p) => MaterialPackSchema.parse(p));
+}
+
+/** 设置活跃素材包：Rust 落盘 config.active_pack_id 并 emit pack-changed。 */
+export async function setActivePack(id: string): Promise<void> {
+  return invoke('set_active_pack', { id });
+}
+
+/**
+ * 创建自定义素材包：上传图标 + 绑定特效预设 + 声音配方 + 配色。
+ * Rust 复制图标到 `app_data_dir()/packs/custom/<id>/` 并写 pack.json。
+ */
+export async function createCustomPack(input: {
+  id: string;
+  name: string;
+  iconPath: string;
+  effectPreset: string;
+  sound: unknown;
+  palette: { bodyGradient: [string, string]; particleHue: number };
+}): Promise<MaterialPack> {
+  const raw = await invoke<unknown>('create_custom_pack', input);
+  return MaterialPackSchema.parse(raw);
+}
+
+/** 删除自定义素材包（仅限 custom 目录内的素材包）。 */
+export async function deleteCustomPack(id: string): Promise<void> {
+  return invoke('delete_custom_pack', { id });
+}
+
 // ============ Events (Rust → TS) ============
 
 export const Events = {
@@ -141,6 +176,7 @@ export const Events = {
   CONFIG_UPDATED: 'config-updated',
   SKIN_CHANGED: 'skin-changed',
   MATERIAL_CHANGED: 'material-changed',
+  PACK_CHANGED: 'pack-changed',
 } as const;
 
 /**
@@ -213,5 +249,15 @@ export function onMaterialChanged(fn: (materialId: string) => void): Promise<Unl
   return listen<unknown>(Events.MATERIAL_CHANGED, (event) => {
     const { materialId } = MaterialChangedPayloadSchema.parse(event.payload);
     fn(materialId);
+  });
+}
+
+const PackChangedPayloadSchema = z.object({ packId: z.string().min(1) });
+
+/** 素材包切换通知（v3）：overlay 收到后换图标/特效/声音/配色，无需重载。 */
+export function onPackChanged(fn: (packId: string) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.PACK_CHANGED, (event) => {
+    const { packId } = PackChangedPayloadSchema.parse(event.payload);
+    fn(packId);
   });
 }

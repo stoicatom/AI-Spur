@@ -7,10 +7,9 @@ export const ThemeSchema = z.enum(['light', 'dark', 'auto']);
 export type Theme = z.infer<typeof ThemeSchema>;
 
 export const ConfigSchema = z.object({
-  version: z.literal('2.0'),
+  version: z.literal('3.0'),
   hotkey: z.string().min(1),
   phrases: z.array(z.string().min(1)).min(1).max(20),
-  activeSkin: z.string(),
   animationMode: AnimationModeSchema,
   autoSwitchThreshold: z.number().int().min(1).max(100),
   usageCount: z.number().int().min(0),
@@ -28,19 +27,27 @@ export const ConfigSchema = z.object({
   theme: ThemeSchema,
   language: z.enum(['auto', 'zh-CN', 'en-US']).default('auto'),
   firstLaunch: z.boolean(),
-  crackSoundId: z.string().default('default'),
-  // 活跃素材 id（光标/爆裂视觉）。与 Rust config.active_material_id 同步，
-  // 新增字段用 default 保持向后兼容——参照 crackSoundId 的既有做法。
-  activeMaterialId: z.string().default('rocket'),
+  /**
+   * 活跃素材包 id（v3 唯一选择轴：图标+特效+声音+配色）。
+   * 取代 v2 的 activeSkin / crackSoundId / activeMaterialId 三轴。
+   * 新增字段用 default 保持向后兼容。
+   */
+  activePackId: z.string().default('rocket'),
+  /**
+   * v2 遗留字段：仅用于迁移时保留，运行时不再使用。
+   * Rust 迁移后不再写回；此处保留 default 以兼容 v2 配置解析。
+   */
+  activeSkin: z.string().optional(),
+  crackSoundId: z.string().optional(),
+  activeMaterialId: z.string().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
-  version: '2.0',
+  version: '3.0',
   hotkey: 'CommandOrControl+Shift+W',
   phrases: ['FASTER', 'KEEP GOING', "DON'T STOP NOW", 'SHOW ME WHAT YOU GOT'],
-  activeSkin: 'default',
   animationMode: 'auto',
   autoSwitchThreshold: 20,
   usageCount: 0,
@@ -52,6 +59,5 @@ export const DEFAULT_CONFIG: Config = {
   theme: 'auto',
   language: 'auto',
   firstLaunch: true,
-  crackSoundId: 'default',
-  activeMaterialId: 'rocket',
+  activePackId: 'rocket',
 };

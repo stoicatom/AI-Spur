@@ -7,6 +7,8 @@ mod custom_skins;
 mod macro_sender;
 mod material_commands;
 mod materials;
+mod pack_commands;
+mod packs;
 mod shortcut;
 mod skins;
 mod sound_commands;
@@ -132,6 +134,10 @@ fn main() {
             material_commands::set_active_material,
             material_commands::upload_custom_material,
             material_commands::delete_custom_material,
+            pack_commands::list_packs,
+            pack_commands::set_active_pack,
+            pack_commands::create_custom_pack,
+            pack_commands::delete_custom_pack,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]
             commands::__test_trigger_shortcut,
