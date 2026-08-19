@@ -12,7 +12,7 @@
  */
 import type { Material } from '../shared/materials';
 import type { MaterialPack } from '../shared/material-packs';
-import { DEFAULT_VEL, type WhipVel, drawImpact } from './particles';
+import { DEFAULT_VEL, type WhipVel, type Particle, drawImpact } from './particles';
 import { resolveEffect, type EffectPreset } from './effects';
 import { crackStyle, type CrackStyle } from './material-styles';
 
@@ -142,20 +142,6 @@ export class MaterialTrail {
 }
 
 // ── 专属爆裂动画 ────────────────────────────────────────────────────────────
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  decay: number;
-  size: number;
-  hue: number;
-  gravity: number;
-  shape: 0 | 1 | 2;
-  angle: number;
-}
 
 
 /**
@@ -372,6 +358,86 @@ export class ImageMaterial {
       ctx.fillStyle = HSL_SHARD_CACHE[lastHue];
       ctx.fill();
     }
+
+    // Ring 批次（shape 3）：扩散环，随 life 半径增大
+    for (let i = 0; i < write; i++) {
+      const p = ps[i];
+      if (p.shape !== 3) continue;
+      const r = (p.size as number) + (1 - p.life) * 90;
+      ctx.save();
+      ctx.globalAlpha = p.life * 0.7;
+      ctx.strokeStyle = `hsl(${p.hue},100%,70%)`;
+      ctx.lineWidth = 3 * p.life;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Beam 批次（shape 4）：长条光柱
+    for (let i = 0; i < write; i++) {
+      const p = ps[i];
+      if (p.shape !== 4) continue;
+      const len = (p.size as number) * p.life;
+      ctx.save();
+      ctx.globalAlpha = p.life * 0.5;
+      ctx.strokeStyle = `hsl(${p.hue},100%,70%)`;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + Math.cos(p.angle) * len, p.y + Math.sin(p.angle) * len);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Spark 批次（shape 5）：星芒，四向十字
+    for (let i = 0; i < write; i++) {
+      const p = ps[i];
+      if (p.shape !== 5) continue;
+      const sz = p.size * p.life + 1;
+      ctx.save();
+      ctx.globalAlpha = p.life;
+      ctx.translate(p.x, p.y);
+      ctx.strokeStyle = `hsl(${p.hue},100%,72%)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-sz, 0); ctx.lineTo(sz, 0);
+      ctx.moveTo(0, -sz); ctx.lineTo(0, sz);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Flare 批次（shape 6）：光晕，径向渐变填充
+    for (let i = 0; i < write; i++) {
+      const p = ps[i];
+      if (p.shape !== 6) continue;
+      const r = (p.size as number) * p.life + 2;
+      ctx.save();
+      ctx.globalAlpha = p.life * 0.6;
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      grad.addColorStop(0, `hsl(${p.hue},100%,75%)`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Glyph 批次（shape 7）：文字/符号
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < write; i++) {
+      const p = ps[i];
+      if (p.shape !== 7) continue;
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = `hsl(${p.hue},100%,70%)`;
+      ctx.font = `700 ${p.size * p.life + 8}px 'Chakra Petch', sans-serif`;
+      ctx.fillText(String(p.data ?? '!'), p.x, p.y);
+    }
+    ctx.restore();
 
     ctx.restore();
 

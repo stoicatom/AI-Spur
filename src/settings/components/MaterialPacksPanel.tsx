@@ -89,11 +89,21 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
         <div className="pack-grid" role="radiogroup" aria-label="素材包">
           {load.packs.map((pack) => {
             const isActive = pack.id === config.activePackId;
-            const glow = `hsl(${pack.palette.particleHue},90%,60%)`;
+            const h = pack.palette.particleHue;
+            // 派生三层：主光晕、边框高光、badge 底色（兼容 Safari 13 / macOS 10.15）
+            const glow = `hsl(${h},90%,60%)`;
+            const glowBright = `hsl(${h},95%,72%)`;
+            const glowSoft = `hsl(${h},70%,48%)`;
+            const glowFaint = `hsla(${h},90%,60%,0.16)`;
             return (
               <div key={pack.id} role="radio" aria-checked={isActive} tabIndex={0}
                 className={`pack-card${isActive ? ' pack-card--active' : ''}`}
-                style={{ '--pack-glow': glow } as CSSProperties}
+                style={{
+                  '--pack-glow': glow,
+                  '--pack-glow-bright': glowBright,
+                  '--pack-glow-soft': glowSoft,
+                  '--pack-glow-faint': glowFaint,
+                } as CSSProperties}
                 onClick={() => void choose(pack.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void choose(pack.id); }

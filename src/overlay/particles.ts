@@ -7,8 +7,10 @@ export type Particle = {
   life: number; decay: number;
   size: number; hue: number;
   gravity: number;
-  shape: 0 | 1 | 2;   // 0=dot 1=streak 2=shard
+  shape: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
   angle: number;
+  /** 附加数据：glyph 字符 / 环形半径 / 光束长度等 */
+  data?: string | number;
 };
 
 /**
@@ -111,18 +113,42 @@ const PARTICLE_PARAMS = {
   },
 };
 
-type Opts = Partial<{ decay:[number,number]; size:[number,number]; hue:[number,number]; gravity:number; shape:0|1|2; angleLo:number; angleHi:number }>;
+/** 把任意 shape（含扩展 3-7）归一到基础形状（0/1/2）以获得默认参数。 */
+function baseShape(s: 0|1|2|3|4|5|6|7|undefined, def: 0|1|2): 0|1|2 {
+  if (s === 0 || s === 1 || s === 2) return s;
+  if (s === undefined) return def;
+  return def;
+}
+
+type Opts = Partial<{ decay:[number,number]; size:[number,number]; hue:[number,number]; gravity:number; shape:0|1|2|3|4|5|6|7; angleLo:number; angleHi:number }>;
 function base(shape: 0|1|2): { decay:[number,number]; size:[number,number]; gravity:number } {
   return shape === 2
     ? { decay:[PARTICLE_PARAMS.DECAY.SHARD.min, PARTICLE_PARAMS.DECAY.SHARD.max], size:[PARTICLE_PARAMS.SIZE.DEFAULT.min, PARTICLE_PARAMS.SIZE.DEFAULT.max], gravity: PARTICLE_PARAMS.GRAVITY.SHARD }
     : { decay:[PARTICLE_PARAMS.DECAY.DOT.min, PARTICLE_PARAMS.DECAY.DOT.max], size:[PARTICLE_PARAMS.SIZE.DEFAULT.min, PARTICLE_PARAMS.SIZE.DEFAULT.max], gravity: PARTICLE_PARAMS.GRAVITY.DOT };
 }
 
-export const P = {
+/** 粒子工厂类型：所有发射原语统一签名（部分参数可选）。 */
+export interface ParticleFactory {
+  arcSweep(cx: number, cy: number, count: number, angA: number, angB: number, radius: number, o?: Opts): Particle[];
+  parabola(cx: number, cy: number, count: number, dx: number, dz: number, o?: Opts): Particle[];
+  shockRing(cx: number, cy: number, count: number, radiusLo: number, radiusHi: number, o?: Opts): Particle[];
+  spiral(cx: number, cy: number, count: number, turns: number, radius: number, o?: Opts): Particle[];
+  pillar(cx: number, cy: number, count: number, height: number, o?: Opts): Particle[];
+  shards(cx: number, cy: number, count: number, speedLo: number, speedHi: number, o?: Opts): Particle[];
+  burst(cx: number, cy: number, count: number, speedLo: number, speedHi: number, o?: Opts): Particle[];
+  notes(cx: number, cy: number, count: number, o?: Opts): Particle[];
+  ringWave(cx: number, cy: number, count: number, radius: number, speed: number, o?: Opts): Particle[];
+  spark(cx: number, cy: number, count: number, speedLo: number, speedHi: number, o?: Opts): Particle[];
+  beam(cx: number, cy: number, count: number, length: number, o?: Opts): Particle[];
+  flare(cx: number, cy: number, count: number, radius: number, o?: Opts): Particle[];
+  glyph(cx: number, cy: number, count: number, chars: string[], o?: Opts): Particle[];
+}
+
+export const P: ParticleFactory = {
   /** 弧线残影：沿 cx,cy 起点的角 A→B 半径 radius 的弧布点，速度沿切线。 */
   arcSweep(cx: number, cy: number, count: number, angA: number, angB: number, radius: number, o: Opts = {}): Particle[] {
     const out: Particle[] = [];
-    const d = base(o.shape ?? 1);
+    const d = base(baseShape(o.shape, 1));
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
       const f = i / count;
@@ -142,7 +168,7 @@ export const P = {
   /** 抛物线：count 点沿弧线分布（x 展宽 dx，y 拱起 dz）。 */
   parabola(cx: number, cy: number, count: number, dx: number, dz: number, o: Opts = {}): Particle[] {
     const out: Particle[] = [];
-    const d = base(o.shape ?? 1);
+    const d = base(baseShape(o.shape, 1));
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
       const f = i / count;
@@ -219,7 +245,7 @@ export const P = {
   /** 点状爆散：dot 均匀四散。 */
   burst(cx: number, cy: number, count: number, speedLo: number, speedHi: number, o: Opts = {}): Particle[] {
     const out: Particle[] = [];
-    const d = base(o.shape ?? 0);
+    const d = base(baseShape(o.shape, 0));
     const hue = o.hue ?? [0, 0];
     for (let i = 0; i < count; i++) {
       const ang = (i / count) * TAU + rand(PARTICLE_PARAMS.ANGLE.BURST_JITTER.min, PARTICLE_PARAMS.ANGLE.BURST_JITTER.max);
@@ -243,6 +269,96 @@ export const P = {
         life: 1, decay: rand(PARTICLE_PARAMS.DECAY.NOTES.min, PARTICLE_PARAMS.DECAY.NOTES.max),
         size: rand(PARTICLE_PARAMS.SIZE.NOTES.min, PARTICLE_PARAMS.SIZE.NOTES.max),
         hue: rand(...hue), gravity: PARTICLE_PARAMS.GRAVITY.NOTES, shape: 2, angle: 0 });
+    }
+    return out;
+  },
+
+  /** 环形扩散波（shape 3）：一圈线环，随 life 扩张。 */
+  ringWave(cx: number, cy: number, count: number, radius: number, speed: number, o: Opts = {}): Particle[] {
+    const out: Particle[] = [];
+    const hue = o.hue ?? [0, 0];
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * TAU;
+      out.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * speed,
+        vy: Math.sin(ang) * speed,
+        life: 1, decay: rand(0.01, 0.02),
+        size: radius, hue: rand(...hue),
+        gravity: 0, shape: 3, angle: ang,
+        data: 0,
+      });
+    }
+    return out;
+  },
+
+  /** 火花（shape 5）：短促星芒，爆裂感。 */
+  spark(cx: number, cy: number, count: number, speedLo: number, speedHi: number, o: Opts = {}): Particle[] {
+    const out: Particle[] = [];
+    const hue = o.hue ?? [0, 0];
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * TAU + rand(-0.12, 0.12);
+      const sp = rand(speedLo, speedHi);
+      out.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+        life: 1, decay: rand(0.02, 0.04),
+        size: rand(2, 5), hue: rand(...hue),
+        gravity: o.gravity ?? 0.06, shape: 5, angle: ang,
+      });
+    }
+    return out;
+  },
+
+  /** 光束（shape 4）：长条光柱，横扫感。 */
+  beam(cx: number, cy: number, count: number, length: number, o: Opts = {}): Particle[] {
+    const out: Particle[] = [];
+    const hue = o.hue ?? [0, 0];
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * TAU + rand(-0.1, 0.1);
+      out.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * 0.5, vy: Math.sin(ang) * 0.5,
+        life: 1, decay: rand(0.01, 0.02),
+        size: length, hue: rand(...hue),
+        gravity: 0, shape: 4, angle: ang,
+      });
+    }
+    return out;
+  },
+
+  /** 光晕（shape 6）：中心膨胀的辉光。 */
+  flare(cx: number, cy: number, count: number, radius: number, o: Opts = {}): Particle[] {
+    const out: Particle[] = [];
+    const hue = o.hue ?? [0, 0];
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * TAU;
+      out.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * 0.3, vy: Math.sin(ang) * 0.3,
+        life: 1, decay: rand(0.012, 0.025),
+        size: radius, hue: rand(...hue),
+        gravity: 0, shape: 6, angle: ang,
+      });
+    }
+    return out;
+  },
+
+  /** 文字/符号（shape 7）：惊叹符号等。 */
+  glyph(cx: number, cy: number, count: number, chars: string[], o: Opts = {}): Particle[] {
+    const out: Particle[] = [];
+    const hue = o.hue ?? [0, 0];
+    for (let i = 0; i < count; i++) {
+      const ang = rand(0, TAU);
+      const sp = rand(0.5, 2);
+      out.push({
+        x: cx + Math.cos(ang) * 20, y: cy + Math.sin(ang) * 20,
+        vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1,
+        life: 1, decay: rand(0.015, 0.03),
+        size: rand(18, 30), hue: rand(...hue),
+        gravity: -0.02, shape: 7, angle: 0,
+        data: chars[Math.floor(Math.random() * chars.length)],
+      });
     }
     return out;
   },
