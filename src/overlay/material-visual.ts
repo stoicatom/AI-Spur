@@ -1,18 +1,19 @@
 /**
- * 图片素材的加载 / 缓存 / 绘制（与配色皮肤、音效解耦）。
+ * 图片素材的加载 / 缓存 / 绘制（素材包驱动 v3）。
  *
  * 职责：
- *  - `resolveMaterial`：把 config.activeMaterialId + Material[] 解析为图片 URL
- *    渲染指令（纯函数，无副作用）。
- *  - `MaterialTrail`：能量拖尾。记录素材最近的历史位置，甩得越快拖尾越长越亮，
- *    给「甩动」一个可见的速度反馈。
- *  - `ImageMaterial`：持有一张预加载的素材精灵，负责光标跟随绘制，以及
- *    **与素材强关联的专属爆裂动画**（火箭升空、闪电劈裂、火焰上腾……）。
+ *  - `resolveMaterial`：把 config.activePackId + MaterialPack[] 解析为图片 URL
+ *    渲染指令（向后兼容旧 Material[] 接口）。
+ *  - `MaterialTrail`：能量拖尾。
+ *  - `ImageMaterial`：持有预加载的素材精灵，负责光标跟随绘制，以及
+ *    **通过特效预设库（effects.ts）播放专属爆裂动画**。
  *
  * 帧循环内只做 drawImage / 画粒子，图片仅在 `load()` 时解码一次，满足 60fps。
  */
 import type { Material } from '../shared/materials';
+import type { MaterialPack } from '../shared/material-packs';
 import { DEFAULT_VEL, type WhipVel, drawImpact } from './particles';
+import { resolveEffect, type EffectPreset } from './effects';
 import { crackStyle, type CrackStyle } from './material-styles';
 
 export type { CrackStyle } from './material-styles';
@@ -36,7 +37,20 @@ for (let h = 0; h < 360; h++) {
 export type ResolvedMaterial = { kind: 'image'; url: string; id: string };
 
 /**
- * 把 activeMaterialId 解析为图片渲染指令（url 为 Rust 内联的 data: URI）。
+ * 从素材包列表解析活跃包的图标 URL（v3 主路径）。
+ * 兼容旧 Material[] 接口：当 packs 为空时回退到 materials 列表。
+ */
+export function resolvePackMaterial(
+  packId: string,
+  packs: MaterialPack[],
+): ResolvedMaterial {
+  const p = packs.find((x) => x.id === packId) ?? packs.find((x) => x.id === 'rocket');
+  if (!p) return { kind: 'image', url: '', id: 'rocket' };
+  return { kind: 'image', url: p.dataUri, id: p.id };
+}
+
+/**
+ * 把 activeMaterialId 解析为图片渲染指令（向后兼容旧素材列表）。
  * 未找到时回退到列表里的 rocket；再找不到则返回空（调用方保持上一帧素材）。
  */
 export function resolveMaterial(materialId: string, materials: Material[]): ResolvedMaterial {
@@ -146,7 +160,7 @@ interface Particle {
 
 /**
  * 一张图片素材精灵。同一 URL 重复 `load` 不重新解码。
- * crack 时按 materialId 播放专属爆裂动画。
+ * crack 时通过特效预设库播放专属爆裂动画（v3 素材包驱动）。
  */
 export class ImageMaterial {
   private img = new Image();
@@ -161,16 +175,48 @@ export class ImageMaterial {
   private crackY = 0;
   private crackOn = false;
   private crackVel: WhipVel = DEFAULT_VEL;
+
+  /** v3：特效预设（替代 CrackStyle） */
+  private effect: EffectPreset = resolveEffect('jet');
+  private effectParams: Record<string, number> = {};
+
+  /** 向后兼容：旧素材的 crackStyle */
   private style: CrackStyle = crackStyle('rocket');
+  private useLegacyStyle = false;
+
   private particles: Particle[] = [];
 
   /** 预加载图片（仅在 URL 变化时触发一次解码）。 */
   load(url: string, id: string): void {
     this.style = crackStyle(id);
+    this.useLegacyStyle = true; // 旧素材路径（兼容）
+    this._loadImage(url);
+  }
+
+  /**
+   * v3 素材包路径：从素材包加载图标 + 绑定特效预设。
+   * overlay/main.ts 切换到素材包后调用此方法。
+   */
+  loadPack(
+    url: string,
+    presetId: string,
+    params: Record<string, number>,
+    particleHue: number,
+  ): void {
+    this.effect = resolveEffect(presetId);
+    this.effectParams = params;
+    this.useLegacyStyle = false;
+    this._particleHue = particleHue;
+    this._loadImage(url);
+  }
+
+  private _particleHue = 24;
+
+  private _loadImage(url: string): void {
     if (url === this.url) return;
     this.url = url;
     this.ready = false;
-    if (!url) return; // 空 url（解析失败回退）：保持未就绪，帧循环不绘制。
+    if (!url) return;
     const img = new Image();
     img.onload = () => {
       if (this.url === url) {
@@ -187,9 +233,9 @@ export class ImageMaterial {
     img.src = url;
   }
 
-  /** 拖尾主色相，随素材切换。 */
+  /** 拖尾主色相，随素材切换。v3 优先用 palette.particleHue，旧路径用 style.hue。 */
   get hue(): number {
-    return this.style.hue;
+    return this.useLegacyStyle ? this.style.hue : this._particleHue;
   }
 
   get isReady(): boolean {
@@ -213,7 +259,10 @@ export class ImageMaterial {
     this.crackX = x;
     this.crackY = y;
     this.crackVel = vel;
-    this.particles = this.style.emit(x, y, vel);
+    // v3：用特效预设发射粒子；旧路径用 CrackStyle.emit
+    this.particles = this.useLegacyStyle
+      ? this.style.emit(x, y, vel)
+      : this.effect.emit(x, y, vel, this.effectParams);
   }
 
   /**
@@ -331,7 +380,10 @@ export class ImageMaterial {
 
     // 素材精灵：按专属运动轨迹位移 / 缩放 / 旋转 / 淡出。
     if (this.ready) {
-      const s = this.style.sprite(t, this.crackVel);
+      // v3：特效预设轨迹；旧路径用 CrackStyle.sprite
+      const s = this.useLegacyStyle
+        ? this.style.sprite(t, this.crackVel)
+        : this.effect.sprite(t, this.crackVel, this.effectParams);
       const iw = this.fitW * s.scale;
       const ih = this.fitH * s.scale;
       ctx.save();
