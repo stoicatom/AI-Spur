@@ -403,7 +403,7 @@ describe('SoundsPanel', () => {
     render(
       <SoundsPanel config={cfg({ playSound: true, showBorderFlash: false })} onPatch={vi.fn()} />
     );
-    expect(screen.getByRole('checkbox', { name: /播放 crack 音效/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /播放程序化音效/ })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: /屏幕边缘闪光/ })).not.toBeChecked();
   });
 
@@ -412,7 +412,7 @@ describe('SoundsPanel', () => {
     const onPatch = vi.fn();
     render(<SoundsPanel config={cfg({ playSound: true })} onPatch={onPatch} />);
 
-    await user.click(screen.getByRole('checkbox', { name: /播放 crack 音效/ }));
+    await user.click(screen.getByRole('checkbox', { name: /播放程序化音效/ }));
     expect(onPatch).toHaveBeenCalledWith({ playSound: false });
   });
 

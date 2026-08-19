@@ -77,25 +77,32 @@ let active = false; // 覆盖层是否处于活跃状态
 
 async function applyActivePack(packId?: string) {
   try {
-    const [config, packs] = await Promise.all([
-      packId ? Promise.resolve(null) : getConfig(),
-      listPacks(),
-    ]);
-    const targetId = packId ?? config?.activePackId ?? 'rocket';
-    const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
-    if (!pack) return;
-
-    activePack = pack;
-    const resolved = resolvePackMaterial(targetId, packs);
-    material.loadPack(
-      resolved.url,
-      pack.effect.preset,
-      pack.effect.params,
-      pack.palette.particleHue,
-    );
-    trail.setHue(pack.palette.particleHue);
+    // 使用缓存的包列表，避免每次 spawn 都重新 IPC 拉取
+    if (!packsCache || packId !== undefined) {
+      const [config, packs] = await Promise.all([
+        packId ? Promise.resolve(null) : getConfig(),
+        listPacks(),
+      ]);
+      packsCache = packs;
+      const targetId = packId ?? config?.activePackId ?? 'rocket';
+      const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
+      if (!pack) return;
+      activePack = pack;
+      const resolved = resolvePackMaterial(targetId, packs);
+      material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
+      trail.setHue(pack.palette.particleHue);
+    } else {
+      // 已缓存：仅切换 activePackId
+      const config = await getConfig();
+      const targetId = config.activePackId ?? 'rocket';
+      const pack = packsCache.find((p) => p.id === targetId) ?? packsCache.find((p) => p.id === 'rocket');
+      if (!pack) return;
+      activePack = pack;
+      const resolved = resolvePackMaterial(targetId, packsCache);
+      material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
+      trail.setHue(pack.palette.particleHue);
+    }
   } catch {
-    // 降级：走旧素材路径
     await applyActiveMaterialLegacy(packId);
   }
 }
@@ -199,6 +206,11 @@ async function dismiss() {
 let unlistenSpawn: (() => void) | null = null;
 let unlistenDrop: (() => void) | null = null;
 let unlistenCursor: (() => void) | null = null;
+let unlistenPack: (() => void) | null = null;
+let unlistenMaterial: (() => void) | null = null;
+
+// 素材包列表缓存：初始化后保存，只在 pack-changed 事件时局部更新
+let packsCache: import('../shared/material-packs').MaterialPack[] | null = null;
 
 (async () => {
   // 预加载首个素材包（避免第一次触发时等待）
@@ -206,7 +218,7 @@ let unlistenCursor: (() => void) | null = null;
   void loadPreferences();
 
   unlistenSpawn = await onSpawnWhip((payload) => {
-    void applyActivePack();
+    // spawn 时只重新应用偏好（灵敏度等），不重复拉取素材包列表（已缓存）
     void loadPreferences();
     mouseX = payload.x ?? width / 2;
     mouseY = payload.y ?? height / 2;
@@ -232,10 +244,10 @@ let unlistenCursor: (() => void) | null = null;
 
   unlistenDrop = await onDropWhip(() => void dismiss());
 
-  // 素材包切换：重新加载图标 + 特效 + 声音配方
-  await onPackChanged((id) => void applyActivePack(id));
-  // 向后兼容：旧素材切换事件
-  await onMaterialChanged((id) => void applyActiveMaterialLegacy(id));
+  // 素材包切换：仅在包 id 变化时重新加载
+  unlistenPack = await onPackChanged((id) => void applyActivePack(id));
+  // 向后兼容
+  unlistenMaterial = await onMaterialChanged((id) => void applyActiveMaterialLegacy(id));
 })();
 
 if (import.meta.hot) {
@@ -243,6 +255,9 @@ if (import.meta.hot) {
     unlistenSpawn?.();
     unlistenDrop?.();
     unlistenCursor?.();
+    unlistenPack?.();
+    unlistenMaterial?.();
     closeAudioContext();
+    packsCache = null;
   });
 }

@@ -48,7 +48,8 @@
     "resources": [
       "../sounds/",
       "skins/",
-      "materials/"
+      "materials/",
+      "packs/"
     ]
   },
   "app": {
