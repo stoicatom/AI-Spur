@@ -1,6 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-  <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#87CEEB"/><stop offset="1" stop-color="#1E90FF"/></linearGradient></defs>
-  <path d="M128 32 Q168 88 200 112 Q224 128 224 156 Q224 188 180 208 Q152 220 128 220 Q104 220 80 208 Q36 188 36 156 Q36 128 64 112 Q96 88 128 32Z" fill="url(#wg)" stroke="#2070B0" stroke-width="4"/>
-  <path d="M128 32 Q168 88 200 112 Q224 128 224 156" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="3.5"/>
-  <ellipse cx="156" cy="168" rx="24" ry="12" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+  <defs>
+    <linearGradient id="g_water" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0"   stop-color="#aad7f8"/>
+      <stop offset="0.4" stop-color="#42adfa"/>
+      <stop offset="1"   stop-color="#007cd6"/>
+    </linearGradient>
+    <filter id="gw_water" x="-22%" y="-22%" width="144%" height="144%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 0.123  0 0 0 0 0.621  0 0 0 0 0.978  0 0 0 0.55 0"
+        result="gc"/>
+      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#gw_water)">
+    <path fill="url(#g_water)" d="M406.043 316c24.11 96.443-50.59 180-150 180s-174.405-82.38-150-180c15-60 90-150 150-300 60 150 135 240 150 300z"/>
+  </g>
 </svg>

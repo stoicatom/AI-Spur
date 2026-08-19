@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFF0BE"/><stop offset="0.5" stop-color="#F5B200"/><stop offset="1" stop-color="#C87C00"/>
+    <linearGradient id="g_crown" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0"   stop-color="#f8e4aa"/>
+      <stop offset="0.4" stop-color="#facc42"/>
+      <stop offset="1"   stop-color="#d6a000"/>
     </linearGradient>
-    <linearGradient id="hi" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="0.38" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
-      <feGaussianBlur stdDeviation="3" result="b"/>
-      <feColorMatrix in="b" type="matrix" values="0 0 0 0 1  0 0 0 0 0.72  0 0 0 0 0.16  0 0 0 0.38 0"/>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="gw_crown" x="-22%" y="-22%" width="144%" height="144%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 0.978  0 0 0 0 0.764  0 0 0 0 0.123  0 0 0 0.55 0"
+        result="gc"/>
+      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <g filter="url(#glow)">
-    <path d="M239.75,90.81c0,.11,0,.21-.07.32L217,195a16,16,0,0,1-15.72,13H54.71A16,16,0,0,1,39,195L16.32,91.13c0-.11-.05-.21-.07-.32A16,16,0,0,1,44,77.39l33.67,36.29,35.8-80.29a1,1,0,0,0,0-.1,16,16,0,0,1,29.06,0,1,1,0,0,0,0,.1l35.8,80.29L212,77.39a16,16,0,0,1,27.71,13.42Z" fill="url(#g)" stroke="#9A6200" stroke-width="3.5" stroke-linejoin="round"/>
-    <path d="M239.75,90.81c0,.11,0,.21-.07.32L217,195a16,16,0,0,1-15.72,13H54.71A16,16,0,0,1,39,195L16.32,91.13c0-.11-.05-.21-.07-.32A16,16,0,0,1,44,77.39l33.67,36.29,35.8-80.29a1,1,0,0,0,0-.1,16,16,0,0,1,29.06,0,1,1,0,0,0,0,.1l35.8,80.29L212,77.39a16,16,0,0,1,27.71,13.42Z" fill="url(#hi)"/>
+  <g filter="url(#gw_crown)">
+    <path fill="url(#g_crown)" d="M64 96l18 86h92l18-86-42 32-22-56-22 56z"/>
   </g>
 </svg>
