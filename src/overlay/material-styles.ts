@@ -882,7 +882,7 @@ function chain(): CrackStyle {
       rot: t * Math.PI * 3,
       alpha: 1 - t,
     }),
-    emit: (cx, cy, vel) => [
+    emit: (cx, cy, _vel) => [
       ...P.spiral(cx, cy, 18, 2, 140, { hue: [H - 15, H + 15] }),
       ...P.shards(cx, cy, 12, 4, 10, { hue: [H - 10, H + 10] }),
     ],

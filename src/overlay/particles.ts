@@ -249,7 +249,7 @@ export const P = {
 };
 
 /** 绘制横切的冲击光环 + 中心闪光。全屏覆盖，方向无关，只随速度缩放。 */
-export function drawImpact(ctx: CanvasRenderingContext2D, now: number, cx: number, cy: number, vel: WhipVel, t: number): void {
+export function drawImpact(ctx: CanvasRenderingContext2D, _now: number, cx: number, cy: number, vel: WhipVel, t: number): void {
   if (t >= 0.35) return;                       // 冲击只在起爆前半程
   const R = IMPACT.ringRadius(vel.speed);
   const ease = t / 0.35;
