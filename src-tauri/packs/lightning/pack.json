@@ -1,0 +1,48 @@
+{
+  "id": "lightning",
+  "name": "闪电",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "bolt",
+    "params": {
+      "branches": 3,
+      "jaggedness": 1.8,
+      "flicker": 2.2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.18,
+        "gain": 0.9,
+        "noiseColor": "white",
+        "filter": {
+          "type": "highpass",
+          "freq": 3000,
+          "q": 1
+        }
+      },
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 0.3,
+        "gain": 0.5,
+        "osc": {
+          "type": "square",
+          "freq": 200,
+          "freqEnd": 60
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffd93d",
+      "#c49000"
+    ],
+    "particleHue": 48
+  }
+}

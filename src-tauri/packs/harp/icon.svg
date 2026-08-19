@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gharp" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ffc48a"/>
+    <stop offset="1" stop-color="#b8703a"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gharp)" d="M256 96v280c-60-12-104-48-104-96 0-60 44-120 104-184zm0 0v280c60-12 104-48 104-96 0-60-44-120-104-184z" fill-rule="evenodd"/>
+      <g stroke="#fff6d0" stroke-width="4" opacity="0.7">
+        <line x1="256" y1="120" x2="196" y2="280"/><line x1="256" y1="160" x2="208" y2="300"/>
+        <line x1="256" y1="120" x2="316" y2="280"/><line x1="256" y1="160" x2="304" y2="300"/>
+      </g>
+  </g>
+</svg>

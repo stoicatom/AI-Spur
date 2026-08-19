@@ -1,0 +1,60 @@
+{
+  "id": "bomb",
+  "name": "炸弹",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "explode",
+    "params": {
+      "blast": 2.6,
+      "shockwave": 2.2,
+      "debris": 2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.6,
+        "gain": 1,
+        "osc": {
+          "type": "sine",
+          "freq": 100,
+          "freqEnd": 25
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.8,
+        "gain": 0.9,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 3000,
+          "freqEnd": 200,
+          "q": 0.6
+        }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 1.4,
+        "gain": 0.7,
+        "osc": {
+          "type": "sine",
+          "freq": 60,
+          "freqEnd": 30
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#6a6a78",
+      "#1a1a24"
+    ],
+    "particleHue": 240
+  }
+}

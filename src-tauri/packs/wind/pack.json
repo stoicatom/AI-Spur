@@ -1,0 +1,49 @@
+{
+  "id": "wind",
+  "name": "疾风",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "whirl",
+    "params": {
+      "spirals": 2.2,
+      "suction": 1.5,
+      "gust": 1.8
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.8,
+        "gain": 0.5,
+        "noiseColor": "pink",
+        "filter": {
+          "type": "bandpass",
+          "freq": 1200,
+          "freqEnd": 300,
+          "q": 2
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.9,
+        "gain": 0.4,
+        "osc": {
+          "type": "triangle",
+          "freq": 600,
+          "freqEnd": 80
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#a8e8ff",
+      "#3a88c8"
+    ],
+    "particleHue": 196
+  }
+}

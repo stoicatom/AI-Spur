@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gaxe" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#c8b0e8"/>
+    <stop offset="1" stop-color="#6a3aa8"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gaxe)" d="M96 220c0-40 32-72 72-72h24v144h-24c-40 0-72-32-72-72z"/>
+      <path fill="#fff6d0" d="M96 220c0-40 32-72 72-72h24l-24 144h-24c-40 0-72-32-72-72z" opacity="0.5"/>
+      <rect x="168" y="148" width="160" height="36" rx="10" fill="#7a4a1a"/>
+      <rect x="300" y="96" width="36" height="180" rx="10" fill="#5a2a0a"/>
+  </g>
+</svg>

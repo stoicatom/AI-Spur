@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gspear" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#e8e8c8"/>
+    <stop offset="1" stop-color="#9a9a5a"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gspear)" d="M256 80 336 176l-160 240-80-80z"/>
+      <path fill="#fff6d0" d="M256 80l80 96-160 240L96 336z" opacity="0.5"/>
+      <rect x="150" y="320" width="220" height="30" rx="12" fill="#7a4a1a" transform="rotate(-37 150 320)"/>
+  </g>
+</svg>

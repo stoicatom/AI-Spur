@@ -1,0 +1,62 @@
+{
+  "id": "guitar",
+  "name": "电吉他",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "pulse",
+    "params": {
+      "strum": 1.8,
+      "resonance": 1.9,
+      "punch": 1.4
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 1.1,
+        "gain": 0.7,
+        "osc": {
+          "type": "sawtooth",
+          "freq": 330,
+          "freqEnd": 110
+        },
+        "filter": {
+          "type": "bandpass",
+          "freq": 1500,
+          "q": 4
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.7,
+        "gain": 0.5,
+        "osc": {
+          "type": "square",
+          "freq": 660
+        }
+      },
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.2,
+        "gain": 0.5,
+        "osc": {
+          "type": "sine",
+          "freq": 180,
+          "freqEnd": 40
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff9c4d",
+      "#a84a00"
+    ],
+    "particleHue": 27
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "axe",
+  "name": "战斧",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "impact",
+    "params": {
+      "chop": 1.9,
+      "weight": 2.1,
+      "cleave": 1.5
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.3,
+        "gain": 0.7,
+        "osc": {
+          "type": "sawtooth",
+          "freq": 700,
+          "freqEnd": 100
+        }
+      },
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.5,
+        "gain": 0.9,
+        "osc": {
+          "type": "sine",
+          "freq": 150,
+          "freqEnd": 35
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.4,
+        "gain": 0.4,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 2500,
+          "q": 0.7
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#c8b0e8",
+      "#6a3aa8"
+    ],
+    "particleHue": 266
+  }
+}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gsun" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ffc42e"/>
+    <stop offset="1" stop-color="#cc7a00"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <ellipse cx="256" cy="240" rx="84" ry="84" fill="url(#gsun)"/>
+      <g stroke="#ffc42e" stroke-width="14" stroke-linecap="round" opacity="0.9">
+        <line x1="256" y1="80" x2="256" y2="120"/><line x1="256" y1="360" x2="256" y2="400"/>
+        <line x1="96" y1="240" x2="136" y2="240"/><line x1="376" y1="240" x2="416" y2="240"/>
+        <line x1="143" y1="127" x2="170" y2="154"/><line x1="342" y1="326" x2="369" y2="353"/>
+        <line x1="143" y1="353" x2="170" y2="326"/><line x1="342" y1="154" x2="369" y2="127"/>
+      </g>
+      <ellipse cx="220" cy="200" rx="30" ry="22" fill="#fff6d0" opacity="0.5"/>
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gphoenix" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ff6a3d"/>
+    <stop offset="1" stop-color="#b02800"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gphoenix)" d="M256 96c-30 20-56 52-66 88-6 22-4 46 6 66 20-18 42-30 60-30s40 12 60 30c10-20 12-44 6-66-10-36-36-68-66-88zm-10 60c-8 24-22 44-40 58 8-26 22-44 40-58zm20 0c18 14 32 32 40 58-18-14-32-32-40-58z"/>
+      <path fill="#ffb199" d="M256 96c-14 10-26 24-36 40l36-20 36 20c-10-16-22-30-36-40z"/>
+      <path fill="url(#gphoenix)" d="M256 300c-30 12-52 32-68 56l68-16 68 16c-16-24-38-44-68-56z" opacity="0.9"/>
+  </g>
+</svg>

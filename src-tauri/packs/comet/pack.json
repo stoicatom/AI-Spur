@@ -1,0 +1,58 @@
+{
+  "id": "comet",
+  "name": "彗星",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "trail-burst",
+    "params": {
+      "trailLength": 2.4,
+      "burstSpread": 1.7,
+      "glide": 1.2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.7,
+        "gain": 0.6,
+        "osc": {
+          "type": "triangle",
+          "freq": 1000,
+          "freqEnd": 120
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.9,
+        "gain": 0.4,
+        "osc": {
+          "type": "sine",
+          "freq": 1318
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.5,
+        "gain": 0.3,
+        "noiseColor": "pink",
+        "filter": {
+          "type": "highpass",
+          "freq": 3000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#a8f0ff",
+      "#3a88c8"
+    ],
+    "particleHue": 190
+  }
+}

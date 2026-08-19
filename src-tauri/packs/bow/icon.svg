@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gbow" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#c8904d"/>
+    <stop offset="1" stop-color="#7a4a1a"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="none" stroke="url(#gbow)" stroke-width="22" stroke-linecap="round" d="M196 96 C320 160 320 352 196 416"/>
+      <path fill="none" stroke="#e8c890" stroke-width="6" d="M196 96 L196 416"/>
+      <path fill="#f0d0a0" stroke="#7a4a1a" stroke-width="4" d="M196 160 L316 256 L196 352 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+{
+  "id": "lotus",
+  "name": "莲花",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "petal",
+    "params": {
+      "bloom": 1.7,
+      "serenity": 1.8,
+      "scatter": 1.3
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.6,
+        "gain": 0.45,
+        "osc": {
+          "type": "sine",
+          "freq": 1046
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.3,
+        "gain": 0.35,
+        "osc": {
+          "type": "sine",
+          "freq": 1318
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 1.2,
+        "gain": 0.25,
+        "osc": {
+          "type": "triangle",
+          "freq": 500,
+          "freqEnd": 150
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff9cce",
+      "#d84a8a"
+    ],
+    "particleHue": 330
+  }
+}

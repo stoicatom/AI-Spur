@@ -1,0 +1,59 @@
+{
+  "id": "drum",
+  "name": "战鼓",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shock-ring",
+    "params": {
+      "rings": 2,
+      "intensity": 2,
+      "bass": 2.4
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.4,
+        "gain": 0.9,
+        "osc": {
+          "type": "sine",
+          "freq": 120,
+          "freqEnd": 30
+        }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 0.8,
+        "gain": 0.6,
+        "osc": {
+          "type": "sine",
+          "freq": 80,
+          "freqEnd": 40
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.15,
+        "gain": 0.4,
+        "noiseColor": "white",
+        "filter": {
+          "type": "highpass",
+          "freq": 2000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff7a4d",
+      "#a82a00"
+    ],
+    "particleHue": 15
+  }
+}

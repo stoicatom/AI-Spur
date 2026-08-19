@@ -1,0 +1,58 @@
+{
+  "id": "phoenix",
+  "name": "凤凰",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "rise",
+    "params": {
+      "spread": 1.4,
+      "riseSpeed": 1.1,
+      "wingFlap": 1.6
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.6,
+        "gain": 0.45,
+        "osc": {
+          "type": "sine",
+          "freq": 1568
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 1,
+        "gain": 0.4,
+        "osc": {
+          "type": "triangle",
+          "freq": 800,
+          "freqEnd": 120
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.8,
+        "gain": 0.3,
+        "noiseColor": "pink",
+        "filter": {
+          "type": "highpass",
+          "freq": 2000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff6a3d",
+      "#b02800"
+    ],
+    "particleHue": 14
+  }
+}

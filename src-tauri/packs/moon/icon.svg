@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gmoon" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#c8d4ff"/>
+    <stop offset="1" stop-color="#5a6ab8"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gmoon)" d="M256 96c-80 0-144 64-144 144s64 144 144 144c20 0 40-4 56-12-60-16-100-72-100-132s40-116 100-132c-16-8-36-12-56-12z"/>
+      <path fill="#f0f4ff" d="M256 96c-10 0-20 2-30 4 60 20 100 76 100 140s-40 120-100 140c10 2 20 4 30 4 80 0 144-64 144-144s-64-144-144-144z" opacity="0.5"/>
+  </g>
+</svg>

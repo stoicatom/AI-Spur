@@ -1,0 +1,58 @@
+{
+  "id": "aurora",
+  "name": "极光",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "wave",
+    "params": {
+      "shimmer": 2.4,
+      "flow": 1.8,
+      "spectral": 2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 1.5,
+        "gain": 0.5,
+        "osc": {
+          "type": "triangle",
+          "freq": 1200,
+          "freqEnd": 200
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.8,
+        "gain": 0.35,
+        "osc": {
+          "type": "sine",
+          "freq": 1568
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 1.2,
+        "gain": 0.25,
+        "noiseColor": "pink",
+        "filter": {
+          "type": "bandpass",
+          "freq": 1500,
+          "q": 1.5
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#4dffa6",
+      "#00b87a"
+    ],
+    "particleHue": 150
+  }
+}

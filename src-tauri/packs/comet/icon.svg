@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gcomet" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#a8f0ff"/>
+    <stop offset="1" stop-color="#3a88c8"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <ellipse cx="256" cy="240" rx="56" ry="56" fill="url(#gcomet)"/>
+      <path fill="#d0f8ff" d="M256 184c-40 8-72 28-96 56 24 4 48-8 72-24l24-32z" opacity="0.8"/>
+      <path fill="#a8f0ff" d="M256 184c-20 20-28 44-28 68 8-16 16-32 28-44v-24z" opacity="0.6"/>
+      <ellipse cx="232" cy="220" rx="16" ry="12" fill="#e8fcff" opacity="0.7"/>
+  </g>
+</svg>

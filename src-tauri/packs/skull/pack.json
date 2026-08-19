@@ -1,0 +1,57 @@
+{
+  "id": "skull",
+  "name": "骷髅",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "burst",
+    "params": {
+      "count": 1.5,
+      "ghostly": 2,
+      "drift": 1.2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 0.9,
+        "gain": 0.5,
+        "osc": {
+          "type": "sine",
+          "freq": 70,
+          "freqEnd": 35
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 1,
+        "gain": 0.4,
+        "osc": {
+          "type": "triangle",
+          "freq": 300,
+          "freqEnd": 60
+        }
+      },
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 1.5,
+        "gain": 0.25,
+        "osc": {
+          "type": "sine",
+          "freq": 130
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#d0d0d8",
+      "#70707c"
+    ],
+    "particleHue": 240
+  }
+}

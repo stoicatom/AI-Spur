@@ -1,0 +1,57 @@
+{
+  "id": "ice",
+  "name": "寒冰",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shatter-ice",
+    "params": {
+      "shards": 1.8,
+      "chill": 1.9,
+      "shardSpeed": 1.5
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.6,
+        "gain": 0.5,
+        "osc": {
+          "type": "sine",
+          "freq": 3135
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.4,
+        "gain": 0.4,
+        "osc": {
+          "type": "sine",
+          "freq": 1760
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.2,
+        "gain": 0.5,
+        "noiseColor": "white",
+        "filter": {
+          "type": "highpass",
+          "freq": 5000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#9fe8ff",
+      "#2a7ab8"
+    ],
+    "particleHue": 194
+  }
+}

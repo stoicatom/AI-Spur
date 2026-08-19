@@ -1,0 +1,59 @@
+{
+  "id": "thunder",
+  "name": "雷鼓",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shock-ring",
+    "params": {
+      "rings": 3,
+      "intensity": 2.2,
+      "expansion": 1.8
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 1.5,
+        "gain": 0.9,
+        "osc": {
+          "type": "sine",
+          "freq": 50,
+          "freqEnd": 20
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.5,
+        "gain": 0.6,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 1500,
+          "q": 0.6
+        }
+      },
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.3,
+        "gain": 0.7,
+        "osc": {
+          "type": "sine",
+          "freq": 180,
+          "freqEnd": 40
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffe04d",
+      "#a87800"
+    ],
+    "particleHue": 50
+  }
+}

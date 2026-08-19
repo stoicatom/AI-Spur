@@ -1,0 +1,59 @@
+{
+  "id": "water",
+  "name": "碧波",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "water-splash",
+    "params": {
+      "droplets": 2,
+      "splashHeight": 1.4,
+      "ripple": 1.7
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.5,
+        "gain": 0.6,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 2500,
+          "freqEnd": 500,
+          "q": 0.8
+        }
+      },
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 0.8,
+        "gain": 0.3,
+        "osc": {
+          "type": "sine",
+          "freq": 880,
+          "freqEnd": 300
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.5,
+        "gain": 0.25,
+        "osc": {
+          "type": "sine",
+          "freq": 1568
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#4a8cff",
+      "#0040a0"
+    ],
+    "particleHue": 218
+  }
+}

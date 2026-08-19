@@ -1,0 +1,55 @@
+{
+  "id": "harp",
+  "name": "竖琴",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "petal",
+    "params": {
+      "arpeggio": 1.9,
+      "scatter": 1.5,
+      "grace": 1.4
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.3,
+        "gain": 0.5,
+        "osc": {
+          "type": "sine",
+          "freq": 1318
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.1,
+        "gain": 0.4,
+        "osc": {
+          "type": "sine",
+          "freq": 1760
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.9,
+        "gain": 0.3,
+        "osc": {
+          "type": "sine",
+          "freq": 2093
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffc48a",
+      "#b8703a"
+    ],
+    "particleHue": 30
+  }
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grocket" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ff7a29"/>
+    <stop offset="1" stop-color="#c23e00"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#grocket)" d="M256 96c-28 42-48 78-48 118 0 56 22 90 48 118 26-28 48-62 48-118 0-40-20-76-48-118zm-36 128c-8-26 4-48 36-80 32 32 44 54 36 80-8 26-28 42-36 42s-28-16-36-42z"/>
+      <path fill="#ffd9b0" d="M256 96c-6 10-10 22-12 34l12-6 12 6c-2-12-6-24-12-34z"/>
+      <path fill="#ff8c42" d="M256 332c-20-24-34-52-34-84 0-8 2-16 4-24 10 40 20 68 30 108z" opacity="0.8">
+        <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.9s" repeatCount="indefinite"/>
+      </path>
+  </g>
+</svg>

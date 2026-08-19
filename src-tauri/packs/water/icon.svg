@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gwater" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#4a8cff"/>
+    <stop offset="1" stop-color="#0040a0"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gwater)" d="M96 208c40-32 80-32 120 0s80 32 120 0 40-16 40-16v56c0 20-20 32-40 32H136c-20 0-40-12-40-32v-40z" opacity="0.9"/>
+      <path fill="#b0d4ff" d="M96 208c40-32 80-32 120 0s80 32 120 0 40-16 40-16" fill="none" stroke="#c8e4ff" stroke-width="6" stroke-linecap="round"/>
+      <path fill="url(#gwater)" d="M96 288c40-32 80-32 120 0s80 32 120 0v32c0 20-20 32-40 32H136c-20 0-40-12-40-32v-32z"/>
+  </g>
+</svg>

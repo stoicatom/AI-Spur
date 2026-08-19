@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="glightning" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ffd93d"/>
+    <stop offset="1" stop-color="#c49000"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#glightning)" d="M286 96 150 272h88l-28 144 150-188h-88l14-132z"/>
+      <path fill="#fff6d0" d="M286 96c-4 20-10 38-18 54l18-10 18 10c-8-16-14-34-18-54z"/>
+  </g>
+</svg>

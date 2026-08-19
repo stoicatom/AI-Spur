@@ -1,0 +1,57 @@
+{
+  "id": "crystal",
+  "name": "水晶",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shatter",
+    "params": {
+      "shards": 2,
+      "sparkle": 1.8,
+      "shardSpeed": 1.3
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.9,
+        "gain": 0.6,
+        "osc": {
+          "type": "sine",
+          "freq": 2093
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 0.7,
+        "gain": 0.4,
+        "osc": {
+          "type": "sine",
+          "freq": 2637
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.3,
+        "gain": 0.35,
+        "noiseColor": "white",
+        "filter": {
+          "type": "highpass",
+          "freq": 4000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#7ae2ff",
+      "#0077cc"
+    ],
+    "particleHue": 193
+  }
+}

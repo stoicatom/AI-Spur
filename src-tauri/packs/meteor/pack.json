@@ -1,0 +1,59 @@
+{
+  "id": "meteor",
+  "name": "流星",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "comet",
+    "params": {
+      "trail": 2.2,
+      "impact": 1.8,
+      "debris": 1.6
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.6,
+        "gain": 0.7,
+        "osc": {
+          "type": "sawtooth",
+          "freq": 800,
+          "freqEnd": 60
+        }
+      },
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.5,
+        "gain": 0.9,
+        "osc": {
+          "type": "sine",
+          "freq": 180,
+          "freqEnd": 40
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.4,
+        "gain": 0.5,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 3000,
+          "q": 0.8
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff7a4d",
+      "#a83a00"
+    ],
+    "particleHue": 15
+  }
+}

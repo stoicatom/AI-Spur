@@ -1,0 +1,62 @@
+{
+  "id": "trumpet",
+  "name": "号角",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "ring",
+    "params": {
+      "fanfare": 2,
+      "brass": 1.8,
+      "projection": 1.6
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 0.9,
+        "gain": 0.7,
+        "osc": {
+          "type": "square",
+          "freq": 440,
+          "freqEnd": 660
+        },
+        "filter": {
+          "type": "bandpass",
+          "freq": 1200,
+          "q": 2
+        }
+      },
+      {
+        "type": "chime",
+        "attack": 0.002,
+        "decay": 1.2,
+        "gain": 0.4,
+        "osc": {
+          "type": "sine",
+          "freq": 880
+        }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 0.6,
+        "gain": 0.3,
+        "osc": {
+          "type": "sine",
+          "freq": 60,
+          "freqEnd": 30
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffd66a",
+      "#cc8a00"
+    ],
+    "particleHue": 43
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "shield",
+  "name": "坚盾",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "impact",
+    "params": {
+      "block": 1.7,
+      "resonance": 1.5,
+      "deflection": 1.2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.002,
+        "decay": 0.4,
+        "gain": 0.8,
+        "osc": {
+          "type": "sine",
+          "freq": 200,
+          "freqEnd": 60
+        }
+      },
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 0.7,
+        "gain": 0.4,
+        "osc": {
+          "type": "square",
+          "freq": 440,
+          "freqEnd": 150
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.3,
+        "gain": 0.3,
+        "noiseColor": "white",
+        "filter": {
+          "type": "bandpass",
+          "freq": 2000,
+          "q": 2
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#6aa8ff",
+      "#1a5ad8"
+    ],
+    "particleHue": 215
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "rocket",
+  "name": "火箭",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "jet",
+    "params": {
+      "thrust": 1.35,
+      "tailLength": 1.5,
+      "climb": 1.2
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.5,
+        "gain": 0.7,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 4000,
+          "freqEnd": 300,
+          "q": 0.7
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.7,
+        "gain": 0.6,
+        "osc": {
+          "type": "sawtooth",
+          "freq": 500,
+          "freqEnd": 80
+        }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.01,
+        "decay": 0.9,
+        "gain": 0.5,
+        "osc": {
+          "type": "sine",
+          "freq": 60,
+          "freqEnd": 30
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff7a29",
+      "#c23e00"
+    ],
+    "particleHue": 23
+  }
+}

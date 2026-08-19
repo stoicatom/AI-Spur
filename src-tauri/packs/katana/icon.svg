@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gkatana" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#e8e8f5"/>
+    <stop offset="1" stop-color="#8a8aa0"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gkatana)" d="M380 96 216 260l-40 40 40 40 40-40 164-164-40-40z"/>
+      <path fill="#c23e00" d="M176 300l-44 44 40 40 44-44-40-40z"/>
+      <path fill="#fff" d="M380 96l-40 40 164 164 40-40-164-164z" opacity="0.4"/>
+  </g>
+</svg>

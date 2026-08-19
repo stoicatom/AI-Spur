@@ -1,0 +1,61 @@
+{
+  "id": "flame",
+  "name": "烈焰",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "flame-rise",
+    "params": {
+      "turbulence": 2,
+      "riseSpeed": 1.3,
+      "heat": 1.6
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.6,
+        "gain": 0.7,
+        "noiseColor": "white",
+        "filter": {
+          "type": "lowpass",
+          "freq": 2000,
+          "freqEnd": 400,
+          "q": 0.8
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.9,
+        "gain": 0.4,
+        "noiseColor": "pink",
+        "filter": {
+          "type": "lowpass",
+          "freq": 1200,
+          "q": 1
+        }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.5,
+        "gain": 0.3,
+        "osc": {
+          "type": "triangle",
+          "freq": 400,
+          "freqEnd": 100
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff5a1f",
+      "#a01500"
+    ],
+    "particleHue": 16
+  }
+}

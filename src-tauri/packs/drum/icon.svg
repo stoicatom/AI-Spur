@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gdrum" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ff7a4d"/>
+    <stop offset="1" stop-color="#a82a00"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <ellipse cx="256" cy="180" rx="100" ry="60" fill="url(#gdrum)"/>
+      <rect x="156" y="180" width="200" height="80" fill="#c23e00"/>
+      <ellipse cx="256" cy="260" rx="100" ry="60" fill="#8a1a00"/>
+      <ellipse cx="256" cy="180" rx="100" ry="60" fill="#ffb07a" opacity="0.5"/>
+      <g stroke="#c23e00" stroke-width="8" stroke-linecap="round">
+        <line x1="156" y1="140" x2="136" y2="96"/><line x1="356" y1="140" x2="376" y2="96"/>
+        <line x1="156" y1="300" x2="136" y2="344"/><line x1="356" y1="300" x2="376" y2="344"/>
+      </g>
+  </g>
+</svg>

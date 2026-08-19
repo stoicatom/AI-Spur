@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="gtrumpet" x1="0.3" y1="0" x2="0.7" y2="1">
+    <stop offset="0" stop-color="#ffd66a"/>
+    <stop offset="1" stop-color="#cc8a00"/>
+  </linearGradient>
+  </defs>
+  <g>
+    <path fill="url(#gtrumpet)" d="M96 160c0 80 40 140 120 180 8 4 16 0 16-8v-40c0-8 8-12 16-8l40 20c16 8 36-4 36-24V160H96z" opacity="0.9"/>
+      <rect x="96" y="136" width="280" height="48" rx="12" fill="#ffb84d"/>
+      <ellipse cx="96" cy="160" rx="12" ry="24" fill="#8a5c00"/>
+  </g>
+</svg>

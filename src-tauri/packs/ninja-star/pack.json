@@ -1,0 +1,48 @@
+{
+  "id": "ninja-star",
+  "name": "手里剑",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "orbit",
+    "params": {
+      "orbits": 2.5,
+      "radius": 1.3,
+      "spin": 3
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "tone",
+        "attack": 0.004,
+        "decay": 0.5,
+        "gain": 0.6,
+        "osc": {
+          "type": "triangle",
+          "freq": 1244,
+          "freqEnd": 300
+        }
+      },
+      {
+        "type": "noise",
+        "attack": 0.008,
+        "decay": 0.25,
+        "gain": 0.4,
+        "noiseColor": "white",
+        "filter": {
+          "type": "highpass",
+          "freq": 5000,
+          "q": 1
+        }
+      }
+    ],
+    "masterGain": 0.8
+  },
+  "palette": {
+    "bodyGradient": [
+      "#b8b8c8",
+      "#4a4a58"
+    ],
+    "particleHue": 240
+  }
+}
