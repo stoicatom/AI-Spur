@@ -67,8 +67,11 @@ pub struct SoundLayer {
     pub attack: f32,
     pub decay: f32,
     pub gain: f32,
+    #[serde(default)]
     pub filter: Option<SoundFilter>,
+    #[serde(default)]
     pub osc: Option<SoundOsc>,
+    #[serde(default)]
     pub noise_color: Option<NoiseColor>,
     #[serde(default)]
     pub delay: f32,
@@ -80,6 +83,7 @@ pub struct SoundFilter {
     #[serde(rename = "type")]
     pub filter_type: FilterType,
     pub freq: f32,
+    #[serde(default)]
     pub freq_end: Option<f32>,
     #[serde(default = "default_q")]
     pub q: f32,
@@ -91,6 +95,7 @@ pub struct SoundOsc {
     #[serde(rename = "type")]
     pub osc_type: OscillatorType,
     pub freq: f32,
+    #[serde(default)]
     pub freq_end: Option<f32>,
 }
 
@@ -361,5 +366,54 @@ mod tests {
         assert!((json["sound"]["masterGain"].as_f64().unwrap() - 0.8).abs() < 1e-6);
         assert_eq!(json["palette"]["particleHue"], 200);
         assert_eq!(json["builtin"], true);
+    }
+}
+
+#[cfg(test)]
+mod serde_tests {
+    use super::*;
+
+    /// 向导发送的 recipe 可能缺省 filter/osc/noiseColor/delay 字段
+    /// （serde Option 字段必须加 #[serde(default)] 才能容忍缺失）。
+    #[test]
+    fn sound_recipe_accepts_missing_option_fields() {
+        let json = serde_json::json!({
+            "layers": [
+                {
+                    "type": "noise",
+                    "attack": 0.008,
+                    "decay": 0.4,
+                    "gain": 0.7
+                    // filter / osc / noiseColor / delay 全部缺省
+                },
+                {
+                    "type": "impact",
+                    "attack": 0.002,
+                    "decay": 0.3,
+                    "gain": 0.8,
+                    "osc": { "type": "sine", "freq": 150 }
+                    // osc.freqEnd 缺省
+                }
+            ],
+            "masterGain": 0.85
+        });
+        let recipe: SoundRecipe = serde_json::from_value(json).unwrap();
+        assert_eq!(recipe.layers.len(), 2);
+        assert!(recipe.layers[0].filter.is_none());
+        assert!(recipe.layers[0].osc.is_none());
+        assert!(recipe.layers[1].osc.as_ref().unwrap().freq_end.is_none());
+    }
+
+    /// filter 内 freqEnd 缺省也应容忍。
+    #[test]
+    fn sound_filter_accepts_missing_freq_end() {
+        let json = serde_json::json!({
+            "type": "lowpass",
+            "freq": 3000
+            // freqEnd / q 缺省
+        });
+        let f: SoundFilter = serde_json::from_value(json).unwrap();
+        assert!(f.freq_end.is_none());
+        assert_eq!(f.q, 1.0); // default_q
     }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { createCustomPack } from '../../shared/ipc';
 import type { MaterialPack } from '../../shared/material-packs';
@@ -107,7 +107,7 @@ export function CreatePackWizard({ onCreated, onClose }: Props) {
               {ACCENT_COLORS.map((c, i) => (
                 <button key={c.label} type="button" role="radio" aria-checked={i === accentIdx}
                   className={`accent-swatch${i === accentIdx ? ' accent-swatch--active' : ''}`}
-                  style={{ background: `linear-gradient(135deg,${c.c1},${c.c2})` } as React.CSSProperties}
+                  style={{ background: `linear-gradient(135deg,${c.c1},${c.c2})` } as CSSProperties}
                   title={c.label} onClick={() => setAccentIdx(i)} />
               ))}
             </div>

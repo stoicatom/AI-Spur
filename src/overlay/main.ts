@@ -77,31 +77,17 @@ let active = false; // 覆盖层是否处于活跃状态
 
 async function applyActivePack(packId?: string) {
   try {
-    // 使用缓存的包列表，避免每次 spawn 都重新 IPC 拉取
-    if (!packsCache || packId !== undefined) {
-      const [config, packs] = await Promise.all([
-        packId ? Promise.resolve(null) : getConfig(),
-        listPacks(),
-      ]);
-      packsCache = packs;
-      const targetId = packId ?? config?.activePackId ?? 'rocket';
-      const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
-      if (!pack) return;
-      activePack = pack;
-      const resolved = resolvePackMaterial(targetId, packs);
-      material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
-      trail.setHue(pack.palette.particleHue);
-    } else {
-      // 已缓存：仅切换 activePackId
-      const config = await getConfig();
-      const targetId = config.activePackId ?? 'rocket';
-      const pack = packsCache.find((p) => p.id === targetId) ?? packsCache.find((p) => p.id === 'rocket');
-      if (!pack) return;
-      activePack = pack;
-      const resolved = resolvePackMaterial(targetId, packsCache);
-      material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
-      trail.setHue(pack.palette.particleHue);
-    }
+    // 首次加载（或显式指定 packId 时）重新拉取列表；否则用缓存。
+    const packs = packsCache ?? (await listPacks());
+    packsCache = packs;
+    const config = packId ? null : await getConfig();
+    const targetId = packId ?? config?.activePackId ?? 'rocket';
+    const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
+    if (!pack) return;
+    activePack = pack;
+    const resolved = resolvePackMaterial(targetId, packs);
+    material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
+    trail.setHue(pack.palette.particleHue);
   } catch {
     await applyActiveMaterialLegacy(packId);
   }

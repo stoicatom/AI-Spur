@@ -85,18 +85,20 @@ export const SoundLayerSchema = z.object({
     .object({
       type: FilterTypeSchema,
       freq: z.number().min(20).max(20000),
-      freqEnd: z.number().min(20).max(20000).optional(),
+      freqEnd: z.number().min(20).max(20000).nullish().transform((v) => v ?? undefined),
       q: z.number().min(0.1).max(30).default(1),
     })
-    .optional(),
+    .nullish()
+    .transform((v) => v ?? undefined),
   osc: z
     .object({
       type: OscillatorTypeSchema,
       freq: z.number().min(20).max(20000),
-      freqEnd: z.number().min(20).max(20000).optional(),
+      freqEnd: z.number().min(20).max(20000).nullish().transform((v) => v ?? undefined),
     })
-    .optional(),
-  noiseColor: NoiseColorSchema.optional(),
+    .nullish()
+    .transform((v) => v ?? undefined),
+  noiseColor: NoiseColorSchema.nullish().transform((v) => v ?? undefined),
   /** 延迟回响（秒），0 = 无 */
   delay: z.number().min(0).max(1).default(0),
 });

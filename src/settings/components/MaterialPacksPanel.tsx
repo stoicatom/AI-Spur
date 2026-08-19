@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { listPacks, setActivePack, deleteCustomPack } from '../../shared/ipc';
 import type { MaterialPack } from '../../shared/material-packs';
 import type { PanelProps } from './panel-props';
@@ -93,7 +93,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
             return (
               <div key={pack.id} role="radio" aria-checked={isActive} tabIndex={0}
                 className={`pack-card${isActive ? ' pack-card--active' : ''}`}
-                style={{ '--pack-glow': glow } as React.CSSProperties}
+                style={{ '--pack-glow': glow } as CSSProperties}
                 onClick={() => void choose(pack.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void choose(pack.id); }
