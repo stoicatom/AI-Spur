@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { PhysicalProfile } from './three-effect-profiles';
 import { materialForDomain, type MaterialDomain } from './three-material-domains';
+import type { MaterialPhysics } from './three-effect-physics';
 
 export type FamilyContext = {
   root: THREE.Group;
@@ -12,6 +13,8 @@ export type FamilyContext = {
   width: number;
   height: number;
   params: Record<string, number>;
+  packId?: string;
+  physics?: MaterialPhysics;
 };
 
 export interface FamilyLayer {

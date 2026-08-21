@@ -128,6 +128,7 @@ function triggerCrack(x: number, y: number, vel: WhipVel) {
   material.startCrack(x, y, vel);
   if (activePack) {
     three.start({
+      packId: activePack.id,
       url: activePack.dataUri,
       preset: activePack.effect.preset,
       params: activePack.effect.params,

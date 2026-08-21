@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { additiveMaterial, fadeAt, setOpacity, type FamilyContext, type FamilyLayer } from './three-family-shared';
+import { resolveMaterialPhysics } from './three-effect-physics';
 
 const TAU = Math.PI * 2;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
@@ -13,14 +14,14 @@ const FIELD_FRAGMENT = `precision highp float;
 varying vec2 vUv;
 uniform vec2 uResolution,uOrigin,uDirection;
 uniform vec3 uColor,uAccent;
-uniform float uTime,uProgress,uFade,uFlash,uMode,uReach;
+uniform float uTime,uProgress,uFade,uFlash,uMode,uReach,uPhase;
 float hash21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 void main(){
   vec2 delta=(vUv-uOrigin)*uResolution;
   float radius=length(delta), angle=atan(delta.y,delta.x);
   float unit=max(1.,min(uResolution.x,uResolution.y));
   float wave=exp(-pow((radius-uProgress*uReach)/max(5.,uReach*.026),2.));
-  float rays=pow(max(0.,sin(angle*12.-uTime*3.)),18.)*smoothstep(.02,.32,uProgress);
+  float rays=pow(max(0.,sin(angle*12.-uTime*3.+uPhase)),18.)*smoothstep(.02,.32,uProgress);
   float pattern=0.;
   if(uMode<.5){pattern=.5+.5*sin(delta.x*.018+delta.y*.006-uTime*4.+sin(delta.y*.012));}
   else if(uMode<1.5){pattern=rays*(.45+.55*sin(radius*.055-uTime*12.));}
@@ -51,17 +52,21 @@ export function farthestViewportCorner(
   );
 }
 
-function familyMode(family: FamilyContext['profile']['family']): number {
-  return { natural: 0, weapon: 1, rhythm: 2, cosmic: 3, impact: 4 }[family];
+function forceMode(force: NonNullable<FamilyContext['physics']>['force']): number {
+  return { fluid: 0, vortex: 0, elastic: 1, fracture: 1, ballistic: 1, recoil: 1,
+    resonance: 2, gravity: 3, thrust: 3, combustion: 4, electro: 4 }[force];
 }
 
-function energyGeometry(family: FamilyContext['profile']['family']): THREE.BufferGeometry {
-  switch (family) {
-    case 'natural': return new THREE.ConeGeometry(1.4, 14, 5);
-    case 'weapon': return new THREE.TetrahedronGeometry(4.2, 0);
-    case 'rhythm': return new THREE.TorusGeometry(3.2, 0.9, 5, 12);
-    case 'cosmic': return new THREE.OctahedronGeometry(3.8, 0);
-    case 'impact': return new THREE.DodecahedronGeometry(4.4, 0);
+function energyGeometry(surface: NonNullable<FamilyContext['physics']>['surface']): THREE.BufferGeometry {
+  switch (surface) {
+    case 'water': return new THREE.SphereGeometry(3.2, 7, 5);
+    case 'fire': return new THREE.ConeGeometry(2.4, 13, 5);
+    case 'air': return new THREE.TorusGeometry(3.1, .65, 5, 12);
+    case 'wood': case 'bone': return new THREE.CapsuleGeometry(1.8, 8, 3, 6);
+    case 'glass': case 'ice': return new THREE.TetrahedronGeometry(4.2, 0);
+    case 'fabric': case 'plastic': return new THREE.PlaneGeometry(7, 3);
+    case 'metal': return new THREE.OctahedronGeometry(3.8, 0);
+    case 'stone': return new THREE.DodecahedronGeometry(4.4, 0);
   }
 }
 
@@ -81,13 +86,15 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
   private width: number;
   private height: number;
   private reach: number;
+  private readonly physics: NonNullable<FamilyContext['physics']>;
 
   constructor(private readonly ctx: FamilyContext) {
+    this.physics = ctx.physics ?? resolveMaterialPhysics(ctx.profile, ctx.params, 1);
     this.width = ctx.width; this.height = ctx.height;
     this.reach = farthestViewportCorner(ctx.origin, ctx.width, ctx.height) * 1.035;
     ctx.root.add(this.group);
     const accent = ctx.color.clone().offsetHSL(
-      ctx.profile.family === 'natural' ? 0.06 : -0.035, -0.08, 0.2,
+      this.physics.surface === 'fire' ? .06 : -.035, -0.08, 0.2,
     );
     this.fieldMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -95,7 +102,8 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
         uOrigin: { value: new THREE.Vector2() }, uDirection: { value: ctx.direction.clone() },
         uColor: { value: ctx.color }, uAccent: { value: accent }, uTime: { value: 0 },
         uProgress: { value: 0 }, uFade: { value: 0 }, uFlash: { value: 0 },
-        uMode: { value: familyMode(ctx.profile.family) }, uReach: { value: this.reach },
+        uMode: { value: forceMode(this.physics.force) }, uReach: { value: this.reach },
+        uPhase: { value: this.physics.identityPhase },
       },
       vertexShader: FIELD_VERTEX, fragmentShader: FIELD_FRAGMENT,
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false,
@@ -103,18 +111,18 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
     this.field = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.fieldMaterial);
     this.field.name = 'full-field-atmosphere'; this.field.position.z = -70; this.group.add(this.field);
     this.createRings();
-    const count = { natural: 64, weapon: 58, rhythm: 48, cosmic: 72, impact: 68 }[ctx.profile.family];
+    const count = Math.round(Math.max(44, Math.min(84, 70 - this.physics.mass * 3 + this.physics.stiffness * 5)));
     this.energy = new THREE.InstancedMesh(
-      energyGeometry(ctx.profile.family), additiveMaterial(accent, 0.76), count,
+      energyGeometry(this.physics.surface), additiveMaterial(accent, 0.76), count,
     );
-    this.energy.name = `full-field-${ctx.profile.family}-energy`;
+    this.energy.name = `full-field-${ctx.packId ?? ctx.profile.family}-energy`;
     this.energy.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.energy.frustumCulled = false; this.group.add(this.energy);
     for (let i = 0; i < count; i++) this.seeds.push({
-      angle: i * GOLDEN_ANGLE + familyMode(ctx.profile.family) * 0.19,
-      phase: (i * 0.754877666) % 1,
-      reach: 0.38 + ((i * 0.569840296) % 1) * 0.62,
-      size: 0.58 + (i % 7) * 0.11,
+      angle: i * GOLDEN_ANGLE + this.physics.identityPhase,
+      phase: (i * 0.754877666 + this.physics.identityPhase / TAU) % 1,
+      reach: 0.34 + ((i * 0.569840296 + this.physics.restitution) % 1) * 0.66,
+      size: (0.5 + (i % 7) * 0.1) * (0.8 + this.physics.mass * .06),
     });
     this.resize(ctx.width, ctx.height);
   }
@@ -142,8 +150,8 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
   }
 
   private createRings(): void {
-    const segments = this.ctx.profile.family === 'weapon' ? 8 : 96;
-    const innerRadius = this.ctx.profile.family === 'impact' ? 0.97 : 0.982;
+    const segments = ['metal', 'glass', 'ice', 'stone'].includes(this.physics.surface) ? 12 : 96;
+    const innerRadius = .965 + this.physics.restitution * .02;
     const geometry = new THREE.RingGeometry(innerRadius, 1, segments);
     for (let i = 0; i < 3; i++) {
       const material = new THREE.MeshBasicMaterial({
@@ -152,15 +160,16 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
       });
       const ring = new THREE.Mesh(geometry, material);
       ring.name = `full-field-shock-ring-${i}`; ring.position.copy(this.ctx.origin); ring.position.z = 18 + i;
-      ring.rotation.z = Math.atan2(this.ctx.direction.y, this.ctx.direction.x) + i * 0.13;
+      ring.rotation.z = Math.atan2(this.ctx.direction.y, this.ctx.direction.x)
+        + this.physics.identityPhase + i * (.08 + this.physics.friction * .12);
       this.group.add(ring); this.rings.push(ring);
     }
   }
 
   private updateRings(t: number, fade: number): void {
-    const force = this.ctx.profile.family === 'impact' ? 0.38 : 0.3;
+    const force = .24 + this.physics.stiffness * .045;
     for (let i = 0; i < this.rings.length; i++) {
-      const local = Math.max(0, Math.min(1, (t - i * 0.045) / (0.66 + i * 0.045)));
+      const local = Math.max(0, Math.min(1, (t - i * .045) / (.58 + this.physics.mass * .025 + i * .045)));
       const progress = 1 - Math.pow(1 - local, 3);
       this.rings[i].scale.setScalar(Math.max(0.001, this.reach * progress));
       setOpacity(this.rings[i], fade * Math.sin(Math.PI * local) * (force - i * 0.055));
@@ -168,15 +177,16 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
   }
 
   private updateEnergy(t: number, now: number, fade: number): void {
-    const family = this.ctx.profile.family; const directionAngle = Math.atan2(this.ctx.direction.y, this.ctx.direction.x);
+    const force = this.physics.force; const surface = this.physics.surface;
+    const directionAngle = Math.atan2(this.ctx.direction.y, this.ctx.direction.x);
     for (let i = 0; i < this.seeds.length; i++) {
       const seed = this.seeds[i]; const local = Math.max(0, Math.min(1, (t - seed.phase * 0.11) / 0.72));
       const progress = 1 - Math.pow(1 - local, 3); let angle = seed.angle;
-      if (family === 'weapon') angle = directionAngle + (i % 2 ? Math.PI : 0) + Math.sin(seed.angle) * 0.62;
-      else if (family === 'cosmic') angle += (1 - progress) * 2.2 + now * 0.00018;
-      else if (family === 'natural') angle += Math.sin(now * 0.0014 + seed.phase * TAU) * 0.18;
+      if (['ballistic', 'recoil', 'fracture'].includes(force)) angle = directionAngle + (i % 2 ? Math.PI : 0) + Math.sin(seed.angle) * .62;
+      else if (force === 'gravity' || force === 'thrust') angle += (1 - progress) * this.physics.stiffness + now * .00018;
+      else if (force === 'vortex' || force === 'fluid') angle += Math.sin(now * .0014 + seed.phase * TAU) * (.12 + this.physics.resonance * .08);
       const radius = this.reach * seed.reach * progress;
-      const drift = family === 'natural' ? Math.sin(now * 0.002 + i) * 28 * progress : 0;
+      const drift = (force === 'fluid' || force === 'vortex') ? Math.sin(now * .002 + i) * 24 * this.physics.stiffness * progress : 0;
       this.position.set(
         this.ctx.origin.x + Math.cos(angle) * radius + this.ctx.direction.x * drift,
         this.ctx.origin.y + Math.sin(angle) * radius + this.ctx.direction.y * drift,
@@ -185,8 +195,8 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
       this.euler.set(progress * seed.phase * 4, now * 0.002 + seed.angle, angle - Math.PI / 2);
       this.quaternion.setFromEuler(this.euler);
       const pulse = 0.74 + Math.abs(Math.sin(now * 0.007 + seed.phase * TAU)) * 0.5;
-      if (family === 'weapon') this.scale.set(seed.size * 0.55, seed.size * (5 + progress * 7), seed.size * 0.7);
-      else if (family === 'natural') this.scale.set(seed.size, seed.size * (2.8 + progress * 2.2), seed.size);
+      if (['ballistic', 'recoil', 'fracture'].includes(force)) this.scale.set(seed.size * .55, seed.size * (4 + progress * 7 * this.physics.impulse), seed.size * .7);
+      else if (surface === 'water' || surface === 'fire' || surface === 'air') this.scale.set(seed.size, seed.size * (2.2 + progress * 2.2 / Math.sqrt(this.physics.mass)), seed.size);
       else this.scale.setScalar(seed.size * pulse * (0.45 + progress * 0.9));
       this.matrix.compose(this.position, this.quaternion, this.scale); this.energy.setMatrixAt(i, this.matrix);
     }

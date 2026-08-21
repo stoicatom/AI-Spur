@@ -7,6 +7,7 @@ import { RhythmFamilyLayer } from './three-family-rhythm';
 import { WeaponFamilyLayer } from './three-family-weapon';
 import type { FamilyLayer } from './three-family-shared';
 import { FullFieldSpectacleLayer } from './three-full-field-spectacle';
+import { resolveMaterialPhysics, type MaterialPhysics } from './three-effect-physics';
 
 /** Dispatches every preset to a genuinely different physical stage family. */
 export class CinematicLayers {
@@ -16,9 +17,12 @@ export class CinematicLayers {
   constructor(
     root: THREE.Group, origin: THREE.Vector3, color: THREE.Color, energy: number,
     profile: PhysicalProfile, direction = new THREE.Vector2(1, 0), width = 1, height = 1,
-    params: Record<string, number> = {},
+    params: Record<string, number> = {}, packId = 'compatibility', physics?: MaterialPhysics,
   ) {
-    const context = { root, origin, color, energy, profile, direction, width, height, params };
+    const context = {
+      root, origin, color, energy, profile, direction, width, height, params, packId,
+      physics: physics ?? resolveMaterialPhysics(profile, params, 1),
+    };
     switch (profile.family) {
       case 'natural': this.layer = new NaturalFamilyLayer(context); break;
       case 'weapon': this.layer = new WeaponFamilyLayer(context); break;

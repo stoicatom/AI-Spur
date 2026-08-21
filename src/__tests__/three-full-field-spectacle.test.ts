@@ -9,14 +9,21 @@ import {
 } from '../overlay/three-full-field-spectacle';
 import type { FamilyContext } from '../overlay/three-family-shared';
 import { EFFECT_PRESET_IDS, type EffectPresetId } from '../shared/material-packs';
+import { materialIdentityFor } from '../overlay/material-identity';
+import { resolveMaterialPhysics } from '../overlay/three-effect-physics';
 
 const REPRESENTATIVES: EffectPresetId[] = ['bolt', 'dash', 'pulse', 'glow', 'impact'];
 
-function context(preset: EffectPresetId, width = 1280, height = 720): FamilyContext {
+function context(
+  preset: EffectPresetId, width = 1280, height = 720, packId = `fixture-${preset}`,
+): FamilyContext {
+  const profile = profileFor(preset);
+  const identity = materialIdentityFor(packId, preset);
   return {
     root: new THREE.Group(), origin: new THREE.Vector3(510, -230, 0),
-    color: new THREE.Color('#ffb52e'), energy: 1.6, profile: profileFor(preset),
+    color: new THREE.Color('#ffb52e'), energy: 1.6, profile,
     direction: new THREE.Vector2(0.8, -0.2).normalize(), width, height, params: {},
+    packId, physics: resolveMaterialPhysics(profile, {}, 6, identity.physical),
   };
 }
 
@@ -38,7 +45,7 @@ describe('全屏电影化能量层', () => {
     stage.update(0.58, 620);
     const field = named<THREE.Mesh>(ctx.root, 'full-field-atmosphere');
     const ring = named<THREE.Mesh>(ctx.root, 'full-field-shock-ring-0');
-    const particles = named<THREE.InstancedMesh>(ctx.root, `full-field-${ctx.profile.family}-energy`);
+    const particles = named<THREE.InstancedMesh>(ctx.root, `full-field-${ctx.packId}-energy`);
     const material = field.material as THREE.ShaderMaterial;
 
     expect(field.scale.x).toBe(1280);
@@ -54,12 +61,12 @@ describe('全屏电影化能量层', () => {
     const ctx = context(preset, 960, 540);
     const layers = new CinematicLayers(
       ctx.root, ctx.origin, ctx.color, ctx.energy, ctx.profile,
-      ctx.direction, ctx.width, ctx.height, ctx.params,
+      ctx.direction, ctx.width, ctx.height, ctx.params, ctx.packId, ctx.physics,
     );
     layers.update(0.42, 480);
 
     expect(ctx.root.getObjectByName('full-field-atmosphere')).toBeTruthy();
-    expect(ctx.root.getObjectByName(`full-field-${ctx.profile.family}-energy`)).toBeTruthy();
+    expect(ctx.root.getObjectByName(`full-field-${ctx.packId}-energy`)).toBeTruthy();
     disposeSceneResources(ctx.root, null, new WeakSet());
     ctx.root.clear();
   });
@@ -73,5 +80,22 @@ describe('全屏电影化能量层', () => {
     expect(field.scale.x).toBe(390);
     expect(field.scale.y).toBe(844);
     expect(ring.scale.x).toBeGreaterThan(farthestViewportCorner(ctx.origin, 390, 844));
+  });
+
+  it('共享 wave 预设的神龙与极光仍产生独立且确定的物理场', () => {
+    const dragon = context('wave', 1280, 720, 'dragon');
+    const aurora = context('wave', 1280, 720, 'aurora');
+    const dragonStage = new FullFieldSpectacleLayer(dragon);
+    const auroraStage = new FullFieldSpectacleLayer(aurora);
+    dragonStage.update(.46, 640); auroraStage.update(.46, 640);
+    const dragonEnergy = named<THREE.InstancedMesh>(dragon.root, 'full-field-dragon-energy');
+    const auroraEnergy = named<THREE.InstancedMesh>(aurora.root, 'full-field-aurora-energy');
+    const first = new THREE.Matrix4(); const second = new THREE.Matrix4();
+    dragonEnergy.getMatrixAt(4, first); auroraEnergy.getMatrixAt(4, second);
+    expect(first.elements).not.toEqual(second.elements);
+
+    const repeated = first.elements.slice();
+    dragonStage.update(.46, 640); dragonEnergy.getMatrixAt(4, first);
+    expect(first.elements).toEqual(repeated);
   });
 });

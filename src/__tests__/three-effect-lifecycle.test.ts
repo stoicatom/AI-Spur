@@ -53,7 +53,7 @@ import * as THREE from 'three';
 import { ThreeEffectRenderer } from '../overlay/three-effects';
 
 const spec = (url = 'asset://sprite'): ThreeEffectSpec => ({
-  url, preset: 'spiral', hue: 24, x: 160, y: 90,
+  packId: 'custom-spiral', url, preset: 'spiral', hue: 24, x: 160, y: 90,
   vel: { vx: 3, vy: -2, speed: 4, dir: -0.59 }, params: {},
 });
 
@@ -119,6 +119,8 @@ describe('ThreeEffectRenderer GPU 生命周期', () => {
     expect(state.loads).toHaveLength(0);
 
     effect.start(spec(''), 0);
+    expect((effect as unknown as { root: THREE.Group }).root
+      .getObjectByName('full-field-custom-spiral-energy')).toBeTruthy();
     effect.update(100);
     const states = (effect as unknown as { states: Array<{ age: number }> }).states;
     expect(states[0]?.age).toBeCloseTo(.1, 5);

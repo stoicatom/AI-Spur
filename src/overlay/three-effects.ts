@@ -12,8 +12,10 @@ import { renderContractFor } from './three-effect-contract';
 import { materialForDomain, type MaterialDomain } from './three-material-domains';
 import { CinematicRenderPipeline } from './three-render-pipeline';
 import { updateParticleMatrices } from './three-particle-render';
+import { materialIdentityFor } from './material-identity';
 type SpriteRequest = { texture: THREE.Texture | null };
 export type ThreeEffectSpec = {
+  packId: string;
   url: string;
   preset: EffectPresetId;
   hue: number;
@@ -96,7 +98,8 @@ export class ThreeEffectRenderer {
     this.profile = profileFor(spec.preset);
     const contract = renderContractFor(spec.preset);
     this.duration = this.profile.duration;
-    this.physics = resolveMaterialPhysics(this.profile, spec.params, spec.vel.speed);
+    const identity = materialIdentityFor(spec.packId, spec.preset, spec.params);
+    this.physics = resolveMaterialPhysics(this.profile, spec.params, spec.vel.speed, identity.physical);
     this.hue = spec.hue;
     this.origin.set(spec.x - this.width / 2, this.height / 2 - spec.y, 0);
     this.direction.set(spec.vel.vx, -spec.vel.vy);
@@ -109,7 +112,10 @@ export class ThreeEffectRenderer {
       this.light.position.copy(this.origin);
       this.root.add(this.light);
     }
-    this.layers = new CinematicLayers(this.root, this.origin, color, energy, this.profile, this.direction, this.width, this.height, spec.params);
+    this.layers = new CinematicLayers(
+      this.root, this.origin, color, energy, this.profile, this.direction,
+      this.width, this.height, spec.params, spec.packId, this.physics,
+    );
     if (contract.genericParticles) this.addParticles(color, spec.vel);
     this.started = now;
     this.lastUpdate = now;
