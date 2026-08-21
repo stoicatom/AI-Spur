@@ -101,4 +101,16 @@ describe('素材语义声音计划', () => {
     expect(result.family).toBe('weather');
     expect(result.events.some((item) => item.voice === 'rain-bed')).toBe(true);
   });
+
+  it('同一视觉预设的程序化声音按素材身份改变空间与瞬态', () => {
+    const crystal = plan('crystal', 'impact');
+    const bomb = plan('bomb', 'impact');
+    const crystalImpact = crystal.events.find((item) => item.stage === 'impact');
+    const bombImpact = bomb.events.find((item) => item.stage === 'burst' || item.stage === 'impact');
+
+    expect(crystalImpact).toBeDefined();
+    expect(bombImpact).toBeDefined();
+    expect(crystalImpact?.gain).not.toBe(bombImpact?.gain);
+    expect(crystalImpact?.spread).not.toBe(bombImpact?.spread);
+  });
 });

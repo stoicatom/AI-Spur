@@ -225,8 +225,9 @@ describe('程序化声音引擎生命周期', () => {
     expect(context.filters).toHaveLength(3);
     expect(context.panners).toHaveLength(3);
     expect(context.delays).toHaveLength(2);
-    expect(vi.mocked(context.delays[0].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(0.037);
-    expect(vi.mocked(context.delays[1].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(0.059);
+    const sunProfile = sampleSoundscapeProfileFor('glow', 'sun');
+    expect(vi.mocked(context.delays[0].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(sunProfile.leftDelay);
+    expect(vi.mocked(context.delays[1].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(sunProfile.rightDelay);
 
     closeAudioContext();
     expect(context.sources[0].stop).toHaveBeenCalled();
@@ -243,6 +244,17 @@ describe('程序化声音引擎生命周期', () => {
     expect(sharp.presence).toBeGreaterThan(heavy.presence);
     expect(rhythm.dry).toBeGreaterThan(expansive.dry);
     expect(expansive.rightDelay).toBeGreaterThan(sharp.rightDelay);
+  });
+
+  it('同一 preset 的真实录音仍按素材声学身份分离', () => {
+    const crystal = sampleSoundscapeProfileFor('impact', 'crystal');
+    const bomb = sampleSoundscapeProfileFor('impact', 'bomb');
+
+    expect(crystal).not.toEqual(bomb);
+    expect(crystal.highpass).toBeGreaterThan(bomb.highpass);
+    expect(crystal.presence).toBeGreaterThan(bomb.presence);
+    expect(bomb.body).toBeGreaterThan(crystal.body);
+    expect(crystal.leftDelay).not.toBe(bomb.leftDelay);
   });
 
   it('上下文挂起时等待恢复后才启动墙钟清理', async () => {

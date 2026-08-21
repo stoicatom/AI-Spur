@@ -41,7 +41,7 @@ function spatialPan(options: AcousticSpatialOptions): number {
 }
 
 async function playSample(
-  preset: EffectPresetId, recipe: SoundRecipe, options: MaterialSoundOptions,
+  packId: string, preset: EffectPresetId, recipe: SoundRecipe, options: MaterialSoundOptions,
 ): Promise<void> {
   const sample = recipe.sample;
   if (!sample?.dataUri) throw new Error('audio sample data is unavailable');
@@ -64,7 +64,7 @@ async function playSample(
   compressor.attack.setValueAtTime(.0015, now);
   compressor.release.setValueAtTime(.18, now);
   const soundscapeNodes = connectSampleSoundscape(
-    ac, source, master, preset, spatialPan(options), now,
+    ac, source, master, preset, packId, spatialPan(options), now,
   );
   master.connect(compressor);
   compressor.connect(ac.destination);
@@ -109,7 +109,7 @@ export function playMaterialSound(
   options: MaterialSoundOptions = {},
 ): void {
   if (recipe.sample) {
-    void playSample(preset, recipe, options).catch(() => {});
+    void playSample(packId, preset, recipe, options).catch(() => {});
     return;
   }
   playSynthesizedSound(packId, preset, recipe, options);

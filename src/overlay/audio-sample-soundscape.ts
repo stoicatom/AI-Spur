@@ -1,4 +1,5 @@
 import type { EffectPresetId } from '../shared/material-packs';
+import { materialIdentityFor } from './material-identity';
 
 export type SampleSoundscapeProfile = Readonly<{
   dry: number;
@@ -28,11 +29,27 @@ const PROFILES = {
   expansive: { dry: 0.6, body: 0.17, presence: 0.14, space: 0.09, lowpass: 280, highpass: 1850, leftDelay: 0.037, rightDelay: 0.059 },
 } as const satisfies Record<string, SampleSoundscapeProfile>;
 
-export function sampleSoundscapeProfileFor(preset: EffectPresetId): SampleSoundscapeProfile {
-  if (SHARP.has(preset)) return PROFILES.sharp;
-  if (HEAVY.has(preset)) return PROFILES.heavy;
-  if (RHYTHM.has(preset)) return PROFILES.rhythm;
-  return PROFILES.expansive;
+const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+
+export function sampleSoundscapeProfileFor(
+  preset: EffectPresetId, packId?: string,
+): SampleSoundscapeProfile {
+  const base = SHARP.has(preset) ? PROFILES.sharp
+    : HEAVY.has(preset) ? PROFILES.heavy
+      : RHYTHM.has(preset) ? PROFILES.rhythm : PROFILES.expansive;
+  if (!packId) return base;
+  const acoustic = materialIdentityFor(packId, preset).acoustic;
+  const density = clamp(acoustic.density / 8, 0, 1);
+  return {
+    dry: clamp(base.dry + acoustic.absorption * .045 - acoustic.roughness * .035, .35, .78),
+    body: clamp(base.body + density * .06 + acoustic.roughness * .1, .045, .34),
+    presence: clamp(base.presence + acoustic.transient * .075 + (1 - acoustic.absorption) * .045, .05, .32),
+    space: clamp(base.space + acoustic.spaceWidth * .018 - acoustic.absorption * .02, .035, .14),
+    lowpass: clamp(base.lowpass + acoustic.resonanceHz * .08 - acoustic.roughness * 460, 160, 12000),
+    highpass: clamp(base.highpass + acoustic.resonanceHz * .18 + (1 - acoustic.absorption) * 420, 120, 12000),
+    leftDelay: clamp(base.leftDelay * (.82 + acoustic.spaceWidth * .24), .012, .075),
+    rightDelay: clamp(base.rightDelay * (.82 + acoustic.spaceWidth * .24), .018, .095),
+  };
 }
 
 function setGain(node: GainNode, value: number, now: number): void {
@@ -45,10 +62,11 @@ export function connectSampleSoundscape(
   source: AudioBufferSourceNode,
   master: AudioNode,
   preset: EffectPresetId,
+  packId: string | undefined,
   panValue: number,
   now: number,
 ): AudioNode[] {
-  const profile = sampleSoundscapeProfileFor(preset);
+  const profile = sampleSoundscapeProfileFor(preset, packId);
   const dry = ac.createGain(); const body = ac.createGain(); const presence = ac.createGain();
   const bodyFilter = ac.createBiquadFilter(); const presenceFilter = ac.createBiquadFilter();
   const center = ac.createStereoPanner(); const spaceTone = ac.createBiquadFilter();

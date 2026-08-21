@@ -5,6 +5,7 @@ import type {
   SoundRecipe,
 } from '../shared/material-packs';
 import { WHIP_CRACK_IMPACT_SECONDS } from './effect-timings';
+import { materialIdentityFor } from './material-identity';
 
 export type AcousticFamily =
   | 'weather' | 'element' | 'weapon' | 'impact' | 'instrument'
@@ -120,11 +121,21 @@ export function createSemanticSoundPlan(
   packId: string, preset: EffectPresetId, recipe: SoundRecipe,
 ): SemanticSoundPlan {
   const template = TEMPLATES[packId as BuiltinPackId] ?? fallbackTemplate(preset, recipe);
+  const acoustic = materialIdentityFor(packId, preset).acoustic;
+  const gainScale = Math.min(1.18, .86 + acoustic.transient * .18 + acoustic.density * .012);
+  const spreadScale = Math.min(1.45, .78 + acoustic.spaceWidth * .24);
+  const resonanceScale = Math.min(1.32, .86 + acoustic.resonanceHz / 6400);
   return {
     packId,
     family: template.family,
     masterGain: Math.min(.9, Math.max(0, recipe.masterGain)),
-    events: template.events.map((event) => ({ ...event })),
+    events: template.events.map((event) => ({
+      ...event,
+      gain: Math.min(1, event.gain * gainScale),
+      frequency: event.frequency ? event.frequency * resonanceScale : event.frequency,
+      endFrequency: event.endFrequency ? event.endFrequency * resonanceScale : event.endFrequency,
+      spread: Math.min(1, (event.spread ?? .28) * spreadScale),
+    })),
   };
 }
 
