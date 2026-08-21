@@ -13,6 +13,7 @@ export type ParticleState = {
   stretchX: number; stretchY: number; stretchZ: number;
   /** Unconsumed wall time; simulation itself always advances at 60 Hz. */
   stepRemainder: number;
+  groundY: number;
 };
 
 const frac = (value: number): number => value - Math.floor(value);
@@ -22,7 +23,7 @@ function makeState(index: number): ParticleState {
   return {
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, life: 1,
     size: 1, spin: 1, age: 0, phase: index * 0.37, decay: 0.012,
-    stage: 0, stretchX: 1, stretchY: 1, stretchZ: 1, stepRemainder: 0,
+    stage: 0, stretchX: 1, stretchY: 1, stretchZ: 1, stepRemainder: 0, groundY: 0,
   };
 }
 
@@ -45,6 +46,7 @@ export function seedParticleStates(
     state.spin = (i % 2 ? 1 : -1) * (0.4 + i % 7 * 0.16);
     state.z = (i % 11) * 2.8;
     state.decay = profile.motion === 'downpour' ? 0.006 : profile.motion === 'fireworks' ? 0.007 : 0.011 + (i % 5) * 0.001;
+    state.groundY = -height / 2;
     switch (profile.motion) {
       case 'tornado': {
         const funnel = 24 + unit * 112;
@@ -141,6 +143,8 @@ export function seedParticleStates(
         state.vy = direction.y * (1.8 + velocity.speed * 0.1) + Math.sin(angle) * radial * physics.spread * 0.34 + physics.lift;
         break;
     }
+    const birthImpulse = .68 + physics.impulse * .32;
+    state.vx *= birthImpulse; state.vy *= birthImpulse; state.vz *= birthImpulse;
     states.push(state);
   }
   return states;
@@ -159,6 +163,20 @@ function integrateParticleStep(
   const perpendicularX = -direction.y;
   const perpendicularY = direction.x;
   state.vy += physics.gravity;
+  const forceScale = 1 / Math.sqrt(physics.mass);
+  switch (physics.force) {
+    case 'thrust': state.vx += direction.x * .07 * forceScale; state.vy += direction.y * .07 * forceScale; break;
+    case 'elastic': state.vx -= rx * .00035 * physics.stiffness; state.vy -= ry * .00035 * physics.stiffness; break;
+    case 'fracture': state.vx += Math.cos(state.phase + index) * .035 * forceScale; state.vz += noise * .06; break;
+    case 'fluid': state.vx += noise * .012 / physics.mass; state.vy += Math.cos(state.phase + state.age * 9) * .006; break;
+    case 'vortex': state.vx += (-ry / radius) * .055 * physics.stiffness; state.vy += (rx / radius) * .055 * physics.stiffness; break;
+    case 'resonance': { const pulse = Math.sin(state.age * 18 * physics.resonance + state.phase) * .025; state.vx += rx / radius * pulse; state.vy += ry / radius * pulse; break; }
+    case 'combustion': state.vx += noise * .04 * forceScale; state.vy += .045 * forceScale; break;
+    case 'gravity': state.vx -= rx / radius * .065 * physics.stiffness; state.vy -= ry / radius * .065 * physics.stiffness; break;
+    case 'electro': state.vx += perpendicularX * noise * .16 * forceScale; state.vy += perpendicularY * noise * .16 * forceScale; break;
+    case 'ballistic': state.vx += direction.x * .055 * forceScale; state.vy += direction.y * .055 * forceScale; break;
+    case 'recoil': { const sign = state.age < .12 ? 1 : -.22; state.vx += direction.x * .08 * sign / physics.mass; state.vy += direction.y * .08 * sign / physics.mass; break; }
+  }
   switch (profile.motion) {
     case 'thrust': state.vx += direction.x * 0.075 * physics.travel; state.vy += direction.y * 0.075 * physics.travel + 0.035 * physics.lift; break;
     case 'wing': { const wing = index % 2 === 0 ? 1 : -1; state.vx += perpendicularX * wing * 0.055 * physics.spread; state.vy += perpendicularY * wing * 0.055 * physics.spread + 0.03 * physics.lift; break; }
@@ -193,6 +211,12 @@ function integrateParticleStep(
   state.x += (oldVx + state.vx) * 0.5;
   state.y += (oldVy + state.vy) * 0.5;
   state.z += (oldVz + state.vz) * 0.5;
+  const rigid = physics.surface !== 'water' && physics.surface !== 'fire' && physics.surface !== 'air';
+  if (rigid && state.y < state.groundY && state.vy < 0) {
+    state.y = state.groundY;
+    state.vy = -state.vy * physics.restitution;
+    state.vx *= 1 - physics.friction;
+  }
   state.age += DT; state.life -= state.decay;
 }
 

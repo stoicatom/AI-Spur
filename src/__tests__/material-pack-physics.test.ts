@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { MaterialPackSchema, type MaterialPack } from '../shared/material-packs';
 import { resolveMaterialPhysics } from '../overlay/three-effect-physics';
 import { profileFor } from '../overlay/three-effect-profiles';
+import { materialIdentityFor } from '../overlay/material-identity';
 
 const packsDir = resolve(__dirname, '../../src-tauri/packs');
 
@@ -30,7 +31,8 @@ describe('真实素材物理参数覆盖', () => {
     const packs = bundledPacks();
     expect(packs).toHaveLength(42);
     const identities = packs.map((pack) => {
-      const physics = resolveMaterialPhysics(profileFor(pack.effect.preset), pack.effect.params, 6);
+      const blueprint = materialIdentityFor(pack.id, pack.effect.preset, pack.effect.params).physical;
+      const physics = resolveMaterialPhysics(profileFor(pack.effect.preset), pack.effect.params, 6, blueprint);
       return `${pack.effect.preset}:${physics.signature}`;
     });
     expect(new Set(identities).size).toBe(42);
@@ -39,10 +41,11 @@ describe('真实素材物理参数覆盖', () => {
   it('每一个清单物理参数都会改变主 3D 粒子求解指纹', () => {
     for (const pack of bundledPacks()) {
       const profile = profileFor(pack.effect.preset);
-      const baseline = resolveMaterialPhysics(profile, pack.effect.params, 6);
+      const blueprint = materialIdentityFor(pack.id, pack.effect.preset, pack.effect.params).physical;
+      const baseline = resolveMaterialPhysics(profile, pack.effect.params, 6, blueprint);
 
       for (const [key, value] of Object.entries(pack.effect.params)) {
-        const altered = resolveMaterialPhysics(profile, { ...pack.effect.params, [key]: value + 0.137 }, 6);
+        const altered = resolveMaterialPhysics(profile, { ...pack.effect.params, [key]: value + 0.137 }, 6, blueprint);
         expect(altered.signature, `${pack.id}.${key} must affect particle identity`).not.toBe(baseline.signature);
         expect(altered.phase, `${pack.id}.${key} must affect particle phase`).not.toBe(baseline.phase);
       }

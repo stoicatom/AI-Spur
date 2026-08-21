@@ -5,6 +5,7 @@ import { resolveMaterialPhysics } from '../overlay/three-effect-physics';
 import { profileFor } from '../overlay/three-effect-profiles';
 import { seedParticleStates, stepParticle, type ParticleState } from '../overlay/three-particle-motion';
 import type { Particle } from '../overlay/particles';
+import { materialIdentityFor } from '../overlay/material-identity';
 
 const origin = new THREE.Vector3(40, -20, 0);
 const direction = new THREE.Vector2(0.8, 0.6).normalize();
@@ -43,6 +44,29 @@ describe('refresh-rate independent particle integration', () => {
     expect(left).toEqual(right);
     expect(left.every((state) => state.vy < 0)).toBe(true);
     expect(left.every((state) => Math.abs(state.vx) < Math.abs(state.vy) * 0.2)).toBe(true);
+  });
+
+  it('bounces rigid shield fragments but lets water cross the same boundary', () => {
+    const profile = profileFor('impact');
+    const velocity = { vx: 0.8, vy: -0.6, speed: 5, dir: -0.64 };
+    const shieldPhysics = resolveMaterialPhysics(
+      profile, {}, 5, materialIdentityFor('shield', 'impact').physical,
+    );
+    const waterPhysics = resolveMaterialPhysics(
+      profile, {}, 5, materialIdentityFor('water', 'water-splash').physical,
+    );
+    const shield = seedParticleStates(1, origin, direction, profile, shieldPhysics, velocity, 800, 600)[0];
+    const water = seedParticleStates(1, origin, direction, profile, waterPhysics, velocity, 800, 600)[0];
+    shield.y = shield.groundY - 4; shield.vy = -5;
+    water.y = water.groundY - 4; water.vy = -5;
+
+    stepParticle(shield, 0, origin, direction, profile, shieldPhysics);
+    stepParticle(water, 0, origin, direction, profile, waterPhysics);
+
+    expect(shield.y).toBe(shield.groundY);
+    expect(shield.vy).toBeGreaterThan(0);
+    expect(water.y).toBeLessThan(water.groundY);
+    expect(water.vy).toBeLessThan(0);
   });
 
   it('keeps Canvas equal-time integration consistent at 60 and 120 Hz', () => {
