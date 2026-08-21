@@ -17,7 +17,7 @@
     "layers": [],
     "sample": {
       "file": "sound.m4a",
-      "gain": 1,
+      "gain": 0.9,
       "maxDuration": 3.255215,
       "sourceTitle": "Lick Tenor Sax — The lick in C minor played on tenor saxophone",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lick_Tenor_Sax.wav",

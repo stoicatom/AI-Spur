@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
   <title>木质长弓</title>
   <defs>
     <linearGradient id="bow-laminate" x1="10" y1="5" x2="20" y2="43" gradientUnits="userSpaceOnUse">
@@ -24,7 +24,18 @@
       <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
       <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
       <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
-      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+
+      <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feDiffuseLighting>
+      <feComposite in="diffuse" in2="SourceAlpha" operator="in" result="diffuse-mask"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".28" result="edge-expanded"/>
+      <feComposite in="edge-expanded" in2="SourceAlpha" operator="out" result="edge-mask"/>
+      <feFlood flood-color="#FFFFFF" flood-opacity=".22" result="edge-color"/>
+      <feComposite in="edge-color" in2="edge-mask" operator="in" result="edge-light"/>
+      <feBlend in="lit" in2="diffuse-mask" mode="screen" result="diffuse-lit"/>
+      <feBlend in="diffuse-lit" in2="edge-light" mode="screen" result="studio-lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="studio-lit"/></feMerge>
     </filter>
     <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
       <feGaussianBlur stdDeviation="1.45"/>

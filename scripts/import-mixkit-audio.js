@@ -83,22 +83,25 @@ for (const [id, [mixkitId, sourceTitle, gain]] of Object.entries(samples)) {
   const output = join(dir, 'sound.m4a');
   const decoded = join(dir, 'decoded.wav');
   const scaled = join(dir, 'scaled.wav');
+  const mastered = join(dir, 'mastered.wav');
   execFileSync('afconvert', ['-f', 'WAVE', '-d', 'LEI16', input, decoded]);
   const gain = attenuation[id] ?? 1;
   const encodedInput = gain === 1 ? decoded : scaled;
   if (gain !== 1) {
     execFileSync('python3', [join(root, 'scripts', 'scale-pcm.py'), decoded, scaled, String(gain)]);
   }
-  execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', '-b', '128000', encodedInput, output]);
+  execFileSync('python3', [join(root, 'scripts', 'master-audio.py'), encodedInput, mastered, '--target-rms', '-17', '--max-peak', '-5']);
+  execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', '-b', '192000', '-s', '0', '-q', '127', '-o', output, mastered]);
   unlinkSync(input);
   unlinkSync(decoded);
   if (encodedInput === scaled) unlinkSync(scaled);
+  unlinkSync(mastered);
   const manifestPath = join(dir, 'pack.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   manifest.sound = {
     layers: [],
     sample: {
-      file: 'sound.m4a', gain, maxDuration: durationSeconds(output), sourceTitle,
+      file: 'sound.m4a', gain: 0.9, maxDuration: durationSeconds(output), sourceTitle,
       sourceUrl: sourceOverride?.sourceUrl ?? `${sourceBase}/${mixkitId}/`,
       license: sourceOverride?.license ?? mixkitLicense,
     },

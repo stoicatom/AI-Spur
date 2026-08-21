@@ -26,13 +26,19 @@ describe('内置素材图标契约', () => {
 
     expect(root.nodeName, id).toBe('svg');
     expect(root.getAttribute('viewBox'), id).toBe('0 0 48 48');
+    expect(root.getAttribute('preserveAspectRatio'), id).toBe('xMidYMid meet');
+    expect(root.getAttribute('shape-rendering'), id).toBe('geometricPrecision');
     expect(root.hasAttribute('width'), id).toBe(false);
     expect(root.hasAttribute('height'), id).toBe(false);
     expect(document.querySelector('parsererror'), id).toBeNull();
     expect(document.querySelector('title')?.textContent?.trim(), id).not.toBe('');
     expect(document.querySelector('linearGradient, radialGradient'), id).not.toBeNull();
+    expect(document.querySelector('#studio-light feDiffuseLighting'), id).not.toBeNull();
+    expect(document.querySelector('#studio-light feSpecularLighting'), id).not.toBeNull();
+    expect(document.querySelector('#studio-light feMorphology'), id).not.toBeNull();
     expect(document.querySelector('[stroke-width="1.5"]'), id).not.toBeNull();
     expect(document.querySelector('animate, animateTransform, script, foreignObject'), id).toBeNull();
+    expect(svg, id).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
     expect(svg).toContain('var(--pack-');
     expect(new TextEncoder().encode(svg).byteLength, id).toBeLessThan(8 * 1024);
   });

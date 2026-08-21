@@ -10,11 +10,9 @@ import { placeFamilySprite } from './three-family-timeline';
 import { disposeSceneResources, disposeTextureOnce } from './three-effect-resources';
 import { renderContractFor } from './three-effect-contract';
 import { materialForDomain, type MaterialDomain } from './three-material-domains';
-const _vectorScratch = new THREE.Vector3();
-const _scaleScratch = new THREE.Vector3();
-const _zAxis = new THREE.Vector3(0, 0, 1);
+import { CinematicRenderPipeline } from './three-render-pipeline';
+import { updateParticleMatrices } from './three-particle-render';
 type SpriteRequest = { texture: THREE.Texture | null };
-
 export type ThreeEffectSpec = {
   url: string;
   preset: EffectPresetId;
@@ -24,10 +22,10 @@ export type ThreeEffectSpec = {
   vel: WhipVel;
   params: Record<string, number>;
 };
-
 /** Owns every GPU resource for one overlay window and releases it on dispose. */
 export class ThreeEffectRenderer {
   private readonly renderer: THREE.WebGLRenderer;
+  private readonly pipeline: CinematicRenderPipeline;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
   private readonly root = new THREE.Group();
@@ -50,17 +48,14 @@ export class ThreeEffectRenderer {
   private spriteRequest: SpriteRequest | null = null;
   private readonly textureLoader = new THREE.TextureLoader();
   private readonly disposedTextures = new WeakSet<THREE.Texture>();
-  private readonly matrix = new THREE.Matrix4();
-  private readonly quaternion = new THREE.Quaternion();
-  private readonly spinAxis = new THREE.Vector3(0.3, 0.8, 0.5).normalize();
   private accumulator = 0;
   private lastUpdate = 0;
   private runId = 0;
   private disposed = false;
-
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
     this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearAlpha(0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.08;
@@ -73,11 +68,10 @@ export class ThreeEffectRenderer {
     const rim = new THREE.DirectionalLight(0xffffff, 2.8);
     rim.position.set(80, -260, -180);
     this.scene.add(key, fill, rim);
+    this.pipeline = new CinematicRenderPipeline(this.renderer, this.scene, this.camera);
     this.resize();
   }
-
   get isAlive(): boolean { return this.alive; }
-
   resize(width = window.innerWidth, height = window.innerHeight): void {
     if (this.disposed) return;
     this.width = Math.max(1, width);
@@ -89,10 +83,11 @@ export class ThreeEffectRenderer {
     this.camera.position.set(0, 0, 500);
     this.camera.lookAt(0, 0, 0);
     this.camera.updateProjectionMatrix();
-    this.renderer.setPixelRatio(pixelRatioFor(this.width, this.height, window.devicePixelRatio || 1));
+    const pixelRatio = pixelRatioFor(this.width, this.height, window.devicePixelRatio || 1);
+    this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
+    this.pipeline.resize(this.width, this.height, pixelRatio);
   }
-
   start(spec: ThreeEffectSpec, now = performance.now()): void {
     if (this.disposed) throw new Error('ThreeEffectRenderer has been disposed');
     const runId = ++this.runId;
@@ -123,7 +118,6 @@ export class ThreeEffectRenderer {
     // Avoid decoding and uploading a texture that cannot affect a frame.
     if (spec.url && contract.sourceSprite) this.loadSprite(spec.url, energy, runId);
   }
-
   update(now = performance.now()): boolean {
     if (this.disposed || !this.alive) return false;
     const t = Math.min(1, (now - this.started) / this.duration);
@@ -153,34 +147,12 @@ export class ThreeEffectRenderer {
         steps++;
       }
       if (steps === 6) this.accumulator = Math.min(this.accumulator, step);
-      for (let i = 0; i < this.states.length; i++) {
-        const s = this.states[i];
-        const fade = Math.max(0, Math.min(1, s.life));
-        if (p.motion === 'downpour' || p.motion === 'rain' || p.motion === 'projectile' || p.motion === 'whip') {
-          this.quaternion.setFromAxisAngle(_zAxis, Math.atan2(s.vy, s.vx));
-        } else {
-          this.quaternion.setFromAxisAngle(this.spinAxis, s.spin * (1 - fade) + now * 0.001 * this.physics.spin);
-        }
-        // Stretch is physical: rain/ballistic trails are long, shards are flat,
-        // and fluid/fire particles remain volumetric instead of sharing one dot.
-        this.matrix.compose(
-          _vectorScratch.set(s.x, s.y, s.z),
-          this.quaternion,
-          _scaleScratch.set(
-            s.size * fade * s.stretchX,
-            s.size * fade * s.stretchY,
-            s.size * fade * s.stretchZ,
-          ),
-        );
-        this.particles.setMatrixAt(i, this.matrix);
-      }
-      this.particles.instanceMatrix.needsUpdate = true;
+      updateParticleMatrices(this.particles, this.states, p, this.physics, now);
     }
-    this.renderer.render(this.scene, this.camera);
+    this.pipeline.render();
     if (t >= 1) { this.alive = false; this.runId++; this.clearScene(); return true; }
     return false;
   }
-
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -189,9 +161,9 @@ export class ThreeEffectRenderer {
     this.clearScene();
     this.renderer.setAnimationLoop(null);
     this.renderer.renderLists.dispose();
+    this.pipeline.dispose();
     this.renderer.dispose();
   }
-
   /** Cancel an interrupted crack (Esc, second hotkey, window teardown). */
   cancel(): void {
     if (this.disposed) return;
@@ -199,7 +171,6 @@ export class ThreeEffectRenderer {
     this.runId++;
     this.clearScene();
   }
-
   private addParticles(color: THREE.Color, vel: WhipVel): void {
     const count = this.physics.count;
     const energy = this.physics.energy;
@@ -219,7 +190,6 @@ export class ThreeEffectRenderer {
       this.height,
     );
   }
-
   private loadSprite(url: string, energy: number, runId: number, attach = true): void {
     const request: SpriteRequest = { texture: null };
     this.spriteRequest = request;
@@ -249,7 +219,6 @@ export class ThreeEffectRenderer {
     if (this.spriteRequest !== request) disposeTextureOnce(texture, this.disposedTextures);
     else this.texture = request.texture;
   }
-
   private clearScene(): void {
     disposeSceneResources(this.root, this.texture, this.disposedTextures);
     this.root.clear();
@@ -260,7 +229,6 @@ export class ThreeEffectRenderer {
     try { this.renderer.clear(true, true, true); } catch {}
   }
 }
-
 /** Select a physical surface response for the compatibility particle path. */
 export function domainForProfile(profile: PhysicalProfile): MaterialDomain {
   switch (profile.motion) {

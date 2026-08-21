@@ -6,7 +6,7 @@
 
 - 瞬态必须清楚，主体频段不能被混响或背景噪声掩盖；动作类优先短促冲击，环境类允许较长尾音。
 - 不通过改变播放速度或音高伪造另一种声源。运行时只做轻微响度匹配、立体声定位和动态压缩防削波。
-- 原始 WAV/MP3/OGG 统一转为 AAC-LC M4A，目标码率 128 kbps，保留原采样率与声道布局。
+- 原始 WAV/MP3/OGG 先做活动段 RMS 对齐、软膝压缩和峰值限制，再统一转为 192 kbps CBR AAC-LC M4A，保留原采样率与声道布局。
 - 每个 `pack.json` 保存条目名称、来源页和许可；Rust 扫描后将音频作为 data URI 交给 Web Audio 解码。
 - 2026-08-21 使用 macOS `afinfo` 检查全部文件，使用 `afclip -x` 检查削波。42/42 均可解码且无 clipped sample。
 
@@ -63,11 +63,12 @@ Mixkit 条目取自 [Mixkit Sound Effects](https://mixkit.co/free-sound-effects/
 
 `meteor/comet`、`crystal/glass-shot`、`bomb/sun`、`phoenix/wildfire` 分别共享同一条原始录音，但在清单中使用不同增益和视觉运动参数。共享发生在语义相近的物理事件之间，不使用变调伪造新音色。
 
-萨克斯录音作者为 Wikimedia Commons 用户 **ChickSR**，作品描述为 “The lick in C minor played on tenor saxophone”，采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)。仓库中的 `sound.m4a` 是保持 44.1 kHz 单声道布局的 AAC-LC 转码版本，属于同许可下的格式转换版本。
+萨克斯录音作者为 Wikimedia Commons 用户 **ChickSR**，作品描述为 “The lick in C minor played on tenor saxophone”，采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)。仓库中的 `sound.m4a` 是保持 44.1 kHz 声音内容的 AAC-LC 转码版本，属于同许可下的格式转换版本。
 
 ## 检查摘要
 
-- Mixkit 转码文件：44.1 kHz、双声道、AAC-LC，`afclip -x` 未发现削波。
-- 萨克斯转码文件：44.1 kHz、单声道、AAC-LC、约 118.98 kbps、3.255 秒，`afclip -x` 未发现削波。
-- 内置音频总数：42；当前总大小约 2.5 MB。
+- 全部转码文件：44.1 kHz、双声道、AAC-LC、192 kbps CBR；`afinfo` 实测码率范围约 191.06-192.84 kbps。
+- 全部文件活动段 RMS 实测范围约 -22.37 至 -17.18 dBFS；峰值范围约 -5.16 至 -3.01 dBFS；`afclip -x` 42/42 未发现削波。
+- 内置音频总数：42；当前总大小约 4.2 MB。
 - 可复现导入：`node scripts/import-mixkit-audio.js`；只刷新单个素材可追加素材 id，例如 `node scripts/import-mixkit-audio.js saxophone`。
+- `scripts/remaster-built-in-audio.js` 只用于紧急响度调整；发布资产应优先从上述原始来源重新导入，避免 AAC 二次转码。
