@@ -131,6 +131,9 @@ pub async fn set_active_pack(
 ///
 /// The `id` is derived from the icon filename by the caller; this command
 /// validates it and refuses collisions with built-in packs.
+// Tauri expands each IPC field into a separate argument; keep this boundary
+// explicit instead of hiding the command contract behind an untyped payload.
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub async fn create_custom_pack(
     id: String,
