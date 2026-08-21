@@ -2,6 +2,7 @@ import type { EffectPresetId, SoundRecipe } from '../shared/material-packs';
 import { disposeAudioContext, getAudioContext, resumeAudioContext } from './audio-context';
 import { renderSemanticPlan, type AcousticSpatialOptions } from './audio-graph';
 import { AudioPlaybackRegistry } from './audio-lifecycle';
+import { connectSampleSoundscape } from './audio-sample-soundscape';
 import { createSemanticSoundPlan } from './audio-semantics';
 
 const activePlaybacks = new AudioPlaybackRegistry(disposeAudioContext);
@@ -39,31 +40,32 @@ function spatialPan(options: AcousticSpatialOptions): number {
   return Math.max(-1, Math.min(1, position * .72 + velocity * .18));
 }
 
-async function playSample(recipe: SoundRecipe, options: MaterialSoundOptions): Promise<void> {
+async function playSample(
+  preset: EffectPresetId, recipe: SoundRecipe, options: MaterialSoundOptions,
+): Promise<void> {
   const sample = recipe.sample;
   if (!sample?.dataUri) throw new Error('audio sample data is unavailable');
   const buffer = await decodeSample(sample.dataUri);
   const ac = getAudioContext();
   const now = ac.currentTime;
   const source = ac.createBufferSource();
-  const pan = ac.createStereoPanner();
   const master = ac.createGain();
   const compressor = ac.createDynamicsCompressor();
   source.buffer = buffer;
   source.playbackRate.setValueAtTime(1, now);
-  pan.pan.setValueAtTime(spatialPan(options), now);
   const speedGain = .9 + Math.min(.1, Math.max(0, options.velocitySpeed ?? 0) / 9000);
   master.gain.setValueAtTime(
     Math.max(0, recipe.masterGain * sample.gain * (options.globalVolume ?? 1) * speedGain),
     now,
   );
-  compressor.threshold.setValueAtTime(-10, now);
-  compressor.knee.setValueAtTime(12, now);
-  compressor.ratio.setValueAtTime(12, now);
-  compressor.attack.setValueAtTime(.001, now);
-  compressor.release.setValueAtTime(.12, now);
-  source.connect(pan);
-  pan.connect(master);
+  compressor.threshold.setValueAtTime(-12, now);
+  compressor.knee.setValueAtTime(16, now);
+  compressor.ratio.setValueAtTime(9, now);
+  compressor.attack.setValueAtTime(.0015, now);
+  compressor.release.setValueAtTime(.18, now);
+  const soundscapeNodes = connectSampleSoundscape(
+    ac, source, master, preset, spatialPan(options), now,
+  );
   master.connect(compressor);
   compressor.connect(ac.destination);
   const duration = Math.min(buffer.duration, sample.maxDuration);
@@ -72,7 +74,7 @@ async function playSample(recipe: SoundRecipe, options: MaterialSoundOptions): P
   release = activePlaybacks.track(() => {
     if (timer !== null) clearTimeout(timer);
     try { source.stop(); } catch {}
-    disconnect([source, pan, master, compressor]);
+    disconnect([source, ...soundscapeNodes, master, compressor]);
   });
   source.start(now, 0, duration);
   const armCleanup = () => { timer = setTimeout(() => release?.(), (duration + .2) * 1000); };
@@ -107,7 +109,7 @@ export function playMaterialSound(
   options: MaterialSoundOptions = {},
 ): void {
   if (recipe.sample) {
-    void playSample(recipe, options).catch(() => playSynthesizedSound(packId, preset, recipe, options));
+    void playSample(preset, recipe, options).catch(() => {});
     return;
   }
   playSynthesizedSound(packId, preset, recipe, options);

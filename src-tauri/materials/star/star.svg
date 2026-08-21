@@ -1,19 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/512 512" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_star" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#f8e4aa"/>
-      <stop offset="0.4" stop-color="#facc42"/>
-      <stop offset="1"   stop-color="#d6a000"/>
+    <linearGradient id="g_star_main" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFE55C"/>
+      <stop offset="0.5" stop-color="#FFD60A"/>
+      <stop offset="1" stop-color="#FF9500"/>
     </linearGradient>
-    <filter id="gw_star" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.978  0 0 0 0 0.764  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <linearGradient id="g_star_shine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFACD"/>
+      <stop offset="1" stop-color="#FFD60A"/>
+    </linearGradient>
+    <radialGradient id="g_glow" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#FFD60A" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FF9500" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <g filter="url(#gw_star)">
-    <path fill="url(#g_star)" d="M324.52 191.715a97.542 97.542 0 0 0-4.228-4.229L256 22.303l-64.291 165.183a93.225 93.225 0 0 0-4.222 4.224L22.301 255.998l165.179 64.291a97.542 97.542 0 0 0 4.229 4.229L256 489.697l64.284-165.174a95.208 95.208 0 0 0 4.237-4.233l165.178-64.287zM256 297.773c-23.067 0-41.77-18.705-41.77-41.775 0-23.067 18.703-41.767 41.77-41.767 23.068 0 41.767 18.7 41.767 41.767 0 23.07-18.7 41.775-41.767 41.775z"/>
-  </g>
+
+  <!-- 外发光 -->
+  <circle cx="256" cy="256" r="160" fill="url(#g_glow)"/>
+
+  <!-- 星星阴影 -->
+  <path d="M258 50 L298 182 L434 182 C440 182 443 190 438 194 L328 274 L368 406 C370 412 363 416 358 412 L258 332 L158 412 C153 416 146 412 148 406 L188 274 L78 194 C73 190 76 182 82 182 L218 182 Z"
+        fill="#000" opacity="0.15" transform="translate(3, 3)"/>
+
+  <!-- 星星主体 -->
+  <path d="M256 48 L296 180 L432 180 C438 180 441 188 436 192 L326 272 L366 404 C368 410 361 414 356 410 L256 330 L156 410 C151 414 144 410 146 404 L186 272 L76 192 C71 188 74 180 80 180 L216 180 Z"
+        fill="url(#g_star_main)" stroke="#FF8C00" stroke-width="6"/>
+
+  <!-- 内部高光 -->
+  <path d="M256 80 L286 180 L366 180 L306 230 L336 330 L256 270 L176 330 L206 230 L146 180 L226 180 Z"
+        fill="url(#g_star_shine)" opacity="0.6" stroke="none"/>
+
+  <!-- 星星纹理线条 -->
+  <line x1="256" y1="100" x2="256" y2="160" stroke="#FFFACD" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <line x1="326" y1="210" x2="366" y2="240" stroke="#FFFACD" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <line x1="346" y1="330" x2="306" y2="300" stroke="#FFFACD" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <line x1="206" y1="300" x2="166" y2="330" stroke="#FFFACD" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+  <line x1="146" y1="210" x2="186" y2="240" stroke="#FFFACD" stroke-width="3" opacity="0.5" stroke-linecap="round"/>
+
+  <!-- 中心宝石 -->
+  <circle cx="256" cy="240" r="24" fill="#FFFACD" stroke="#FFE55C" stroke-width="4"/>
+  <circle cx="250" cy="234" r="10" fill="#FFF" opacity="0.6"/>
 </svg>

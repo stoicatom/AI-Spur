@@ -1,19 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_bow" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#f8d5aa"/>
-      <stop offset="0.4" stop-color="#faa742"/>
-      <stop offset="1"   stop-color="#d67500"/>
+    <linearGradient id="g_bow_wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2691E"/>
+      <stop offset="0.3" stop-color="#A0522D"/>
+      <stop offset="0.7" stop-color="#8B4513"/>
+      <stop offset="1" stop-color="#654321"/>
     </linearGradient>
-    <filter id="gw_bow" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.978  0 0 0 0 0.593  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <linearGradient id="g_arrow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#8B4513"/>
+      <stop offset="0.6" stop-color="#A0522D"/>
+      <stop offset="1" stop-color="#C0C0C0"/>
+    </linearGradient>
   </defs>
-  <g filter="url(#gw_bow)">
-    <path fill="url(#g_bow)" d="M331.734 20.443a4.421 4.421 0 0 0-1.802.327c-27.736 11.543-47.295 57.495-29.899 76.671 33.52 38.946 72.835 55.573 90.147 128.434 2.607 20.15 1.218 40.094 0 60.25-17.312 72.861-56.627 89.488-90.147 128.434-17.396 19.176 2.163 65.128 29.899 76.671 9.038 3.762 28.025-26.165 21.752-25.209-16.34 2.491-37.8-20.941-28.387-28.93 38.47-32.65 105.49-100.055 100.277-135.552-2.211-15.057-9.35-30.36-15.574-45.539 6.225-15.18 13.363-30.482 15.574-45.54 5.214-35.496-61.806-102.901-100.277-135.552-9.412-7.988 12.047-31.42 28.387-28.93 5.881.897-10.44-25.35-19.95-25.535zM152 24.23l-21.441 53.602L152 99.273l21.441-21.441zm-9 91.497v296.546l9-9 9 9V115.727l-2.637 2.636-6.363 6.364zm160 9.847v260.824l18-17.53V143.104zM152 428.727l-23 23v38.546l23-23 23 23v-38.546z"/>
-  </g>
+
+  <!-- 弓臂阴影 -->
+  <path d="M122 82 C82 182 82 334 122 434" stroke="#000" stroke-width="20" fill="none" opacity="0.15"/>
+
+  <!-- 弓臂主体 -->
+  <path d="M120 80 C80 180 80 332 120 432" stroke="url(#g_bow_wood)" stroke-width="18"
+        fill="none" stroke-linecap="round"/>
+
+  <!-- 弓臂内侧高光 -->
+  <path d="M122 90 C88 180 88 332 122 422" stroke="#D2691E" stroke-width="6"
+        fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- 弓臂木纹 -->
+  <path d="M120 140 C100 145 100 150 120 155" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 220 C100 225 100 230 120 235" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 300 C100 305 100 310 120 315" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 380 C100 385 100 390 120 395" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+
+  <!-- 弓弦 - 主线 -->
+  <line x1="120" y1="80" x2="120" y2="432" stroke="#E8D5B7" stroke-width="4"/>
+
+  <!-- 弓弦 - 拉伸到箭 -->
+  <line x1="120" y1="80" x2="140" y2="256" stroke="#E8D5B7" stroke-width="3"/>
+  <line x1="120" y1="432" x2="140" y2="256" stroke="#E8D5B7" stroke-width="3"/>
+
+  <!-- 箭杆 -->
+  <line x1="140" y1="256" x2="400" y2="256" stroke="url(#g_arrow)" stroke-width="8"/>
+
+  <!-- 箭羽 -->
+  <path d="M160 246 L180 236 L180 246 Z" fill="#8B4513" opacity="0.6"/>
+  <path d="M160 266 L180 276 L180 266 Z" fill="#8B4513" opacity="0.6"/>
+  <path d="M170 246 L190 238 L190 246 Z" fill="#A0522D" opacity="0.5"/>
+  <path d="M170 266 L190 274 L190 266 Z" fill="#A0522D" opacity="0.5"/>
+
+  <!-- 箭头 -->
+  <path d="M400 256 L370 236 L380 256 L370 276 Z" fill="#C0C0C0" stroke="#808080" stroke-width="3"/>
+  <path d="M400 256 L385 246 L385 266 Z" fill="#E8E8E8" opacity="0.6"/>
+
+  <!-- 箭尾缺口 -->
+  <path d="M135 256 L145 250 L145 262 Z" fill="#654321"/>
 </svg>

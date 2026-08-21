@@ -1,19 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_crown" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#f8e4aa"/>
-      <stop offset="0.4" stop-color="#facc42"/>
-      <stop offset="1"   stop-color="#d6a000"/>
+    <linearGradient id="g_crown_gold" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#FFA500"/>
+      <stop offset="1" stop-color="#FF8C00"/>
     </linearGradient>
-    <filter id="gw_crown" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.978  0 0 0 0 0.764  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <linearGradient id="g_crown_band" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFE55C"/>
+      <stop offset="0.5" stop-color="#FFD700"/>
+      <stop offset="1" stop-color="#DAA520"/>
+    </linearGradient>
+    <radialGradient id="g_gem_ruby" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#FF6B9D"/>
+      <stop offset="0.6" stop-color="#C2185B"/>
+      <stop offset="1" stop-color="#880E4F"/>
+    </radialGradient>
+    <radialGradient id="g_gem_emerald" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#66FF99"/>
+      <stop offset="0.6" stop-color="#00C853"/>
+      <stop offset="1" stop-color="#00695C"/>
+    </radialGradient>
+    <radialGradient id="g_gem_sapphire" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#64B5F6"/>
+      <stop offset="0.6" stop-color="#1976D2"/>
+      <stop offset="1" stop-color="#0D47A1"/>
+    </radialGradient>
   </defs>
-  <g filter="url(#gw_crown)">
-    <path fill="url(#g_crown)" d="M256 38.55c-30.5 0-55 24.52-55 55 0 30.45 24.5 54.95 55 54.95s55-24.5 55-54.95c0-30.48-24.5-55-55-55zM191.3 164.4c-5.7 0-11.1.4-16 1.4-19.9 4-34.1 15.6-43.1 35.4-9.4 20.6-12.1 50.6-5.8 88l6 5.9c13.8 13.8 36.1 21.4 58.6 21.4 21.1 0 42.1-6.7 56-19V179.2c-21-9.8-39.8-14.5-55.7-14.8zm129.4 0c-15.9.3-34.7 5-55.7 14.8v118.3c13.9 12.3 34.9 19 56 19 22.5 0 44.8-7.6 58.6-21.4l6-5.9c6.3-37.4 3.6-67.4-5.8-88-9-19.8-23.2-31.4-43.1-35.4-4.9-1-10.3-1.4-16-1.4zm-209.1 14.4h-.2c-30 .7-55.2 12.1-70.2 32.1-13.3 17.8-19.5 42.9-13.6 76 .9 5.1 2.1 10.5 3.7 16 24.5 18.5 54.3 18.6 78.9.3-9.2-44.8-6.9-81.9 5.6-109.4 2.4-5.3 5.2-10.2 8.4-14.7-2.9-.2-5.8-.3-8.6-.3H111.7c-.1 0-.1-.1-.1 0zm288.8 0c0-.1 0 0-.1 0H396.4c-2.8 0-5.7.1-8.6.3 3.2 4.5 6 9.4 8.4 14.7 12.5 27.5 14.8 64.6 5.6 109.4 24.5 18.3 54.4 18.2 78.9-.3 1.5-5.5 2.8-10.9 3.7-16 5.9-33.1-.3-58.2-13.6-76-15-20-40.2-31.4-70.2-32.1h-.2zM132.8 318.4c6.9 26.1 17.7 54.9 32.9 86.1h58.6l22.7-56.7v-28c-16.4 10-36.3 14.7-56 14.7-20.7 0-41.5-5.2-58.2-16.1zm246.4 0c-16.7 10.9-37.5 16.1-58.2 16.1-19.7 0-39.6-4.7-56-14.7v28l22.7 56.7h58.6c15.2-31.2 26-60 32.9-86.1zm-264.6 3.4c-23 13.9-50.1 16.1-74.5 6.4 9.6 23 24.1 48.5 44.5 76.3h61c-14-29.6-24.2-57.2-31-82.7zm282.8 0c-6.8 25.5-17 53.1-31 82.7h61c20.4-27.8 34.9-53.3 44.5-76.3-24.3 9.7-51.5 7.5-74.5-6.4zM256 373.7l-22.1 55.4 22.1 44.3 22.1-44.3zM91.53 422.5l11.47 46h35.3l-23-23 23-23zm90.27 0l16.6 16.6 6.3 6.4-23 23h51.7l-19.3-38.6 3-7.4zm113.1 0l1.5 3.7 1.5 3.7-19.3 38.6h51.7l-23-23 23-23zm78.9 0l16.6 16.6 6.3 6.4-23 23H409l11.5-46zM160 426.2l-19.3 19.3 19.3 19.3 19.3-19.3zm192 0l-19.3 19.3 19.3 19.3 19.3-19.3z"/>
-  </g>
+
+  <!-- 底座阴影 -->
+  <path d="M98 322 L418 322 L418 402 C418 422 402 442 382 442 L134 442 C114 442 98 422 98 402 Z"
+        fill="#000" opacity="0.2"/>
+
+  <!-- 底座 -->
+  <path d="M96 320 L416 320 L416 400 C416 420 400 440 380 440 L132 440 C112 440 96 420 96 400 Z"
+        fill="url(#g_crown_band)" stroke="#B8860B" stroke-width="8"/>
+
+  <!-- 底座装饰条纹 -->
+  <line x1="100" y1="350" x2="412" y2="350" stroke="#DAA520" stroke-width="3" opacity="0.6"/>
+  <line x1="100" y1="370" x2="412" y2="370" stroke="#FFE55C" stroke-width="2" opacity="0.8"/>
+  <line x1="100" y1="390" x2="412" y2="390" stroke="#DAA520" stroke-width="3" opacity="0.6"/>
+
+  <!-- 底座宝石镶嵌 -->
+  <circle cx="160" cy="370" r="10" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="2"/>
+  <circle cx="256" cy="370" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="2"/>
+  <circle cx="352" cy="370" r="10" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="2"/>
+
+  <!-- 尖峰主体 -->
+  <path d="M96 320 L120 160 L180 240 L256 120 L332 240 L392 160 L416 320"
+        fill="url(#g_crown_gold)" stroke="#B8860B" stroke-width="10" stroke-linejoin="round"/>
+
+  <!-- 尖峰内部高光 -->
+  <path d="M100 318 L122 170 L175 235 L256 130 L337 235 L390 170 L412 318"
+        fill="none" stroke="#FFE55C" stroke-width="3" opacity="0.6"/>
+
+  <!-- 顶部宝石 - 左侧红宝石 -->
+  <circle cx="120" cy="160" r="22" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="4"/>
+  <path d="M110 150 L130 150 L120 165 Z" fill="#FF6B9D" opacity="0.5"/>
+  <circle cx="115" cy="155" r="6" fill="#FFB3D9" opacity="0.6"/>
+
+  <!-- 中央蓝宝石（最大） -->
+  <circle cx="256" cy="120" r="28" fill="url(#g_gem_sapphire)" stroke="#0D47A1" stroke-width="5"/>
+  <path d="M242 108 L270 108 L256 128 Z" fill="#64B5F6" opacity="0.5"/>
+  <circle cx="250" cy="113" r="8" fill="#90CAF9" opacity="0.7"/>
+
+  <!-- 右侧红宝石 -->
+  <circle cx="392" cy="160" r="22" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="4"/>
+  <path d="M382 150 L402 150 L392 165 Z" fill="#FF6B9D" opacity="0.5"/>
+  <circle cx="387" cy="155" r="6" fill="#FFB3D9" opacity="0.6"/>
+
+  <!-- 次级宝石点缀 -->
+  <circle cx="180" cy="240" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="3"/>
+  <circle cx="332" cy="240" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="3"/>
 </svg>

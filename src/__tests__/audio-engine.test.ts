@@ -5,6 +5,7 @@ import {
   playRecipe,
   releaseAudioContextWhenIdle,
 } from '../overlay/audio-engine';
+import { sampleSoundscapeProfileFor } from '../overlay/audio-sample-soundscape';
 import type { SoundRecipe } from '../shared/material-packs';
 
 function param(): AudioParam {
@@ -33,6 +34,10 @@ class FakeAudioContext {
   readonly destination = new FakeNode() as unknown as AudioDestinationNode;
   readonly sampleRate = 12;
   readonly sources: FakeSource[] = [];
+  readonly gains: GainNode[] = [];
+  readonly filters: BiquadFilterNode[] = [];
+  readonly panners: StereoPannerNode[] = [];
+  readonly delays: DelayNode[] = [];
   currentTime = 0;
   state: AudioContextState = FakeAudioContext.initialState;
   close = vi.fn(async () => { this.state = 'closed'; });
@@ -50,7 +55,9 @@ class FakeAudioContext {
   }
 
   createGain(): GainNode {
-    return Object.assign(new FakeNode(), { gain: param() }) as unknown as GainNode;
+    const node = Object.assign(new FakeNode(), { gain: param() }) as unknown as GainNode;
+    this.gains.push(node);
+    return node;
   }
 
   createDynamicsCompressor(): DynamicsCompressorNode {
@@ -71,8 +78,14 @@ class FakeAudioContext {
     return source as unknown as AudioBufferSourceNode;
   }
 
+  decodeAudioData(_bytes: ArrayBuffer): Promise<AudioBuffer> {
+    return Promise.resolve({ duration: 2.4 } as AudioBuffer);
+  }
+
   createBiquadFilter(): BiquadFilterNode {
-    return Object.assign(new FakeNode(), { frequency: param(), Q: param() }) as unknown as BiquadFilterNode;
+    const node = Object.assign(new FakeNode(), { frequency: param(), Q: param(), type: 'lowpass' }) as unknown as BiquadFilterNode;
+    this.filters.push(node);
+    return node;
   }
 
   createWaveShaper(): WaveShaperNode {
@@ -80,11 +93,15 @@ class FakeAudioContext {
   }
 
   createStereoPanner(): StereoPannerNode {
-    return Object.assign(new FakeNode(), { pan: param() }) as unknown as StereoPannerNode;
+    const node = Object.assign(new FakeNode(), { pan: param() }) as unknown as StereoPannerNode;
+    this.panners.push(node);
+    return node;
   }
 
   createDelay(): DelayNode {
-    return Object.assign(new FakeNode(), { delayTime: param() }) as unknown as DelayNode;
+    const node = Object.assign(new FakeNode(), { delayTime: param() }) as unknown as DelayNode;
+    this.delays.push(node);
+    return node;
   }
 }
 
@@ -103,6 +120,20 @@ const LONG_NOISE: SoundRecipe = {
   layers: [{ type: 'noise', attack: 0.02, decay: 2.6, gain: 0.5, delay: 0 }],
 };
 
+const REAL_SAMPLE: SoundRecipe = {
+  masterGain: 0.9,
+  layers: [],
+  sample: {
+    file: 'sound.m4a', dataUri: 'data:audio/mp4;base64,AA==', gain: 0.9,
+    maxDuration: 2.4, sourceTitle: 'Real field recording',
+    sourceUrl: 'https://example.com/recording', license: 'Test license',
+  },
+};
+
+async function settleAsyncWork(): Promise<void> {
+  for (let i = 0; i < 8; i++) await Promise.resolve();
+}
+
 function currentContext(): FakeAudioContext {
   const context = FakeAudioContext.instances.at(-1);
   if (!context) throw new Error('expected an audio context');
@@ -116,6 +147,9 @@ describe('程序化声音引擎生命周期', () => {
     FakeAudioContext.initialState = 'running';
     FakeAudioContext.resumeGate = null;
     vi.stubGlobal('AudioContext', FakeAudioContext as unknown as typeof AudioContext);
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true, status: 200, arrayBuffer: async () => new ArrayBuffer(8),
+    })));
   });
 
   afterEach(() => {
@@ -177,6 +211,38 @@ describe('程序化声音引擎生命周期', () => {
 
     expect(starts).toContain(.741);
     expect(context.sources.length).toBeGreaterThan(5);
+  });
+
+  it('真实采样建立主体、低频、瞬态和双侧空间层且不生成合成声源', async () => {
+    playMaterialSound('sun', 'glow', REAL_SAMPLE, {
+      x: 1440, viewportWidth: 1920, velocityX: 2400, velocitySpeed: 5200,
+    });
+    await settleAsyncWork();
+    const context = currentContext();
+
+    expect(context.sources).toHaveLength(1);
+    expect(context.gains).toHaveLength(6);
+    expect(context.filters).toHaveLength(3);
+    expect(context.panners).toHaveLength(3);
+    expect(context.delays).toHaveLength(2);
+    expect(vi.mocked(context.delays[0].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(0.037);
+    expect(vi.mocked(context.delays[1].delayTime.setValueAtTime).mock.calls[0][0]).toBeCloseTo(0.059);
+
+    closeAudioContext();
+    expect(context.sources[0].stop).toHaveBeenCalled();
+    expect(context.delays.every((node) => vi.mocked(node.disconnect).mock.calls.length > 0)).toBe(true);
+  });
+
+  it('按素材语义区分重击、利器、节奏和开阔声场', () => {
+    const heavy = sampleSoundscapeProfileFor('explode');
+    const sharp = sampleSoundscapeProfileFor('dash');
+    const rhythm = sampleSoundscapeProfileFor('note-dance');
+    const expansive = sampleSoundscapeProfileFor('glow');
+
+    expect(heavy.body).toBeGreaterThan(sharp.body);
+    expect(sharp.presence).toBeGreaterThan(heavy.presence);
+    expect(rhythm.dry).toBeGreaterThan(expansive.dry);
+    expect(expansive.rightDelay).toBeGreaterThan(sharp.rightDelay);
   });
 
   it('上下文挂起时等待恢复后才启动墙钟清理', async () => {

@@ -6,10 +6,12 @@ import { NaturalFamilyLayer } from './three-family-natural';
 import { RhythmFamilyLayer } from './three-family-rhythm';
 import { WeaponFamilyLayer } from './three-family-weapon';
 import type { FamilyLayer } from './three-family-shared';
+import { FullFieldSpectacleLayer } from './three-full-field-spectacle';
 
 /** Dispatches every preset to a genuinely different physical stage family. */
 export class CinematicLayers {
   private readonly layer: FamilyLayer;
+  private readonly spectacle: FullFieldSpectacleLayer;
 
   constructor(
     root: THREE.Group, origin: THREE.Vector3, color: THREE.Color, energy: number,
@@ -24,9 +26,13 @@ export class CinematicLayers {
       case 'cosmic': this.layer = new CosmicFamilyLayer(context); break;
       case 'impact': this.layer = new ImpactFamilyLayer(context); break;
     }
+    this.spectacle = new FullFieldSpectacleLayer(context);
   }
 
   update(t: number, now: number, _profile?: PhysicalProfile): void {
     this.layer.update(t, now);
+    this.spectacle.update(t, now);
   }
+
+  resize(width: number, height: number): void { this.spectacle.resize(width, height); }
 }

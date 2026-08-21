@@ -1,19 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_boomerang" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#f8caaa"/>
-      <stop offset="0.4" stop-color="#fa8e42"/>
-      <stop offset="1"   stop-color="#d65900"/>
+    <linearGradient id="g_boom" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2691E"/>
+      <stop offset="0.5" stop-color="#A0522D"/>
+      <stop offset="1" stop-color="#8B4513"/>
     </linearGradient>
-    <filter id="gw_boomerang" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.978  0 0 0 0 0.479  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-  <g filter="url(#gw_boomerang)">
-    <path fill="url(#g_boomerang)" d="M444.824 74.726C413.17 41.73 286.208 42.686 184.298 60.023l6.463 70.695c59.96-4.478 124.03-3.225 160.113 33.527 34.967 37.816 33.125 101.87 25.757 161.544l70.3 9.868c22.24-100.955 29.322-227.723-2.106-260.932zM164.077 63.752c-5.497 1.092-10.92 2.236-16.186 3.42l6.106 66.803c5.36-.526 10.806-1.05 16.332-1.56l-6.25-68.663zM442.23 355.675l-68.283-9.56c-.776 5.496-1.562 10.91-2.346 16.24l66.43 9.322c1.44-5.204 2.843-10.564 4.2-16.002zM127.81 72.07c-48.305 12.787-81.697 29.542-79.757 47.244 2.445 22.298 38.3 21.037 85.574 16.623L127.81 72.07zM432.17 391.5l-63.512-8.896c-6.69 47.005-9.682 82.76 12.472 86.277 17.588 2.794 35.935-29.75 51.04-77.38z"/>
-  </g>
+  <path d="M80 80 C110 60 190 80 240 180 C290 280 310 360 290 410 C270 460 220 440 220 390 C220 340 200 270 150 220 C100 170 40 150 40 100 C40 50 60 60 80 80 Z"
+        fill="url(#g_boom)" stroke="#654321" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M95 95 C115 85 175 95 215 175 C265 265 280 340 270 380 C260 420 230 410 230 375 C230 335 215 280 175 240 C135 200 85 180 75 135 C70 100 80 105 95 95 Z"
+        fill="#A0522D" opacity="0.4"/>
+  <path d="M120 110 C130 115 150 130 170 160" stroke="#654321" stroke-width="4" opacity="0.3" fill="none"/>
+  <circle cx="100" cy="100" r="12" fill="#8B4513"/>
 </svg>

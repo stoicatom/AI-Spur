@@ -1,19 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_spear" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#aadef8"/>
-      <stop offset="0.4" stop-color="#42bcfa"/>
-      <stop offset="1"   stop-color="#008ed6"/>
+    <linearGradient id="g_spear_tip" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#E8E8E8"/>
+      <stop offset="0.5" stop-color="#C0C0C0"/>
+      <stop offset="1" stop-color="#A0A0A0"/>
     </linearGradient>
-    <filter id="gw_spear" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.123  0 0 0 0 0.692  0 0 0 0 0.978  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-  <g filter="url(#gw_spear)">
-    <path fill="url(#g_spear)" d="M18.156 14.938l1.188 109.812 19.5 17.22c15.49-23.43 36.69-41.66 65.094-51.47l-80.5-75.563h-5.282zm168.125 53.78c-.396 44.894-10.642 82.204-31.155 111.5C272.262 286.142 455.438 453.28 455.438 464.407c-11.175 0-197.844-161.162-316.75-264.594-25.878 25.887-62.488 43.38-110.313 52 68.746 39.904 126.46 57.79 191.594 69.282-19.723 11.207-43.54 19.43-71.157 24.406 67.254 39.04 123.215 55.186 187.687 65.906-16.78 9.55-36.457 17.074-59.97 21.313C354.206 477.804 413.56 487 498.314 497.5v-.03c-18.824-85.7-40.233-141.38-96.625-209.845-.202 22.858-3.87 42.68-10.594 60.5-19.436-63.145-45.6-114.738-94.438-174.03-.235 26.606-4.35 50.287-12.094 71.093-20.53-63.15-48.564-116.11-98.28-176.47zm-68.936 37.126c-29.56 7.767-49.585 24.63-64.406 48.53l30.312 26.75c7.968-26.825 21.017-51.348 34.094-75.28zm15.062 11.406c-13.92 25.673-26.966 50.952-33.562 77.656l9.844 8.688c19.153-15.05 40.11-42.41 47.906-63.656l-24.188-22.688z"/>
-  </g>
+  <line x1="256" y1="380" x2="256" y2="480" stroke="#8B4513" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 60 L212 260 L244 300 L268 300 L300 260 Z" fill="url(#g_spear_tip)" stroke="#909090" stroke-width="10"/>
+  <line x1="256" y1="80" x2="256" y2="280" stroke="#E0E0E0" stroke-width="6" opacity="0.4"/>
+  <rect x="232" y="300" width="48" height="80" rx="8" fill="#A0522D" stroke="#654321" stroke-width="8"/>
+  <rect x="238" y="305" width="36" height="70" rx="6" fill="#8B4513"/>
+  <line x1="240" y1="320" x2="272" y2="320" stroke="#654321" stroke-width="3"/>
+  <line x1="240" y1="350" x2="272" y2="350" stroke="#654321" stroke-width="3"/>
+  <ellipse cx="256" cy="465" rx="18" ry="12" fill="#654321"/>
 </svg>

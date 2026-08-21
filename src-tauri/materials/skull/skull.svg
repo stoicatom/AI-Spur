@@ -1,19 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="g_skull" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#d1f8aa"/>
-      <stop offset="0.4" stop-color="#9efa42"/>
-      <stop offset="1"   stop-color="#6bd600"/>
+      <stop offset="0" stop-color="#F5F5F5"/>
+      <stop offset="0.5" stop-color="#E0E0E0"/>
+      <stop offset="1" stop-color="#B0B0B0"/>
     </linearGradient>
-    <filter id="gw_skull" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.55  0 0 0 0 0.978  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <radialGradient id="g_eye_socket" cx="0.5" cy="0.4">
+      <stop offset="0" stop-color="#1A1A1A"/>
+      <stop offset="0.7" stop-color="#0D0D0D"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
   </defs>
-  <g filter="url(#gw_skull)">
-    <path fill="url(#g_skull)" d="M187.406 22.22l-41.562 41.843 62.875 29.843-8 16.875-68.845-32.655L59.97 150.53l33.31 96.97 56.876-7.156 10.53-42.47 18.126 4.47-45.843 185.25 55.31-49.656 10-9 4.94 12.5 14.81 37.53 31.25-41.624 8.126-10.844 7.25 11.47 30.406 48.217 22.657-46.75 5.092-10.5 9.125 7.25 62.532 49.782-62.814-182.22 17.656-6.094 12.782 37.063 60.562-.94 26.47-101.874-72.72-62.344-70.125 38.844-9.06-16.375 64.03-35.468-29.75-25.53-144.094-8.813zm190.688 85.5l13.28 67.218-107.28-16.25 94-50.97zm-246.188.936L229.97 160l-116.25 13.47 18.186-64.814zm123.188 122.5l55.844 64.75-36.25 12.875-17.407-42.655-15.374 43.344-35.344-13.564 48.532-64.75zm74.344 126.938L304.53 409.47l-7.342 15.155-8.97-14.25-32.124-50.97-33.156 44.19-10.063 13.342-6.125-15.53-15.97-40.594-30.436 27.312 25.53 66.406 61.407 35.22 98.814-39.563 16.937-65.343-33.592-26.75z"/>
-  </g>
+
+  <!-- 头骨阴影 -->
+  <path d="M258 66 C170 66 106 130 106 222 C106 276 130 314 162 338 L162 386 C162 400 174 410 186 410 L330 410 C342 410 354 400 354 386 L354 338 C386 314 410 276 410 222 C410 130 346 66 258 66 Z"
+        fill="#000" opacity="0.15"/>
+
+  <!-- 头骨主体 -->
+  <path d="M256 64 C168 64 104 128 104 220 C104 274 128 312 160 336 L160 384 C160 398 172 408 184 408 L328 408 C340 408 352 398 352 384 L352 336 C384 312 408 274 408 220 C408 128 344 64 256 64 Z"
+        fill="url(#g_skull)" stroke="#999" stroke-width="8"/>
+
+  <!-- 骨骼裂纹纹理 -->
+  <path d="M180 140 C185 135 190 130 195 125" stroke="#CCC" stroke-width="2" opacity="0.4" fill="none" stroke-linecap="round"/>
+  <path d="M332 140 C327 135 322 130 317 125" stroke="#CCC" stroke-width="2" opacity="0.4" fill="none" stroke-linecap="round"/>
+  <path d="M256 100 L256 120" stroke="#CCC" stroke-width="2" opacity="0.3" fill="none"/>
+
+  <!-- 眉骨突起 -->
+  <path d="M160 190 C165 185 175 182 185 185" fill="none" stroke="#CCC" stroke-width="3" opacity="0.5"/>
+  <path d="M352 190 C347 185 337 182 327 185" fill="none" stroke="#CCC" stroke-width="3" opacity="0.5"/>
+
+  <!-- 眼窝 - 左 -->
+  <ellipse cx="200" cy="220" rx="38" ry="44" fill="url(#g_eye_socket)" stroke="#666" stroke-width="4"/>
+  <ellipse cx="200" cy="220" rx="32" ry="38" fill="#0D0D0D"/>
+  <ellipse cx="195" cy="215" rx="12" ry="16" fill="#1A1A1A" opacity="0.5"/>
+
+  <!-- 眼窝 - 右 -->
+  <ellipse cx="312" cy="220" rx="38" ry="44" fill="url(#g_eye_socket)" stroke="#666" stroke-width="4"/>
+  <ellipse cx="312" cy="220" rx="32" ry="38" fill="#0D0D0D"/>
+  <ellipse cx="307" cy="215" rx="12" ry="16" fill="#1A1A1A" opacity="0.5"/>
+
+  <!-- 鼻腔 -->
+  <path d="M256 260 L240 290 C240 295 242 300 248 300 L264 300 C270 300 272 295 272 290 L256 260 Z"
+        fill="url(#g_eye_socket)" stroke="#666" stroke-width="4"/>
+
+  <!-- 下颌牙齿槽 -->
+  <rect x="200" y="350" width="16" height="58" rx="4" fill="url(#g_eye_socket)" stroke="#999" stroke-width="3"/>
+  <rect x="248" y="350" width="16" height="58" rx="4" fill="url(#g_eye_socket)" stroke="#999" stroke-width="3"/>
+  <rect x="296" y="350" width="16" height="58" rx="4" fill="url(#g_eye_socket)" stroke="#999" stroke-width="3"/>
+
+  <!-- 牙齿分隔线 -->
+  <line x1="208" y1="365" x2="208" y2="395" stroke="#999" stroke-width="2" opacity="0.3"/>
+  <line x1="256" y1="365" x2="256" y2="395" stroke="#999" stroke-width="2" opacity="0.3"/>
+  <line x1="304" y1="365" x2="304" y2="395" stroke="#999" stroke-width="2" opacity="0.3"/>
+
+  <!-- 颧骨线条 -->
+  <path d="M160 240 C155 245 152 255 152 265" fill="none" stroke="#CCC" stroke-width="2" opacity="0.4"/>
+  <path d="M352 240 C357 245 360 255 360 265" fill="none" stroke="#CCC" stroke-width="2" opacity="0.4"/>
+
+  <!-- 下颌连接线 -->
+  <path d="M184 350 L160 340 C160 340 155 345 160 350" fill="none" stroke="#999" stroke-width="3" opacity="0.5"/>
+  <path d="M328 350 L352 340 C352 340 357 345 352 350" fill="none" stroke="#999" stroke-width="3" opacity="0.5"/>
 </svg>

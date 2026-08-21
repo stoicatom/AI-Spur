@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { additiveMaterial, fadeAt, physicalMaterial, setOpacity, type FamilyContext, type FamilyLayer } from './three-family-shared';
+import { additiveLineMaterial, additiveMaterial, fadeAt, physicalMaterial, setOpacity, type FamilyContext, type FamilyLayer } from './three-family-shared';
 import { clamp, easeOut, TAU, weaponColor, weaponParam } from './three-family-weapon-shared';
 
 type GlassShard = { mesh: THREE.Mesh; angle: number; radius: number; delay: number; lift: number };
@@ -98,7 +98,7 @@ export class GlassFractureWeaponStage implements FamilyLayer {
       }
     }
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(data, 3));
-    const line = new THREE.LineSegments(geometry, additiveMaterial(weaponColor(this.ctx.color, 0.02, 0.22), 0.9));
+    const line = new THREE.LineSegments(geometry, additiveLineMaterial(weaponColor(this.ctx.color, 0.02, 0.22), 0.9));
     line.name = 'glass-crack-graph'; line.position.z = 28; this.group.add(line); return line;
   }
 }

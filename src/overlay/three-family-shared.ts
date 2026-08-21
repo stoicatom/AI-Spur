@@ -40,6 +40,13 @@ export function additiveMaterial(color: THREE.Color, opacity = 0.8): THREE.MeshP
   });
 }
 
+/** Line primitives require a line shader; mesh PBR materials are not GPU-compatible. */
+export function additiveLineMaterial(color: THREE.Color, opacity = 0.8): THREE.LineBasicMaterial {
+  return new THREE.LineBasicMaterial({
+    color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+}
+
 export function physicalMaterial(
   color: THREE.Color,
   energy: number,

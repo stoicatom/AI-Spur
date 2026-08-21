@@ -1,4 +1,6 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { additiveLineMaterial } from '../overlay/three-family-shared';
 import { materialDomainParameters, type MaterialDomain } from '../overlay/three-material-domains';
 
 const DOMAINS: MaterialDomain[] = [
@@ -18,5 +20,14 @@ describe('physical material domains', () => {
     expect(materialDomainParameters('fabric').sheen).toBeGreaterThan(0.6);
     expect(materialDomainParameters('fire').emissiveScale).toBeGreaterThan(1);
     expect(materialDomainParameters('smoke').opacity).toBeLessThan(0.2);
+  });
+
+  it('uses a line-compatible additive material for line primitives', () => {
+    const material = additiveLineMaterial(new THREE.Color('#ffd166'), 0.8);
+    expect(material).toBeInstanceOf(THREE.LineBasicMaterial);
+    expect(material).not.toBeInstanceOf(THREE.MeshPhysicalMaterial);
+    expect(material.transparent).toBe(true);
+    expect(material.depthWrite).toBe(false);
+    material.dispose();
   });
 });

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   additiveMaterial,
+  additiveLineMaterial,
   fadeAt,
   physicalMaterial,
   setOpacity,
@@ -39,7 +40,7 @@ export class ThunderImpactScene implements FamilyLayer {
     const { color, energy, origin } = ctx;
     this.group.position.copy(origin);
     ctx.root.add(this.group);
-    this.bolt = new THREE.LineSegments(this.boltGeometry, additiveMaterial(color, 0.98));
+    this.bolt = new THREE.LineSegments(this.boltGeometry, additiveLineMaterial(color, 0.98));
     this.bolt.position.z = 54;
     this.vertexCount = this.boltGeometry.getAttribute('position').count;
     this.boltGeometry.setDrawRange(0, 0);

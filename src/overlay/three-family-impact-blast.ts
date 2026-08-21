@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {
   additiveMaterial,
+  additiveLineMaterial,
   fadeAt,
   physicalMaterial,
   setOpacity,
@@ -24,7 +25,7 @@ function radialLines(color: THREE.Color, count: number, inner: number, outer: nu
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(data, 3));
-  return new THREE.LineSegments(geometry, additiveMaterial(color, 0.82));
+  return new THREE.LineSegments(geometry, additiveLineMaterial(color, 0.82));
 }
 
 /** Fireball, wire pressure shell, radiation flash and ballistic fragments. */

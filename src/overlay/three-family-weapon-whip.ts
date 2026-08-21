@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { additiveMaterial, fadeAt, physicalMaterial, setOpacity, type FamilyContext, type FamilyLayer } from './three-family-shared';
+import { additiveLineMaterial, additiveMaterial, fadeAt, physicalMaterial, setOpacity, type FamilyContext, type FamilyLayer } from './three-family-shared';
 import { clamp, setWeaponOpacity, TAU, weaponColor, weaponParam } from './three-family-weapon-shared';
 import { WHIP_CRACK_IMPACT_PROGRESS } from './effect-timings';
 
@@ -23,7 +23,7 @@ export class BullwhipWeaponStage implements FamilyLayer {
     const data = new Float32Array(36 * 3);
     this.points = new THREE.BufferAttribute(data, 3); this.points.setUsage(THREE.DynamicDrawUsage);
     const lineGeometry = new THREE.BufferGeometry(); lineGeometry.setAttribute('position', this.points);
-    this.whip = new THREE.Line(lineGeometry, additiveMaterial(ctx.color, 0.92)); this.whip.name = 'bullwhip-lash'; this.whip.position.z = 34; this.group.add(this.whip);
+    this.whip = new THREE.Line(lineGeometry, additiveLineMaterial(ctx.color, 0.92)); this.whip.name = 'bullwhip-lash'; this.whip.position.z = 34; this.group.add(this.whip);
     this.tip = new THREE.Mesh(new THREE.OctahedronGeometry(9, 0), physicalMaterial(weaponColor(ctx.color, 0.03, 0.18), ctx.energy, 'metal'));
     this.tip.name = 'bullwhip-tip'; this.group.add(this.tip);
     for (let i = 0; i < 3; i++) {

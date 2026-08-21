@@ -1,19 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_rocket" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#f8cbaa"/>
-      <stop offset="0.4" stop-color="#fa9142"/>
-      <stop offset="1"   stop-color="#d65c00"/>
+    <linearGradient id="g_rocket_body" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FF8C5A"/>
+      <stop offset="0.5" stop-color="#FF6B35"/>
+      <stop offset="1" stop-color="#E5521F"/>
     </linearGradient>
-    <filter id="gw_rocket" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.978  0 0 0 0 0.493  0 0 0 0 0.123  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <linearGradient id="g_rocket_window" x1="0.3" y1="0.3" x2="0.7" y2="0.7">
+      <stop offset="0" stop-color="#87CEEB"/>
+      <stop offset="1" stop-color="#4A90E2"/>
+    </linearGradient>
+    <linearGradient id="g_fire" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFD60A"/>
+      <stop offset="0.5" stop-color="#FF9500"/>
+      <stop offset="1" stop-color="#FF3B30"/>
+    </linearGradient>
+    <radialGradient id="g_shine" cx="0.35" cy="0.35">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <g filter="url(#gw_rocket)">
-    <path fill="url(#g_rocket)" d="M487.375 26.906L356.5 56.47c-23.13 58.833 39.11 126.32 101.313 101.5l29.562-131.064zm-143.5 99.125L237.78 232.5c-3.703 22.683 2.47 38.328 16.94 46.47l10.718 6.03-8.688 8.72L57.625 492.686H83.78l314.19-317.28c-23.152-9.146-42.645-27.243-54.095-49.376zM218.75 233.126l-113.53 18.72 97.436 5.968-121.97 51.156 105.158-9.47-67.313 61.688 62.564-18.282 54.844-54.812c-13.938-12.937-19.78-32.964-17.188-54.97zM16.844 245.063v32.312l84.937-15.563-84.936-16.75zm263.75 75.437l-42.688 43.063-.875 67.75L280.595 320.5zm-161.97 2.625L16.845 341.5v44.094l101.78-62.47zm8.157 61.25l-110.124 47.22v65.124H27.22l1.28-1.283 41.03-41.03 57.25-70.032zm85.314 15.22l-39.156 97.217h38.78l.376-97.218zm58.78 1.967l-10.718 95.25h26.156l-15.437-95.25z"/>
-  </g>
+
+  <!-- 火箭主体阴影 -->
+  <path d="M258 50 L202 242 L202 362 C202 382 222 402 258 402 C294 402 314 382 314 362 L314 242 Z"
+        fill="#000" opacity="0.15" transform="translate(3, 3)"/>
+
+  <!-- 火箭主体 -->
+  <path d="M256 48 L200 240 L200 360 C200 380 220 400 256 400 C292 400 312 380 312 360 L312 240 Z"
+        fill="url(#g_rocket_body)" stroke="#D84315" stroke-width="8"/>
+
+  <!-- 机身面板线条 -->
+  <line x1="220" y1="260" x2="292" y2="260" stroke="#E5521F" stroke-width="3" opacity="0.6"/>
+  <line x1="215" y1="300" x2="297" y2="300" stroke="#E5521F" stroke-width="3" opacity="0.6"/>
+  <line x1="210" y1="340" x2="302" y2="340" stroke="#E5521F" stroke-width="3" opacity="0.6"/>
+
+  <!-- 铆钉细节 -->
+  <circle cx="210" cy="260" r="4" fill="#C63D15"/>
+  <circle cx="302" cy="260" r="4" fill="#C63D15"/>
+  <circle cx="210" cy="300" r="4" fill="#C63D15"/>
+  <circle cx="302" cy="300" r="4" fill="#C63D15"/>
+  <circle cx="210" cy="340" r="4" fill="#C63D15"/>
+  <circle cx="302" cy="340" r="4" fill="#C63D15"/>
+
+  <!-- 窗口外框 -->
+  <circle cx="256" cy="160" r="44" fill="#1E3A5F" stroke="#0D1F33" stroke-width="6"/>
+  <!-- 窗口玻璃 -->
+  <circle cx="256" cy="160" r="36" fill="url(#g_rocket_window)" stroke="#2A5580" stroke-width="4"/>
+  <!-- 窗口高光 -->
+  <ellipse cx="246" cy="150" rx="16" ry="20" fill="url(#g_shine)"/>
+
+  <!-- 左翼 -->
+  <path d="M200 280 L135 345 L135 385 C135 395 142 405 155 405 L200 400 Z"
+        fill="#D84315" stroke="#B8360B" stroke-width="8"/>
+  <path d="M200 285 L145 340 L145 380" fill="none" stroke="#FF6B35" stroke-width="3" opacity="0.5"/>
+
+  <!-- 右翼 -->
+  <path d="M312 280 L377 345 L377 385 C377 395 370 405 357 405 L312 400 Z"
+        fill="#D84315" stroke="#B8360B" stroke-width="8"/>
+  <path d="M312 285 L367 340 L367 380" fill="none" stroke="#FF6B35" stroke-width="3" opacity="0.5"/>
+
+  <!-- 引擎喷口 -->
+  <ellipse cx="256" cy="400" rx="60" ry="20" fill="#1A1A1A" stroke="#0A0A0A" stroke-width="6"/>
+  <ellipse cx="256" cy="398" rx="50" ry="16" fill="#2D2D2D"/>
+
+  <!-- 火焰 - 外层 -->
+  <path d="M210 400 Q205 420 215 445 Q220 465 230 475 Q240 485 256 485 Q272 485 282 475 Q292 465 297 445 Q307 420 302 400"
+        fill="url(#g_fire)" opacity="0.8" stroke="none"/>
+  <!-- 火焰 - 中层 -->
+  <path d="M220 405 Q218 422 225 440 Q230 455 240 465 Q248 472 256 472 Q264 472 272 465 Q282 455 287 440 Q294 422 292 405"
+        fill="#FFD60A" opacity="0.7" stroke="none"/>
+  <!-- 火焰 - 核心 -->
+  <path d="M235 408 Q233 420 238 432 Q242 442 248 448 Q252 452 256 452 Q260 452 264 448 Q270 442 274 432 Q279 420 277 408"
+        fill="#FFFACD" opacity="0.9" stroke="none"/>
 </svg>

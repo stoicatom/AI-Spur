@@ -1,19 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_rain" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0"   stop-color="#aacaf8"/>
-      <stop offset="0.4" stop-color="#428efa"/>
-      <stop offset="1"   stop-color="#0059d6"/>
+    <linearGradient id="g_cloud" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#90CAF9"/>
+      <stop offset="0.5" stop-color="#64B5F6"/>
+      <stop offset="1" stop-color="#42A5F5"/>
     </linearGradient>
-    <filter id="gw_rain" x="-22%" y="-22%" width="144%" height="144%">
-      <feGaussianBlur stdDeviation="9" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0.123  0 0 0 0 0.479  0 0 0 0 0.978  0 0 0 0.55 0"
-        result="gc"/>
-      <feMerge><feMergeNode in="gc"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-  <g filter="url(#gw_rain)">
-    <path fill="url(#g_rain)" d="M50.656 22.125c24.862 31.888 280 358.568 341.063 411.72 76.902 66.936 132.718-3.814 73-73-52.197-60.47-369.484-308.088-408.814-338.72h-5.25zm188.656 0c45.33 61.388 132.53 178.237 165.25 206.72 53.745 46.78 93.142-3.023 51.407-51.376C429.4 146.69 326.902 69.273 263.25 22.124h-23.938zm131.375 0C385.11 38.203 397.84 51.793 404 57.155c41.042 35.724 71.142 1.755 46.125-35.03h-79.438zM17.375 132.5v54.313c42.702 54.933 87.407 110.516 108.03 128.468 53.748 46.783 93.143-2.456 51.407-50.81-21.41-24.807-95.776-83.243-159.437-131.97zm0 165.844V355c45.978 54.937 90.37 107.056 106.28 120.906 47.652 41.476 81.973-2.693 44.97-45.562-16.444-19.05-84.786-76.927-151.25-132z"/>
+  <ellipse cx="200" cy="160" rx="80" ry="60" fill="url(#g_cloud)" opacity="0.9"/>
+  <ellipse cx="280" cy="140" rx="90" ry="70" fill="url(#g_cloud)"/>
+  <ellipse cx="340" cy="170" rx="70" ry="55" fill="url(#g_cloud)" opacity="0.9"/>
+  <g stroke="#1976D2" stroke-width="16" stroke-linecap="round">
+    <line x1="180" y1="240" x2="170" y2="380"/>
+    <line x1="230" y1="260" x2="220" y2="400"/>
+    <line x1="280" y1="240" x2="270" y2="380"/>
+    <line x1="330" y1="260" x2="320" y2="400"/>
+    <line x1="205" y1="250" x2="195" y2="360" opacity="0.5" stroke-width="12"/>
+    <line x1="255" y1="250" x2="245" y2="360" opacity="0.5" stroke-width="12"/>
+    <line x1="305" y1="250" x2="295" y2="360" opacity="0.5" stroke-width="12"/>
   </g>
 </svg>

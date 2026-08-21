@@ -87,6 +87,7 @@ export class ThreeEffectRenderer {
     this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.pipeline.resize(this.width, this.height, pixelRatio);
+    this.layers?.resize(this.width, this.height);
   }
   start(spec: ThreeEffectSpec, now = performance.now()): void {
     if (this.disposed) throw new Error('ThreeEffectRenderer has been disposed');
