@@ -137,7 +137,7 @@ export const SoundRecipeSchema = z.object({
   /** 多层音色：仅用于旧用户包兼容。 */
   layers: z.array(SoundLayerSchema).max(6).default([]),
   /** 高清真实录音，存在时优先于 layers 播放。 */
-  sample: SoundSampleSchema.optional(),
+  sample: SoundSampleSchema.nullish().transform((value) => value ?? undefined),
   /** 主增益 0-1 */
   masterGain: z.number().min(0.05).max(1).default(0.8),
 }).refine((sound) => Boolean(sound.sample) || sound.layers.length > 0, {

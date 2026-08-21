@@ -98,6 +98,16 @@ describe('Material Pack IPC contract', () => {
       expect(parsed.layers).toHaveLength(2);
     });
 
+    it('兼容后端历史响应中的空采样字段', () => {
+      const parsed = SoundRecipeSchema.parse({
+        layers: [{ type: 'impact', attack: 0.01, decay: 0.3, gain: 0.8 }],
+        sample: null,
+        masterGain: 0.8,
+      });
+
+      expect(parsed.sample).toBeUndefined();
+    });
+
     it('拒绝既没有采样也没有兼容层的声音', () => {
       expect(() => SoundRecipeSchema.parse({ layers: [], masterGain: 0.8 })).toThrow();
     });

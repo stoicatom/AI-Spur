@@ -241,6 +241,7 @@ fn material_pack_serializes_using_the_frontend_contract() {
     assert_eq!(json["effect"]["preset"], "jet");
     assert_eq!(json["sound"]["layers"][0]["filter"]["freqEnd"], 400.0);
     assert!((json["sound"]["masterGain"].as_f64().unwrap() - 0.8).abs() < 1e-6);
+    assert!(json["sound"].get("sample").is_none());
     assert_eq!(json["palette"]["particleHue"], 24);
     assert_eq!(json["builtin"], true);
 }

@@ -148,7 +148,7 @@ fn default_q() -> f32 {
 pub struct SoundRecipe {
     #[serde(default)]
     pub layers: Vec<SoundLayer>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sample: Option<SoundSample>,
     #[serde(default = "default_master_gain")]
     pub master_gain: f32,
