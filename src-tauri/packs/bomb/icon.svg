@@ -11,11 +11,34 @@
       <stop offset=".5" stop-color="var(--pack-fuse,#A6794F)"/>
       <stop offset="1" stop-color="var(--pack-fuse-light,#D5B182)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="15" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M10 32c0-11 7-18 17-18s17 8 17 18c0 8-6 13-15 14H23c-8-1-13-6-13-14Z" fill="url(#bomb-shell)" stroke="var(--pack-ink,#283234)" stroke-width="1.5"/>
   <path d="m24 16 5-8 7 4-5 8Z" fill="var(--pack-collar,#697576)" stroke="var(--pack-ink,#283234)" stroke-width="1.5"/>
   <path d="M33 11c3-6 8-8 11-5 2 2 1 5-1 7l-3-2c2-2 2-3 1-4-3-2-5 3-6 6Z" fill="url(#bomb-fuse)" stroke="var(--pack-ink,#283234)" stroke-width="1.5"/>
   <path d="M14 23c-3 4-3 10-1 14 2-1 4-2 5-4-2-4-1-8 2-12Z" fill="var(--pack-surface-light,#BBC3C2)" opacity=".42"/>
   <path d="M29 41c5-2 8-6 9-10M21 18c4-2 9-1 12 2" stroke="var(--pack-cast-mark,#879294)" stroke-width="1.5" opacity=".58"/>
   <path d="m43 4 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="var(--pack-ember,#D9854D)"/>
+
+  </g>
 </svg>

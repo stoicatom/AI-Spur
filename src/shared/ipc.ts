@@ -146,19 +146,24 @@ export async function setActivePack(id: string): Promise<void> {
 }
 
 /**
- * 创建自定义素材包：上传图标 + 绑定特效预设 + 声音配方 + 配色。
- * Rust 复制图标到 `app_data_dir()/packs/custom/<id>/` 并写 pack.json。
+ * 创建自定义素材包：上传图标和真实音频，并绑定特效预设与配色。
+ * Rust 复制资产到 `app_data_dir()/packs/custom/<id>/` 并写 pack.json。
  */
 export async function createCustomPack(input: {
   id: string;
   name: string;
   iconPath: string;
+  soundPath: string;
   effectPreset: string;
   sound: unknown;
   palette: { bodyGradient: [string, string]; particleHue: number };
 }): Promise<MaterialPack> {
   const raw = await invoke<unknown>('create_custom_pack', input);
   return MaterialPackSchema.parse(raw);
+}
+
+export async function readLocalSoundData(path: string): Promise<string> {
+  return invoke<string>('read_local_sound_data', { path });
 }
 
 /** 删除自定义素材包（仅限 custom 目录内的素材包）。 */

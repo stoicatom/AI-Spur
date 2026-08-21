@@ -14,51 +14,22 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "rumble",
-        "attack": 0.12,
-        "decay": 2.8,
-        "gain": 0.66,
-        "osc": { "type": "sine", "freq": 46, "freqEnd": 22 }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.05,
-        "decay": 2.2,
-        "gain": 0.38,
-        "osc": { "type": "sawtooth", "freq": 340, "freqEnd": 36 },
-        "filter": { "type": "lowpass", "freq": 980, "freqEnd": 120, "q": 1.8 }
-      },
-      {
-        "type": "noise",
-        "attack": 0.09,
-        "decay": 2.5,
-        "gain": 0.34,
-        "noiseColor": "pink",
-        "filter": { "type": "lowpass", "freq": 640, "freqEnd": 80, "q": 1.1 }
-      },
-      {
-        "type": "tone",
-        "attack": 0.16,
-        "decay": 2.65,
-        "gain": 0.24,
-        "osc": { "type": "triangle", "freq": 94, "freqEnd": 47 },
-        "delay": 0.18
-      },
-      {
-        "type": "chime",
-        "attack": 0.08,
-        "decay": 1.6,
-        "gain": 0.12,
-        "osc": { "type": "sine", "freq": 1870, "freqEnd": 310 },
-        "delay": 0.28
-      }
-    ],
-    "masterGain": 0.62
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.72,
+      "maxDuration": 4,
+      "sourceTitle": "Cinematic whoosh deep impact",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1143/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
-    "bodyGradient": ["#8C5FD3", "#25C7C9"],
+    "bodyGradient": [
+      "#8C5FD3",
+      "#25C7C9"
+    ],
     "particleHue": 268
   }
 }

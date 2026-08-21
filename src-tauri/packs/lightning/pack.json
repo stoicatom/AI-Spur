@@ -11,32 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.18,
-        "gain": 0.9,
-        "noiseColor": "white",
-        "filter": {
-          "type": "highpass",
-          "freq": 3000,
-          "q": 1
-        }
-      },
-      {
-        "type": "tone",
-        "attack": 0.004,
-        "decay": 0.3,
-        "gain": 0.5,
-        "osc": {
-          "type": "square",
-          "freq": 200,
-          "freqEnd": 60
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.74,
+      "maxDuration": 6.825329,
+      "sourceTitle": "Electricity lightning blast",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2601/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

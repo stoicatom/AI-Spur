@@ -11,41 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "rumble",
-        "attack": 0.01,
-        "decay": 1.2,
-        "gain": 0.6,
-        "osc": {
-          "type": "sine",
-          "freq": 60,
-          "freqEnd": 30
-        }
-      },
-      {
-        "type": "tone",
-        "attack": 0.004,
-        "decay": 0.9,
-        "gain": 0.4,
-        "osc": {
-          "type": "sine",
-          "freq": 220,
-          "freqEnd": 110
-        }
-      },
-      {
-        "type": "chime",
-        "attack": 0.002,
-        "decay": 1,
-        "gain": 0.3,
-        "osc": {
-          "type": "sine",
-          "freq": 880
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.7,
+      "maxDuration": 8.350907,
+      "sourceTitle": "Explosion hit",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1704/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

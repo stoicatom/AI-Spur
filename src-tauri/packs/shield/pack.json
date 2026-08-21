@@ -11,43 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "impact",
-        "attack": 0.002,
-        "decay": 0.4,
-        "gain": 0.8,
-        "osc": {
-          "type": "sine",
-          "freq": 200,
-          "freqEnd": 60
-        }
-      },
-      {
-        "type": "tone",
-        "attack": 0.004,
-        "decay": 0.7,
-        "gain": 0.4,
-        "osc": {
-          "type": "square",
-          "freq": 440,
-          "freqEnd": 150
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.3,
-        "gain": 0.3,
-        "noiseColor": "white",
-        "filter": {
-          "type": "bandpass",
-          "freq": 2000,
-          "q": 2
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.72,
+      "maxDuration": 1.7,
+      "sourceTitle": "Sci-fi metallic reveal",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/887/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

@@ -11,48 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 0.3,
-        "gain": 0.6,
-        "osc": {
-          "type": "sawtooth",
-          "freq": 900,
-          "freqEnd": 300
-        }
-      },
-      {
-        "type": "tone",
-        "attack": 0.004,
-        "decay": 0.9,
-        "gain": 0.5,
-        "osc": {
-          "type": "triangle",
-          "freq": 660,
-          "freqEnd": 220
-        },
-        "filter": {
-          "type": "bandpass",
-          "freq": 2000,
-          "q": 3
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.2,
-        "gain": 0.3,
-        "noiseColor": "white",
-        "filter": {
-          "type": "highpass",
-          "freq": 4000,
-          "q": 1
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.76,
+      "maxDuration": 1.043129,
+      "sourceTitle": "Arrow shot through air",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2771/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

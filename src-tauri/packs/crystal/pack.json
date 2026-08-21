@@ -11,41 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "chime",
-        "attack": 0.002,
-        "decay": 0.9,
-        "gain": 0.6,
-        "osc": {
-          "type": "sine",
-          "freq": 2093
-        }
-      },
-      {
-        "type": "chime",
-        "attack": 0.002,
-        "decay": 0.7,
-        "gain": 0.4,
-        "osc": {
-          "type": "sine",
-          "freq": 2637
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.3,
-        "gain": 0.35,
-        "noiseColor": "white",
-        "filter": {
-          "type": "highpass",
-          "freq": 4000,
-          "q": 1
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.72,
+      "maxDuration": 1.439819,
+      "sourceTitle": "Glass break with hammer thud",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/759/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

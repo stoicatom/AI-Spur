@@ -9,6 +9,7 @@ import { seedParticleStates, stepParticle, type ParticleState } from './three-pa
 import { placeFamilySprite } from './three-family-timeline';
 import { disposeSceneResources, disposeTextureOnce } from './three-effect-resources';
 import { renderContractFor } from './three-effect-contract';
+import { materialForDomain, type MaterialDomain } from './three-material-domains';
 const _vectorScratch = new THREE.Vector3();
 const _scaleScratch = new THREE.Vector3();
 const _zAxis = new THREE.Vector3(0, 0, 1);
@@ -62,8 +63,16 @@ export class ThreeEffectRenderer {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.08;
     this.scene.add(this.root);
-    this.scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    this.scene.add(new THREE.HemisphereLight(0xdcecff, 0x160f0a, 1.35));
+    const key = new THREE.DirectionalLight(0xffead4, 3.8);
+    key.position.set(-240, 320, 460);
+    const fill = new THREE.DirectionalLight(0x8fc9ff, 2.1);
+    fill.position.set(300, 120, 260);
+    const rim = new THREE.DirectionalLight(0xffffff, 2.8);
+    rim.position.set(80, -260, -180);
+    this.scene.add(key, fill, rim);
     this.resize();
   }
 
@@ -194,7 +203,8 @@ export class ThreeEffectRenderer {
   private addParticles(color: THREE.Color, vel: WhipVel): void {
     const count = this.physics.count;
     const energy = this.physics.energy;
-    const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.94, blending: THREE.AdditiveBlending, depthWrite: false });
+    const material = materialForDomain(color, energy, domainForProfile(this.profile));
+    material.opacity = 0.92;
     this.particles = new THREE.InstancedMesh(geometry(this.profile.particle, 3.4 + energy * 2.2), material, count);
     this.particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.root.add(this.particles);
@@ -248,5 +258,19 @@ export class ThreeEffectRenderer {
     this.texture = null;
     this.renderer.renderLists.dispose();
     try { this.renderer.clear(true, true, true); } catch {}
+  }
+}
+
+/** Select a physical surface response for the compatibility particle path. */
+export function domainForProfile(profile: PhysicalProfile): MaterialDomain {
+  switch (profile.motion) {
+    case 'flame': case 'wildfire': case 'fireworks': return 'fire';
+    case 'splash': case 'rain': case 'downpour': case 'wave': return 'water';
+    case 'shards': return profile.shape === 'octa' ? 'ice' : 'glass';
+    case 'fracture': return 'glass';
+    case 'tornado': case 'vortex': case 'singularity': return 'smoke';
+    case 'petal': return 'fabric';
+    case 'impact': return 'rock';
+    default: return profile.family === 'rhythm' ? 'wood' : 'metal';
   }
 }

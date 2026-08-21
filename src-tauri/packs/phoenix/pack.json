@@ -11,42 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "chime",
-        "attack": 0.002,
-        "decay": 1.6,
-        "gain": 0.45,
-        "osc": {
-          "type": "sine",
-          "freq": 1568
-        }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 1,
-        "gain": 0.4,
-        "osc": {
-          "type": "triangle",
-          "freq": 800,
-          "freqEnd": 120
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.8,
-        "gain": 0.3,
-        "noiseColor": "pink",
-        "filter": {
-          "type": "highpass",
-          "freq": 2000,
-          "q": 1
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.78,
+      "maxDuration": 3.631927,
+      "sourceTitle": "Fire swoosh burning",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1328/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

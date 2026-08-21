@@ -11,33 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.8,
-        "gain": 0.5,
-        "noiseColor": "pink",
-        "filter": {
-          "type": "bandpass",
-          "freq": 1200,
-          "freqEnd": 300,
-          "q": 2
-        }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 0.9,
-        "gain": 0.4,
-        "osc": {
-          "type": "triangle",
-          "freq": 600,
-          "freqEnd": 80
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.7,
+      "maxDuration": 1.451995,
+      "sourceTitle": "Cinematic wind swoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1471/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

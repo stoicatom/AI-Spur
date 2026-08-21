@@ -431,6 +431,8 @@
   color: var(--text-danger);
 }
 
+.material-card__delete .icon { width: 13px; height: 13px; }
+
 .material-picker__upload {
   display: flex;
   flex-direction: column;
@@ -462,9 +464,9 @@
 }
 
 .material-picker__upload-glyph {
-  font-size: 24px;
-  font-weight: var(--weight-medium);
-  line-height: 1;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
 }
 
 .material-picker__upload-label {
@@ -692,6 +694,8 @@
   color: var(--text-danger);
 }
 
+.sound-card__delete .icon { width: 14px; height: 14px; }
+
 .sound-card__preview {
   flex: none;
   display: flex;
@@ -721,7 +725,12 @@
   cursor: default;
 }
 
+.sound-card__preview .icon { width: 14px; height: 14px; }
+
 .sound-picker__upload {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   align-self: flex-start;
   padding: var(--space-2) var(--space-3);
   border: 1.5px dashed var(--border-default);
@@ -735,6 +744,8 @@
     border-color var(--duration-fast) var(--ease-in-out),
     color var(--duration-fast) var(--ease-in-out);
 }
+
+.sound-picker__upload .icon { width: 16px; height: 16px; }
 
 .sound-picker__upload:hover:not(:disabled) {
   border-color: var(--accent);
@@ -958,6 +969,14 @@
   line-height: 1;
 }
 
+.icon-dropzone > .icon,
+.wizard-nav > .btn > .icon,
+.wizard-close > .icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
 .icon-dropzone__check {
   color: var(--brand-400);
   font-size: 1.1rem;
@@ -1006,6 +1025,13 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.625rem;
+}
+
+.wizard-audio-preview {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  accent-color: var(--brand-400);
 }
 
 .sound-mood-card {
@@ -1083,10 +1109,15 @@
   box-shadow: 0 0 0 2px oklch(68% 0.18 42 / 0.2);
 }
 
-.effect-preset-tile__glyph {
-  font-size: 1.25rem;
-  line-height: 1;
+.effect-preset-tile__icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 1.35rem;
+  color: var(--text-secondary);
+  filter: drop-shadow(0 1px 0 rgb(255 255 255 / 0.2));
 }
+
+.effect-preset-tile--active .effect-preset-tile__icon { color: var(--brand-400); }
 
 .effect-preset-tile__label {
   font-size: 0.625rem;

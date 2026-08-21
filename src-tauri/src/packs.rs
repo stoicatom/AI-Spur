@@ -1,6 +1,6 @@
 //! 素材包（Material Pack）模型 + 文件系统扫描 —— v3 三轴合一。
 //!
-//! 一个素材包 = 图标 + 运动轨迹特效预设 + 程序化合成声音配方 + 配色，
+//! 一个素材包 = 图标 + 运动轨迹特效预设 + 真实声音采样（兼容旧配方）+ 配色，
 //! 取代旧的三轴解耦体系（配色皮肤 skins / 音效包 sounds / 素材 materials）。
 //!
 //! 磁盘布局（内置）：`packs/<id>/icon.<svg|png|...>` + `pack.json`
@@ -146,9 +146,31 @@ fn default_q() -> f32 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SoundRecipe {
+    #[serde(default)]
     pub layers: Vec<SoundLayer>,
+    #[serde(default)]
+    pub sample: Option<SoundSample>,
     #[serde(default = "default_master_gain")]
     pub master_gain: f32,
+}
+
+/// 声音采样元数据。`data_uri` 只在扫描后返回给前端，不写回 pack.json。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct SoundSample {
+    pub file: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_uri: Option<String>,
+    #[serde(default = "default_sample_gain")]
+    pub gain: f32,
+    pub max_duration: f32,
+    pub source_title: String,
+    pub source_url: String,
+    pub license: String,
+}
+
+fn default_sample_gain() -> f32 {
+    0.82
 }
 
 fn default_master_gain() -> f32 {
@@ -230,7 +252,7 @@ fn parse_pack(dir: &Path, builtin: bool) -> Option<MaterialPack> {
     let manifest: PackManifest = serde_json::from_str(&content).ok()?;
     manifest.validate().ok()?;
 
-    let asset_path = dir.join(&manifest.icon);
+    let asset_path = safe_asset_path(dir, &manifest.icon)?;
     if !asset_path.is_file() {
         return None;
     }
@@ -253,6 +275,20 @@ fn parse_pack(dir: &Path, builtin: bool) -> Option<MaterialPack> {
         crate::sounds::base64_encode(&bytes)
     );
 
+    let mut sound = manifest.sound;
+    if let Some(sample) = sound.sample.as_mut() {
+        let sample_path = safe_asset_path(dir, &sample.file)?;
+        if !sample_path.is_file() {
+            return None;
+        }
+        let sample_bytes = std::fs::read(&sample_path).ok()?;
+        let mime = audio_mime(&sample_path)?;
+        sample.data_uri = Some(format!(
+            "data:{mime};base64,{}",
+            crate::sounds::base64_encode(&sample_bytes)
+        ));
+    }
+
     Some(MaterialPack {
         id: manifest.id,
         name: manifest.name,
@@ -260,9 +296,27 @@ fn parse_pack(dir: &Path, builtin: bool) -> Option<MaterialPack> {
         image_file: manifest.icon,
         data_uri,
         effect: manifest.effect,
-        sound: manifest.sound,
+        sound,
         palette: manifest.palette,
     })
+}
+
+fn safe_asset_path(dir: &Path, relative: &str) -> Option<std::path::PathBuf> {
+    let path = Path::new(relative);
+    if relative.is_empty() || path.is_absolute() || path.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
+        return None;
+    }
+    Some(dir.join(path))
+}
+
+fn audio_mime(path: &Path) -> Option<&'static str> {
+    match path.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()).as_deref() {
+        Some("wav") => Some("audio/wav"),
+        Some("mp3") => Some("audio/mpeg"),
+        Some("m4a") | Some("aac") => Some("audio/mp4"),
+        Some("ogg") | Some("oga") => Some("audio/ogg"),
+        _ => None,
+    }
 }
 
 /// 列出全部可用素材包：内置 + 用户自定义。用户包 id 与内置冲突时覆盖内置。

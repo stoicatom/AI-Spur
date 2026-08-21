@@ -44,10 +44,17 @@ fn validate_effect(manifest: &PackManifest) -> Result<(), String> {
 
 fn validate_sound(manifest: &PackManifest) -> Result<(), String> {
     let sound = &manifest.sound;
-    if !(1..=6).contains(&sound.layers.len()) {
-        return Err("sound recipe must have 1-6 layers".into());
+    if sound.layers.len() > 6 {
+        return Err("sound recipe must have at most 6 layers".into());
+    }
+    if sound.layers.is_empty() && sound.sample.is_none() {
+        return Err("sound must provide a sample or at least one legacy layer".into());
     }
     validate_range(sound.master_gain, "masterGain", 0.05, 1.0)?;
+
+    if let Some(sample) = &sound.sample {
+        validate_sample(sample)?;
+    }
 
     for (index, layer) in sound.layers.iter().enumerate() {
         let path = format!("sound.layers[{index}]");
@@ -75,6 +82,33 @@ fn validate_sound(manifest: &PackManifest) -> Result<(), String> {
             )?;
             validate_optional_frequency(osc.freq_end, &format!("{path}.osc.freqEnd"))?;
         }
+    }
+    Ok(())
+}
+
+fn validate_sample(sample: &super::SoundSample) -> Result<(), String> {
+    let extension = std::path::Path::new(&sample.file)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if !matches!(extension.as_str(), "wav" | "mp3" | "m4a" | "aac" | "ogg" | "oga") {
+        return Err("sound.sample.file has an unsupported audio format".into());
+    }
+    if std::path::Path::new(&sample.file).is_absolute()
+        || std::path::Path::new(&sample.file)
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err("sound.sample.file must stay inside the pack directory".into());
+    }
+    validate_range(sample.gain, "sound.sample.gain", 0.0, 1.0)?;
+    validate_range(sample.max_duration, "sound.sample.maxDuration", 0.05, 12.0)?;
+    if sample.source_title.trim().is_empty()
+        || sample.source_url.trim().is_empty()
+        || sample.license.trim().is_empty()
+    {
+        return Err("sound sample source metadata must not be empty".into());
     }
     Ok(())
 }

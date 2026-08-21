@@ -14,42 +14,22 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "impact",
-        "attack": 0.001,
-        "decay": 0.36,
-        "gain": 0.94,
-        "noiseColor": "white",
-        "filter": { "type": "lowpass", "freq": 1900, "freqEnd": 190, "q": 0.7 }
-      },
-      {
-        "type": "rumble",
-        "attack": 0.002,
-        "decay": 0.72,
-        "gain": 0.72,
-        "osc": { "type": "sine", "freq": 132, "freqEnd": 34 }
-      },
-      {
-        "type": "noise",
-        "attack": 0.003,
-        "decay": 0.2,
-        "gain": 0.42,
-        "noiseColor": "pink",
-        "filter": { "type": "bandpass", "freq": 880, "freqEnd": 420, "q": 1.5 }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.001,
-        "decay": 0.25,
-        "gain": 0.24,
-        "osc": { "type": "triangle", "freq": 390, "freqEnd": 82 }
-      }
-    ],
-    "masterGain": 0.74
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.8,
+      "maxDuration": 1.624989,
+      "sourceTitle": "Impact of a strong punch",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2155/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
-    "bodyGradient": ["#E84855", "#742B62"],
+    "bodyGradient": [
+      "#E84855",
+      "#742B62"
+    ],
     "particleHue": 350
   }
 }

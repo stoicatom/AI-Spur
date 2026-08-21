@@ -14,7 +14,28 @@
       <stop stop-color="var(--pack-stick-light,#C39A6C)"/>
       <stop offset="1" stop-color="var(--pack-stick-shadow,#76533A)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="23" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="m7 8 3-3 18 16-3 3Zm31 0 3-3L23 21l3 3Z" fill="url(#drum-stick)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
   <path d="M9 18h30v18c0 5-6 8-15 8S9 41 9 36Z" fill="url(#drum-shell)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
   <ellipse cx="24" cy="18" rx="15" ry="5" fill="url(#drum-head)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
@@ -22,4 +43,6 @@
   <path d="m12 24 7 16 10-16 7 16" stroke="var(--pack-lacing,#B59A6C)" stroke-width="1.5"/>
   <path d="M15 17c5-1 13-1 18 0" stroke="var(--pack-head-grain,#EEE8D8)" stroke-width="1.5" opacity=".58"/>
   <path d="M14 29v5m20-5v5" stroke="var(--pack-lug,#C0B193)" stroke-width="1.5"/>
+
+  </g>
 </svg>

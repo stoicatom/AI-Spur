@@ -20,7 +20,11 @@ fn real_bundled_packs_all_parse() {
     for p in &packs {
         assert!(!p.data_uri.is_empty(), "{} has no data URI", p.id);
         assert!(p.builtin, "{} should be builtin", p.id);
-        assert!(!p.sound.layers.is_empty(), "{} has no sound layers", p.id);
+        assert!(p.sound.sample.is_some() || !p.sound.layers.is_empty(), "{} has no sound source", p.id);
+        if let Some(sample) = &p.sound.sample {
+            assert!(sample.data_uri.as_deref().unwrap_or_default().starts_with("data:audio/"), "{} has no audio data URI", p.id);
+            assert!(!sample.source_title.is_empty(), "{} has no source title", p.id);
+        }
         assert!(
             p.palette.particle_hue >= 0 && p.palette.particle_hue <= 359,
             "{} hue out of range: {}",
@@ -77,31 +81,11 @@ fn every_builtin_pack_has_a_unique_complete_sound_recipe() {
 }
 
 #[test]
-fn every_builtin_pack_has_a_unique_sound_layer_combination() {
+fn every_builtin_pack_has_a_valid_sound_source() {
     let packs = packs::scan_packs_in(&bundled_packs_dir(), true);
-    let mut owners = std::collections::HashMap::new();
-
     for pack in &packs {
-        // Ignore masterGain here: changing only the global volume must not make
-        // two otherwise identical material sound stacks count as independent.
-        // Layer order is also ignored because all layers are mixed in parallel.
-        let mut layers: Vec<String> = pack
-            .sound
-            .layers
-            .iter()
-            .map(|layer| serde_json::to_string(layer).expect("sound layer serializes"))
-            .collect();
-        layers.sort();
-        let signature = layers.join("|");
-        if let Some(previous) = owners.insert(signature, pack.id.as_str()) {
-            panic!(
-                "packs {previous} and {} share the same sound layer combination",
-                pack.id
-            );
-        }
+        assert!(pack.sound.sample.is_some() || !pack.sound.layers.is_empty(), "{} has no sound source", pack.id);
     }
-
-    assert_eq!(owners.len(), packs.len());
 }
 
 #[test]
@@ -116,10 +100,11 @@ fn every_builtin_material_uses_the_sound_declared_in_its_own_manifest() {
         let manifest: packs::PackManifest = serde_json::from_str(&manifest_json)
             .unwrap_or_else(|error| panic!("failed to parse {}: {error}", manifest_path.display()));
 
-        assert_eq!(
-            pack.sound, manifest.sound,
-            "{} did not retain its material-specific sound recipe",
-            pack.id
-        );
+        assert_eq!(pack.sound.layers, manifest.sound.layers, "{} changed its legacy layers", pack.id);
+        assert_eq!(pack.sound.master_gain, manifest.sound.master_gain, "{} changed its master gain", pack.id);
+        let scanned = pack.sound.sample.as_ref().expect("sample after scanning");
+        let declared = manifest.sound.sample.as_ref().expect("sample in manifest");
+        assert_eq!(scanned.file, declared.file, "{} changed its sample file", pack.id);
+        assert!(scanned.data_uri.is_some(), "{} sample was not inlined", pack.id);
     }
 }

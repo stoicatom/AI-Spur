@@ -56,6 +56,39 @@ fn is_supported_icon_ext(ext: &str) -> bool {
     matches!(ext, "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp")
 }
 
+fn is_supported_audio_ext(ext: &str) -> bool {
+    matches!(ext, "wav" | "mp3" | "m4a" | "aac" | "ogg" | "oga")
+}
+
+fn audio_mime(ext: &str) -> Option<&'static str> {
+    match ext {
+        "wav" => Some("audio/wav"),
+        "mp3" => Some("audio/mpeg"),
+        "m4a" | "aac" => Some("audio/mp4"),
+        "ogg" | "oga" => Some("audio/ogg"),
+        _ => None,
+    }
+}
+
+/// 读取用户刚选择的音频，仅用于向导试听；创建素材包时仍会再次校验并复制。
+#[tauri::command]
+pub async fn read_local_sound_data(path: String) -> Result<String, String> {
+    let source = PathBuf::from(path);
+    let ext = source
+        .extension()
+        .map(|e| e.to_string_lossy().to_lowercase())
+        .unwrap_or_default();
+    if !is_supported_audio_ext(&ext) {
+        return Err("不支持的音频格式（仅 wav/mp3/m4a/aac/ogg）".into());
+    }
+    let bytes = fs::read(&source).map_err(|e| format!("读取音频失败: {e}"))?;
+    if bytes.len() > 25 * 1024 * 1024 {
+        return Err("音频文件不能超过 25 MB".into());
+    }
+    let mime = audio_mime(&ext).ok_or_else(|| "未知音频格式".to_string())?;
+    Ok(format!("data:{mime};base64,{}", crate::sounds::base64_encode(&bytes)))
+}
+
 #[tauri::command]
 pub async fn list_packs(app: AppHandle) -> Result<Vec<MaterialPack>, String> {
     let builtin = builtin_packs_dir(&app);
@@ -105,6 +138,7 @@ pub async fn create_custom_pack(
     icon_path: String,
     effect_preset: String,
     sound: packs::SoundRecipe,
+    sound_path: Option<String>,
     palette: packs::PackPalette,
     app: AppHandle,
 ) -> Result<MaterialPack, String> {
@@ -131,6 +165,36 @@ pub async fn create_custom_pack(
     }
 
     let file_name = format!("icon.{ext}");
+    let mut sound = sound;
+    let audio_source = sound_path.map(PathBuf::from);
+    let audio_file_name = if let Some(source) = audio_source.as_ref() {
+        let audio_ext = source
+            .extension()
+            .map(|e| e.to_string_lossy().to_lowercase())
+            .unwrap_or_default();
+        if !is_supported_audio_ext(&audio_ext) {
+            return Err("不支持的音频格式（仅 wav/mp3/m4a/aac/ogg）".to_string());
+        }
+        if !source.is_file() {
+            return Err("所选音频文件不存在".to_string());
+        }
+        let file_name = format!("sound.{audio_ext}");
+        sound.sample = Some(packs::SoundSample {
+            file: file_name.clone(),
+            data_uri: None,
+            gain: 0.82,
+            max_duration: 8.0,
+            source_title: source
+                .file_name()
+                .map(|value| value.to_string_lossy().to_string())
+                .unwrap_or_else(|| "用户上传录音".into()),
+            source_url: "https://local.user-upload.invalid/recording".into(),
+            license: "用户自有素材".into(),
+        });
+        Some((source.clone(), file_name))
+    } else {
+        None
+    };
     let manifest = PackManifest {
         id: slug.clone(),
         name,
@@ -161,6 +225,13 @@ pub async fn create_custom_pack(
     if let Err(e) = fs::copy(&src, target_dir.join(&file_name)) {
         let _ = fs::remove_dir_all(&target_dir);
         return Err(format!("复制图标文件失败: {e}"));
+    }
+
+    if let Some((source, file_name)) = audio_file_name {
+        if let Err(e) = fs::copy(source, target_dir.join(file_name)) {
+            let _ = fs::remove_dir_all(&target_dir);
+            return Err(format!("复制音频文件失败: {e}"));
+        }
     }
 
     // Write pack.json; roll back on failure.

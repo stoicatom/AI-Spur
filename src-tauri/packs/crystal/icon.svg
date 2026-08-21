@@ -10,10 +10,33 @@
       <stop stop-color="var(--pack-side-light,#ABC9C7)"/>
       <stop offset="1" stop-color="var(--pack-side-shadow,#49757B)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="20" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="m11 18 8-13 12 3 7 12-5 21-12 4-10-7Z" fill="url(#crystal-main)" stroke="var(--pack-ink,#35535C)" stroke-width="1.5"/>
   <path d="m31 14 7 6 5 16-8 7-5-4 3-17Z" fill="url(#crystal-side)" stroke="var(--pack-ink,#35535C)" stroke-width="1.5"/>
   <path d="m11 18 11 5-1 22-10-7Zm11 5 9-15 7 12-5 21-12 4Z" fill="var(--pack-facet-shadow,#477B86)" opacity=".58"/>
   <path d="m19 5 3 18 9-15m-20 10 11 5 16-3m-16 3 11 18m-12 4 1-22" stroke="var(--pack-facet-edge,#486F78)" stroke-width="1.5"/>
   <path d="m19 9-5 8 7 3Z" fill="var(--pack-reflection,#EFF9F4)" opacity=".75"/>
+
+  </g>
 </svg>

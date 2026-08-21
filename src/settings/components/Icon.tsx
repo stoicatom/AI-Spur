@@ -17,7 +17,13 @@ export type IconName =
   | 'plus'
   | 'search'
   | 'close'
-  | 'trash';
+  | 'trash'
+  | 'check'
+  | 'upload'
+  | 'play'
+  | 'pause'
+  | 'chevron-left'
+  | 'chevron-right';
 
 export interface IconProps {
   name: IconName;
@@ -153,4 +159,27 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
       <path d="M8.5 9V13.5M11.5 9V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </>
   ),
+
+  check: (
+    <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  ),
+
+  upload: (
+    <>
+      <path d="M10 14V4M6.5 7.5L10 4L13.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12.5V16H16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  ),
+
+  play: <path d="M7 4.8L17 10L7 15.2V4.8Z" fill="currentColor" />,
+
+  pause: (
+    <>
+      <path d="M6.5 5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M13.5 5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </>
+  ),
+
+  'chevron-left': <path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  'chevron-right': <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
 };

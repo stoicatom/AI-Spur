@@ -1,8 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <title>闪电</title>
-  <defs><linearGradient id="a" x1="13" y1="9" x2="37" y2="23" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-cloud-light,#AAB7C3)"/><stop offset="1" stop-color="var(--pack-cloud-shadow,#394454)"/></linearGradient><linearGradient id="b" x1="28" y1="22" x2="19" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFF7C2)"/><stop offset=".5" stop-color="var(--pack-bolt,#F4D248)"/><stop offset="1" stop-color="var(--pack-electric,#6DBFD2)"/></linearGradient></defs>
+  <defs><linearGradient id="a" x1="13" y1="9" x2="37" y2="23" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-cloud-light,#AAB7C3)"/><stop offset="1" stop-color="var(--pack-cloud-shadow,#394454)"/></linearGradient><linearGradient id="b" x1="28" y1="22" x2="19" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFF7C2)"/><stop offset=".5" stop-color="var(--pack-bolt,#F4D248)"/><stop offset="1" stop-color="var(--pack-electric,#6DBFD2)"/></linearGradient>  <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="31" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M6 23c-2-5 1-9 7-10 3-7 13-8 19-3 6-1 11 4 10 10 4 1 5 4 4 6H8c-1-1-2-2-2-3Z" fill="url(#a)" stroke="var(--pack-ink,#283342)" stroke-width="1.5"/>
   <path d="m25 23-8 13h7l-4 10 13-16h-7l5-7Z" fill="url(#b)" stroke="var(--pack-ink,#4B4526)" stroke-width="1.5"/>
   <path d="m15 29-5 6 4 1-4 5m28-12 4 4-3 2 3 4" stroke="var(--pack-arc,#8BDDEC)" stroke-width="1.5"/>
   <path d="M12 15c5-4 12-5 18-2" stroke="var(--pack-highlight,#DCE5EB)" stroke-width="1.5" opacity=".75"/>
+
+  </g>
 </svg>

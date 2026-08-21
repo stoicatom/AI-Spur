@@ -5,7 +5,28 @@
     <linearGradient id="fin" x1="10" y1="29" x2="36" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-fin-light,#9C6C61)"/><stop offset="1" stop-color="var(--pack-fin,#593D3B)"/></linearGradient>
     <radialGradient id="port" cx="0" cy="0" r="1" gradientTransform="translate(22 16) rotate(47) scale(7)"><stop stop-color="var(--pack-window-glint,#D7F0ED)"/><stop offset=".36" stop-color="var(--pack-window,#5D8F99)"/><stop offset="1" stop-color="var(--pack-window-shadow,#24444D)"/></radialGradient>
     <linearGradient id="plume" x1="24" y1="36" x2="24" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-thrust,#D7D1A3)"/><stop offset=".45" stop-color="var(--pack-flame,#B67845)"/><stop offset="1" stop-color="var(--pack-hot,#713A32)"/></linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="39" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M24 4c6 5 10 13 9 23l-3 12H18l-3-12C14 17 18 9 24 4Z" fill="url(#hull)" stroke="var(--pack-ink,#394346)" stroke-width="1.5"/>
   <path d="M18 27 8 34l1 7 11-5m10-9 10 7-1 7-11-5" fill="url(#fin)" stroke="var(--pack-ink,#394346)" stroke-width="1.5"/>
   <path d="M18 27h12M20 34h8M17 25c5 2 10 2 15 0" stroke="var(--pack-seam,#6E797C)" stroke-width="1"/>
@@ -13,4 +34,6 @@
   <path d="M20 15c1.8-2 4.6-2.3 6.4-.4" stroke="var(--pack-window-glint,#D7F0ED)" stroke-width="1" opacity=".78"/>
   <path d="m19 39 5 8 5-8" fill="url(#plume)" stroke="var(--pack-ink,#513A31)" stroke-width="1.5"/>
   <path d="M22 5c-2 6-2 13-.9 19" stroke="var(--pack-panel-light,#FFFFFF)" stroke-width="1" opacity=".66"/>
+
+  </g>
 </svg>

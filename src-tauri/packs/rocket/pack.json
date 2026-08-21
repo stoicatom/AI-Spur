@@ -11,44 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.5,
-        "gain": 0.7,
-        "noiseColor": "white",
-        "filter": {
-          "type": "lowpass",
-          "freq": 4000,
-          "freqEnd": 300,
-          "q": 0.7
-        }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 0.7,
-        "gain": 0.6,
-        "osc": {
-          "type": "sawtooth",
-          "freq": 500,
-          "freqEnd": 80
-        }
-      },
-      {
-        "type": "rumble",
-        "attack": 0.01,
-        "decay": 0.9,
-        "gain": 0.5,
-        "osc": {
-          "type": "sine",
-          "freq": 60,
-          "freqEnd": 30
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.78,
+      "maxDuration": 4.747415,
+      "sourceTitle": "Fast rocket whoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1714/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

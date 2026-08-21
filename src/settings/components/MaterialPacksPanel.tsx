@@ -191,7 +191,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
                       <span className="pack-card__effect">{effectLabel(pack.effect.preset)}</span>
                       <span className="pack-card__fingerprint">
                         <span><small>运动模型</small><strong>{physicsMode(pack.effect.preset)}</strong></span>
-                        <span><small>声学指纹</small><strong>{soundSignature(pack.sound)} · {pack.sound.layers.length} 层</strong></span>
+                        <span><small>声学指纹</small><strong>{soundSignature(pack.sound)}{pack.sound.sample ? ' · 高清采样' : ` · ${pack.sound.layers.length} 层`}</strong></span>
                       </span>
                     </span>
                   </button>

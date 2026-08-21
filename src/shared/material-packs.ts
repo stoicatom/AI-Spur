@@ -4,7 +4,7 @@ import { z } from 'zod';
  * 素材包（Material Pack）—— v3 三轴合一后的唯一选择轴。
  *
  * 一个素材包 = 图标（Figma 精绘 SVG）+ 运动轨迹特效（42 预设之一 + 参数化）
- *           + 程序化合成声音配方 + 配色（由图标主色推导）。
+ *           + 真实录音采样（旧用户包仍兼容程序化配方）+ 配色。
  *
  * 取代旧的三轴解耦体系（配色皮肤 skins / 音效包 sound presets / 素材 materials）。
  * Rust 端对应 `packs::MaterialPack`（serde rename_all = camelCase），两端字段必须一致。
@@ -64,7 +64,23 @@ export const EFFECT_PRESET_IDS = [
 export const EffectPresetSchema = z.enum(EFFECT_PRESET_IDS);
 export type EffectPresetId = z.infer<typeof EffectPresetSchema>;
 
-// ── 程序化合成声音配方 ──────────────────────────────────────────────────────
+// ── 声音采样与兼容配方 ─────────────────────────────────────────────────────
+
+export const SoundSampleSchema = z.object({
+  /** 素材包目录内的音频文件名。 */
+  file: z.string().min(1),
+  /** Rust 扫描时内联的音频 data URI。 */
+  dataUri: z.string().min(1).optional(),
+  /** 播放增益，避免不同录音响度差异过大。 */
+  gain: z.number().min(0).max(1).default(0.82),
+  /** 录音最大时长（秒），用于播放总线清理。 */
+  maxDuration: z.number().min(0.05).max(12),
+  sourceTitle: z.string().min(1),
+  sourceUrl: z.string().url(),
+  license: z.string().min(1),
+});
+
+export type SoundSample = z.infer<typeof SoundSampleSchema>;
 
 export const SoundLayerTypeSchema = z.enum([
   'noise',   // 噪声爆发（风/爆/沙）
@@ -118,10 +134,15 @@ export const SoundLayerSchema = z.object({
 export type SoundLayer = z.infer<typeof SoundLayerSchema>;
 
 export const SoundRecipeSchema = z.object({
-  /** 多层音色：主击 + 共鸣 + 余韵 */
-  layers: z.array(SoundLayerSchema).min(1).max(6),
+  /** 多层音色：仅用于旧用户包兼容。 */
+  layers: z.array(SoundLayerSchema).max(6).default([]),
+  /** 高清真实录音，存在时优先于 layers 播放。 */
+  sample: SoundSampleSchema.optional(),
   /** 主增益 0-1 */
   masterGain: z.number().min(0.05).max(1).default(0.8),
+}).refine((sound) => Boolean(sound.sample) || sound.layers.length > 0, {
+  message: '声音必须提供真实采样或至少一层兼容配方',
+  path: ['sample'],
 });
 
 export type SoundRecipe = z.infer<typeof SoundRecipeSchema>;

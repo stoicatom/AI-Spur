@@ -14,45 +14,22 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "noise",
-        "attack": 0.012,
-        "decay": 1.8,
-        "gain": 0.26,
-        "noiseColor": "pink",
-        "filter": { "type": "lowpass", "freq": 4200, "freqEnd": 1750, "q": 0.7 }
-      },
-      {
-        "type": "impact",
-        "attack": 0.001,
-        "decay": 0.07,
-        "gain": 0.28,
-        "noiseColor": "white",
-        "filter": { "type": "highpass", "freq": 5800, "q": 1.8 },
-        "delay": 0.23
-      },
-      {
-        "type": "tone",
-        "attack": 0.03,
-        "decay": 1.5,
-        "gain": 0.32,
-        "osc": { "type": "triangle", "freq": 146.83, "freqEnd": 142.0 },
-        "filter": { "type": "lowpass", "freq": 980, "freqEnd": 620, "q": 1.2 }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.04,
-        "decay": 1.35,
-        "gain": 0.16,
-        "osc": { "type": "sine", "freq": 302.0, "freqEnd": 286.0 },
-        "delay": 0.11
-      }
-    ],
-    "masterGain": 0.56
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.64,
+      "maxDuration": 1.108844,
+      "sourceTitle": "Record player vinyl scratch",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/702/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
-    "bodyGradient": ["#7552A3", "#56C6A9"],
+    "bodyGradient": [
+      "#7552A3",
+      "#56C6A9"
+    ],
     "particleHue": 302
   }
 }

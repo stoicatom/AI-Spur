@@ -35,6 +35,7 @@ fn valid_manifest() -> PackManifest {
                 noise_color: Some(NoiseColor::White),
                 delay: 0.0,
             }],
+            sample: None,
             master_gain: 0.8,
         },
         palette: PackPalette {
@@ -81,12 +82,12 @@ fn rejects_unknown_preset_and_invalid_layer_counts() {
 
     let mut manifest = valid_manifest();
     manifest.sound.layers.clear();
-    assert_invalid(manifest, "1-6 layers");
+    assert_invalid(manifest, "sound");
 
     let mut manifest = valid_manifest();
     let layer = manifest.sound.layers[0].clone();
     manifest.sound.layers = vec![layer; 7];
-    assert_invalid(manifest, "1-6 layers");
+    assert_invalid(manifest, "at most 6 layers");
 }
 
 #[test]

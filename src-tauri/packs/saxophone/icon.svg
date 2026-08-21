@@ -10,7 +10,28 @@
       <stop stop-color="var(--pack-bell-light,#C8AD75)"/>
       <stop offset="1" stop-color="var(--pack-bell-shadow,#745543)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="40" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M7 9h12c6 0 10 5 10 11v12c0 6-4 10-9 10s-9-4-9-10v-6h6v6c0 2 1 4 3 4s3-2 3-4V20c0-3-2-5-5-5H7Z" fill="url(#sax-brass)" stroke="var(--pack-edge,#554C43)" stroke-width="1.5"/>
   <path d="m26 35 11-4 5 9-4 4H28Z" fill="url(#sax-bell)" stroke="var(--pack-edge,#554C43)" stroke-width="1.5"/>
   <path d="M10 9 4 7m7 5h10" stroke="var(--pack-mouthpiece,#575B5B)" stroke-width="1.5"/>
@@ -20,4 +41,6 @@
   <circle cx="19" cy="28" r="1.5" fill="var(--pack-key,#D8D5C5)"/>
   <path d="M12 11c4-1 8-1 11 1" stroke="var(--pack-reflection,#EEE3BB)" stroke-width="1.5" opacity=".58"/>
   <path d="M31 39h7" stroke="var(--pack-bell-rim,#E1D3A0)" stroke-width="1.5" opacity=".62"/>
+
+  </g>
 </svg>

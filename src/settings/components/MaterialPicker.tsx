@@ -8,6 +8,7 @@ import {
 } from '../../shared/ipc';
 import { DEFAULT_MATERIAL_ID, type Material } from '../../shared/materials';
 import type { PanelProps } from './panel-props';
+import { Icon } from './Icon';
 
 type LoadState =
   | { status: 'loading' }
@@ -148,7 +149,7 @@ export function MaterialPicker({ config, onPatch }: PanelProps) {
                   }}
                   aria-label={`删除 ${material.name}`}
                 >
-                  ✕
+                  <Icon name="close" />
                 </button>
               )}
             </div>
@@ -162,7 +163,7 @@ export function MaterialPicker({ config, onPatch }: PanelProps) {
           disabled={uploading}
         >
           <span className="material-picker__upload-glyph" aria-hidden="true">
-            +
+            <Icon name="upload" />
           </span>
           <span className="material-picker__upload-label">
             {uploading ? '上传中…' : '上传素材图片'}

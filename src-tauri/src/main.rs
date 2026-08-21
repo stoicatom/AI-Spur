@@ -137,6 +137,7 @@ fn main() {
             pack_commands::list_packs,
             pack_commands::set_active_pack,
             pack_commands::create_custom_pack,
+            pack_commands::read_local_sound_data,
             pack_commands::delete_custom_pack,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]

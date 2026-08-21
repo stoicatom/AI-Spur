@@ -11,42 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 0.7,
-        "gain": 0.6,
-        "osc": {
-          "type": "triangle",
-          "freq": 1000,
-          "freqEnd": 120
-        }
-      },
-      {
-        "type": "chime",
-        "attack": 0.002,
-        "decay": 0.9,
-        "gain": 0.4,
-        "osc": {
-          "type": "sine",
-          "freq": 1318
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.5,
-        "gain": 0.3,
-        "noiseColor": "pink",
-        "filter": {
-          "type": "highpass",
-          "freq": 3000,
-          "q": 1
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.7,
+      "maxDuration": 5.039615,
+      "sourceTitle": "Small meteor falling",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1337/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

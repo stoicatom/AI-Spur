@@ -11,31 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "sweep",
-        "attack": 0.01,
-        "decay": 0.4,
-        "gain": 0.7,
-        "osc": {
-          "type": "sawtooth",
-          "freq": 1200,
-          "freqEnd": 200
-        }
-      },
-      {
-        "type": "tone",
-        "attack": 0.004,
-        "decay": 0.6,
-        "gain": 0.5,
-        "osc": {
-          "type": "square",
-          "freq": 600,
-          "freqEnd": 90
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.8,
+      "maxDuration": 1.094059,
+      "sourceTitle": "Samurai sword impact",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2789/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

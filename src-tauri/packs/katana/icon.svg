@@ -10,11 +10,34 @@
       <stop stop-color="var(--pack-wrap-shadow,#312B2E)"/>
       <stop offset="1" stop-color="var(--pack-wrap,#655456)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="30" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M15 33C26 22 36 11 45 4c-3 11-12 24-26 34Z" fill="url(#katana-blade)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
   <path d="M20 33c8-8 16-17 22-25-4 10-12 21-22 29Z" fill="var(--pack-edge,#F4F6F1)" opacity=".72"/>
   <path d="m14 31 7 7-2 3-8-8Z" fill="var(--pack-guard,#927D52)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
   <path d="m11 34 7 7-8 5-7-7Z" fill="url(#katana-wrap)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
   <path d="m6 38 7 2m-4-5 7 2m-6 5 3 3" stroke="var(--pack-binding,#B8A06B)" stroke-width="1.5"/>
   <path d="M20 32c8-8 15-16 21-23" stroke="var(--pack-temper,#9DAEB0)" stroke-width="1.5" opacity=".68"/>
+
+  </g>
 </svg>

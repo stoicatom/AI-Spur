@@ -11,43 +11,16 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "rumble",
-        "attack": 0.01,
-        "decay": 1.5,
-        "gain": 0.9,
-        "osc": {
-          "type": "sine",
-          "freq": 50,
-          "freqEnd": 20
-        }
-      },
-      {
-        "type": "noise",
-        "attack": 0.008,
-        "decay": 0.5,
-        "gain": 0.6,
-        "noiseColor": "white",
-        "filter": {
-          "type": "lowpass",
-          "freq": 1500,
-          "q": 0.6
-        }
-      },
-      {
-        "type": "impact",
-        "attack": 0.002,
-        "decay": 0.3,
-        "gain": 0.7,
-        "osc": {
-          "type": "sine",
-          "freq": 180,
-          "freqEnd": 40
-        }
-      }
-    ],
-    "masterGain": 0.8
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.74,
+      "maxDuration": 12,
+      "sourceTitle": "Thunder rumble",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2390/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
     "bodyGradient": [

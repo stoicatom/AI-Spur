@@ -21,7 +21,7 @@ import {
 } from './material-visual';
 import { SwingDetector, DEFAULT_SWING, type SwingParams } from './swing';
 import { toWhipVel, type WhipVel } from './particles';
-import { playMaterialSound, closeAudioContext, releaseAudioContextWhenIdle } from './audio-engine';
+import { playMaterialSound, preloadMaterialSound, closeAudioContext, releaseAudioContextWhenIdle } from './audio-engine';
 import type { MaterialPack } from '../shared/material-packs';
 import { ThreeEffectHost } from './three-effect-host';
 import { UnlistenRegistry } from './unlisten-registry';
@@ -78,6 +78,7 @@ async function applyActivePack(packId?: string) {
     const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
     if (!pack) return;
     activePack = pack;
+    preloadMaterialSound(pack.sound);
     const resolved = resolvePackMaterial(targetId, packs);
     material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
     trail.setHue(pack.palette.particleHue);

@@ -9,6 +9,7 @@ import {
   type SoundPreset,
 } from '../../shared/ipc';
 import type { PanelProps } from './panel-props';
+import { Icon } from './Icon';
 
 function releasePreviewAudio(audio: HTMLAudioElement): void {
   audio.onended = null;
@@ -174,7 +175,7 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
                 aria-label={`试听 ${preset.name}`}
                 title="试听"
               >
-                {playing === preset.id ? '♪' : '▶'}
+                <Icon name={playing === preset.id ? 'pause' : 'play'} />
               </button>
               {!preset.isBuiltin && (
                 <button
@@ -183,7 +184,7 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
                   onClick={() => void handleDelete(preset.id)}
                   aria-label="删除"
                 >
-                  ✕
+                  <Icon name="close" />
                 </button>
               )}
             </div>
@@ -197,7 +198,7 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
         onClick={() => void handleUpload()}
         disabled={uploading}
       >
-        {uploading ? '上传中…' : '+ 上传自定义音效'}
+        {uploading ? '上传中…' : <><Icon name="upload" /> 上传自定义音效</>}
       </button>
 
       {error && (

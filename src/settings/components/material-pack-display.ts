@@ -86,6 +86,7 @@ export function physicsMode(preset: string): string {
 
 /** 用素材自身的配方生成卡片中的紧凑音色指纹。 */
 export function soundSignature(sound: SoundRecipe): string {
+  if (sound.sample) return `真实录音 · ${sound.sample.sourceTitle}`;
   const uniqueLayers = [...new Set(sound.layers.map((layer) => SOUND_LAYER_LABELS[layer.type]))];
   return uniqueLayers.slice(0, 3).join(' / ');
 }

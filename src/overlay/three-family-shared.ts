@@ -21,9 +21,22 @@ export interface FamilyLayer {
 export const fadeAt = (t: number, start = 0.7): number =>
   t < start ? 1 : Math.max(0, 1 - (t - start) / (1 - start));
 
-export function additiveMaterial(color: THREE.Color, opacity = 0.8): THREE.MeshBasicMaterial {
-  return new THREE.MeshBasicMaterial({
-    color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false,
+export function additiveMaterial(color: THREE.Color, opacity = 0.8): THREE.MeshPhysicalMaterial {
+  // Additive layers are still physically lit: emissive energy supplies the
+  // glow, while clearcoat/roughness gives silhouettes a CG-grade highlight
+  // when they overlap the key/fill/rim lights in the overlay scene.
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.42,
+    metalness: 0.28,
+    roughness: 0.3,
+    clearcoat: 0.48,
+    clearcoatRoughness: 0.18,
+    transparent: true,
+    opacity,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
   });
 }
 

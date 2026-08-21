@@ -1,9 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <title>骷髅</title>
-  <defs><linearGradient id="a" x1="12" y1="8" x2="36" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-bone-light,#FFF7DF)"/><stop offset=".5" stop-color="var(--pack-bone,#D3CCC0)"/><stop offset="1" stop-color="var(--pack-bone-shadow,#77747A)"/></linearGradient></defs>
+  <defs><linearGradient id="a" x1="12" y1="8" x2="36" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-bone-light,#FFF7DF)"/><stop offset=".5" stop-color="var(--pack-bone,#D3CCC0)"/><stop offset="1" stop-color="var(--pack-bone-shadow,#77747A)"/></linearGradient>  <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="42" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M24 5C13 5 7 12 7 22c0 7 3 11 8 14v7h18v-7c5-3 8-7 8-14 0-10-6-17-17-17Z" fill="url(#a)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
   <path d="m12 23 7-3 2 8-8 1Zm24 0-7-3-2 8 8 1Z" fill="var(--pack-socket,#40384E)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
   <path d="m24 28-3 5h6Z" fill="var(--pack-nasal,#9A7C73)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
   <path d="M19 37v6m5-6v6m5-6v6M13 15c3-3 7-4 11-4m0 0c4 0 8 1 11 4" stroke="var(--pack-seam,#817A80)" stroke-width="1.5"/>
   <path d="M13 13c3-3 7-4 11-4" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".72"/>
+
+  </g>
 </svg>

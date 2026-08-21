@@ -1,8 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <title>星芒</title>
-  <defs><linearGradient id="a" x1="13" y1="8" x2="34" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFFBE0)"/><stop offset=".48" stop-color="var(--pack-star,#F3C650)"/><stop offset="1" stop-color="var(--pack-shadow,#A96D29)"/></linearGradient></defs>
+  <defs><linearGradient id="a" x1="13" y1="8" x2="34" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFFBE0)"/><stop offset=".48" stop-color="var(--pack-star,#F3C650)"/><stop offset="1" stop-color="var(--pack-shadow,#A96D29)"/></linearGradient>  <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="44" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="m24 3 4 15 14-6-9 12 11 9-15-4-5 16-4-16-16 4 11-9-9-12 14 6Z" fill="url(#a)" stroke="var(--pack-ink,#4B3851)" stroke-width="1.5"/>
   <circle cx="24" cy="24" r="5" fill="var(--pack-core,#FFF1A0)" stroke="var(--pack-ink,#4B3851)" stroke-width="1.5"/>
   <path d="M7 39c9 5 24 5 34-2" stroke="var(--pack-orbit,#62AFC0)" stroke-width="1.5"/>
   <path d="M22 20c2-2 4-2 6 0" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".85"/>
+
+  </g>
 </svg>

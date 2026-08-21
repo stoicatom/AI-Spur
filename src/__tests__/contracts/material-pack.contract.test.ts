@@ -98,8 +98,26 @@ describe('Material Pack IPC contract', () => {
       expect(parsed.layers).toHaveLength(2);
     });
 
-    it('拒绝空配方', () => {
+    it('拒绝既没有采样也没有兼容层的声音', () => {
       expect(() => SoundRecipeSchema.parse({ layers: [], masterGain: 0.8 })).toThrow();
+    });
+
+    it('接受带来源元数据的真实采样', () => {
+      const parsed = SoundRecipeSchema.parse({
+        layers: [],
+        sample: {
+          file: 'sound.m4a',
+          dataUri: 'data:audio/mp4;base64,AAAA',
+          gain: 0.8,
+          maxDuration: 2.5,
+          sourceTitle: 'Recorded metal impact',
+          sourceUrl: 'https://example.com/source',
+          license: 'CC0',
+        },
+        masterGain: 0.9,
+      });
+      expect(parsed.sample?.file).toBe('sound.m4a');
+      expect(parsed.layers).toEqual([]);
     });
 
     it('拒绝超过六层', () => {

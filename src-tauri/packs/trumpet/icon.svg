@@ -10,7 +10,28 @@
       <stop stop-color="var(--pack-bell-light,#CDBC7C)"/>
       <stop offset="1" stop-color="var(--pack-bell-shadow,#826547)"/>
     </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="48" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
   </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
   <path d="M4 22h7v6H4Z" fill="var(--pack-mouthpiece,#827665)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
   <path d="M11 22h23v6H11Z" fill="url(#trumpet-brass)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
   <path d="M34 17 43 12v24l-9-5Z" fill="url(#trumpet-bell)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
@@ -19,4 +40,6 @@
   <path d="M18 30v7h14v-7" stroke="var(--pack-tube,#9B895C)" stroke-width="3"/>
   <path d="M13 24h26" stroke="var(--pack-reflection,#EEE4BC)" stroke-width="1.5" opacity=".58"/>
   <path d="M36 20h5" stroke="var(--pack-bell-rim,#E4D39D)" stroke-width="1.5" opacity=".65"/>
+
+  </g>
 </svg>

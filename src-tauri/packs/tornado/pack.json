@@ -14,43 +14,22 @@
     }
   },
   "sound": {
-    "layers": [
-      {
-        "type": "noise",
-        "attack": 0.04,
-        "decay": 1.8,
-        "gain": 0.62,
-        "noiseColor": "pink",
-        "filter": { "type": "bandpass", "freq": 980, "freqEnd": 240, "q": 0.8 }
-      },
-      {
-        "type": "sweep",
-        "attack": 0.02,
-        "decay": 1.45,
-        "gain": 0.42,
-        "osc": { "type": "sawtooth", "freq": 760, "freqEnd": 72 },
-        "filter": { "type": "lowpass", "freq": 1900, "freqEnd": 320, "q": 1.2 }
-      },
-      {
-        "type": "rumble",
-        "attack": 0.08,
-        "decay": 2.1,
-        "gain": 0.5,
-        "osc": { "type": "sine", "freq": 54, "freqEnd": 28 }
-      },
-      {
-        "type": "tone",
-        "attack": 0.03,
-        "decay": 0.75,
-        "gain": 0.16,
-        "osc": { "type": "triangle", "freq": 1480, "freqEnd": 520 },
-        "delay": 0.12
-      }
-    ],
-    "masterGain": 0.72
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.7,
+      "maxDuration": 4.124989,
+      "sourceTitle": "Storm coming whoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2408/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
   },
   "palette": {
-    "bodyGradient": ["#55D6D0", "#3A3F8F"],
+    "bodyGradient": [
+      "#55D6D0",
+      "#3A3F8F"
+    ],
     "particleHue": 187
   }
 }
