@@ -1,5 +1,52 @@
-import { describe, it, expect } from 'vitest';
-import { MATERIAL_HUE, type Particle, type WhipVel, P, IMPACT } from '../overlay/particles';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  DEFAULT_VEL,
+  IMPACT,
+  MATERIAL_HUE,
+  P,
+  toWhipVel,
+  type Particle,
+  type WhipVel,
+} from '../overlay/particles';
+
+describe('粒子公共入口兼容', () => {
+  it('继续导出默认速度和归一化速度工具', () => {
+    expect(DEFAULT_VEL).toEqual({ vx: 1, vy: 0, speed: 1, dir: 0 });
+    expect(toWhipVel(3, 4, 2)).toEqual({
+      vx: 0.6,
+      vy: 0.8,
+      speed: 2,
+      dir: Math.atan2(4, 3),
+    });
+  });
+
+  it('burst 保持随机采样顺序和速度、衰减、尺寸物理公式', () => {
+    const random = vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.25)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.75)
+      .mockReturnValueOnce(0.25)
+      .mockReturnValueOnce(0.5);
+
+    const [particle] = P.burst(10, 20, 1, 4, 8, { hue: [100, 120] });
+    const angle = -0.075;
+    expect(particle).toEqual({
+      x: 10,
+      y: 20,
+      vx: Math.cos(angle) * 6,
+      vy: Math.sin(angle) * 6,
+      life: 1,
+      decay: 0.02475,
+      size: 2.75,
+      hue: 110,
+      gravity: 0.05,
+      shape: 0,
+      angle,
+    });
+    expect(random).toHaveBeenCalledTimes(5);
+    random.mockRestore();
+  });
+});
 
 describe('MATERIAL_HUE 专属主题色表', () => {
   it('52 内置素材全部有独立主题色', () => {

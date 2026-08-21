@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>龙卷风暴</title>
+  <defs><linearGradient id="a" x1="12" y1="9" x2="35" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#B7C7D0)"/><stop offset=".5" stop-color="var(--pack-cloud,#596A7C)"/><stop offset="1" stop-color="var(--pack-shadow,#283746)"/></linearGradient><linearGradient id="b" x1="9" y1="22" x2="37" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-funnel-light,#76D9D4)"/><stop offset="1" stop-color="var(--pack-funnel,#3C8394)"/></linearGradient></defs>
+  <path d="M8 16a6 6 0 0 1 7-7 10 10 0 0 1 18 2 6 6 0 0 1 7 5Z" fill="url(#a)" stroke="var(--pack-ink,#273747)" stroke-width="1.5"/>
+  <path d="M7 21c9 4 25 4 34 0M10 27c8 3 20 3 28 0M14 33c6 2 14 2 20 0M19 39c3 1 7 1 10 0" stroke="url(#b)" stroke-width="1.5"/>
+  <path d="M19 21c3 5 5 10 5 18m10-18c-4 6-6 11-7 18" stroke="var(--pack-rotation,#84B9C5)" stroke-width="1.5" opacity=".72"/>
+  <path d="m27 39-3 5-2-5" fill="var(--pack-debris,#C39A4A)" stroke="var(--pack-ink,#3B3B35)" stroke-width="1.5"/>
+</svg>

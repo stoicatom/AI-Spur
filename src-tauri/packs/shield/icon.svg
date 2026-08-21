@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>锻造坚盾</title>
   <defs>
-    <linearGradient id="gshield" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#6aa8ff"/>
-    <stop offset="1" stop-color="#1a5ad8"/>
-  </linearGradient>
+    <linearGradient id="shield-face" x1="11" y1="8" x2="37" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-light,#C4D2D3)"/>
+      <stop offset=".48" stop-color="var(--pack-shield,#617D89)"/>
+      <stop offset="1" stop-color="var(--pack-steel-shadow,#334954)"/>
+    </linearGradient>
+    <linearGradient id="shield-rim" x1="8" y1="5" x2="41" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-rim-light,#D7E0DD)"/>
+      <stop offset="1" stop-color="var(--pack-rim,#71838A)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gshield)" d="M256 96 384 144v96c0 72-52 128-128 152-76-24-128-80-128-152v-96z"/>
-      <path fill="#b0d4ff" d="M256 96 320 144v96c0 36-18 68-64 96v-192z" opacity="0.6"/>
-      <path fill="#e8f4ff" d="M256 96l64 48-64 48z" opacity="0.8"/>
-  </g>
+  <path d="m24 4 17 6v12c0 11-7 18-17 22C14 40 7 33 7 22V10Z" fill="url(#shield-rim)" stroke="var(--pack-ink,#35474E)" stroke-width="1.5"/>
+  <path d="m24 8 13 4v10c0 8-5 14-13 18-8-4-13-10-13-18V12Z" fill="url(#shield-face)" stroke="var(--pack-ink,#35474E)" stroke-width="1.5"/>
+  <path d="M24 8v31c7-4 13-10 13-18V12Z" fill="var(--pack-shadow-panel,#385867)" opacity=".4"/>
+  <path d="M24 10v27" stroke="var(--pack-ridge,#B5D0CE)" stroke-width="1.5" opacity=".7"/>
+  <circle cx="24" cy="23" r="5" fill="var(--pack-boss,#A58B59)" stroke="var(--pack-ink,#35474E)" stroke-width="1.5"/>
+  <path d="M21 20c2-1 4 0 5 2M12 17c3-2 5-3 8-3" stroke="var(--pack-metal-sheen,#E3ECE6)" stroke-width="1.5" opacity=".55"/>
 </svg>

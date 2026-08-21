@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>吞噬黑洞</title>
+  <defs>
+    <linearGradient id="a" x1="5" y1="18" x2="44" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#EEF8FF)"/><stop offset=".34" stop-color="var(--pack-disk,#F4C35A)"/><stop offset=".7" stop-color="var(--pack-hot,#DB663B)"/><stop offset="1" stop-color="var(--pack-shadow,#713A69)"/></linearGradient>
+    <radialGradient id="b" cx="0" cy="0" r="1" gradientTransform="translate(20 19) rotate(45) scale(17)"><stop stop-color="var(--pack-horizon-edge,#343447)"/><stop offset=".68" stop-color="var(--pack-horizon,#11121A)"/><stop offset="1" stop-color="var(--pack-void,#050609)"/></radialGradient>
+  </defs>
+  <ellipse cx="24" cy="24" rx="21" ry="8" fill="url(#a)" stroke="var(--pack-ink,#181722)" stroke-width="1.5" transform="rotate(-12 24 24)"/>
+  <circle cx="24" cy="24" r="9" fill="url(#b)" stroke="var(--pack-ink,#181722)" stroke-width="1.5"/>
+  <path d="M4 27c8 4 30 7 40-4-4 7-12 11-22 11-8 0-14-3-18-7Z" fill="url(#a)" stroke="var(--pack-ink,#181722)" stroke-width="1.5"/>
+  <path d="M9 19c8-5 21-7 31-2" stroke="var(--pack-light,#EEF8FF)" stroke-width="1.5" opacity=".8"/>
+</svg>

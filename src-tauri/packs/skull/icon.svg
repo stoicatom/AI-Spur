@@ -1,13 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gskull" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#d0d0d8"/>
-    <stop offset="1" stop-color="#70707c"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gskull)" d="M256 96c-60 0-104 44-104 100 0 40 22 72 56 84v36c0 12 8 20 20 20h56c12 0 20-8 20-20v-36c34-12 56-44 56-84 0-56-44-100-104-100zm-56 88c-14 0-24-10-24-24s10-24 24-24 24 10 24 24-10 24-24 24zm112 0c-14 0-24-10-24-24s10-24 24-24 24 10 24 24-10 24-24 24z"/>
-      <ellipse cx="200" cy="160" rx="12" ry="16" fill="#1a1a20"/>
-      <ellipse cx="312" cy="160" rx="12" ry="16" fill="#1a1a20"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>骷髅</title>
+  <defs><linearGradient id="a" x1="12" y1="8" x2="36" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-bone-light,#FFF7DF)"/><stop offset=".5" stop-color="var(--pack-bone,#D3CCC0)"/><stop offset="1" stop-color="var(--pack-bone-shadow,#77747A)"/></linearGradient></defs>
+  <path d="M24 5C13 5 7 12 7 22c0 7 3 11 8 14v7h18v-7c5-3 8-7 8-14 0-10-6-17-17-17Z" fill="url(#a)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
+  <path d="m12 23 7-3 2 8-8 1Zm24 0-7-3-2 8 8 1Z" fill="var(--pack-socket,#40384E)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
+  <path d="m24 28-3 5h6Z" fill="var(--pack-nasal,#9A7C73)" stroke="var(--pack-ink,#373442)" stroke-width="1.5"/>
+  <path d="M19 37v6m5-6v6m5-6v6M13 15c3-3 7-4 11-4m0 0c4 0 8 1 11 4" stroke="var(--pack-seam,#817A80)" stroke-width="1.5"/>
+  <path d="M13 13c3-3 7-4 11-4" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".72"/>
 </svg>

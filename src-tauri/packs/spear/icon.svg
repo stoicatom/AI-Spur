@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>木杆长矛</title>
   <defs>
-    <linearGradient id="gspear" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#e8e8c8"/>
-    <stop offset="1" stop-color="#9a9a5a"/>
-  </linearGradient>
+    <linearGradient id="spear-head" x1="34" y1="5" x2="43" y2="19" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-light,#E7ECE8)"/>
+      <stop offset=".5" stop-color="var(--pack-steel,#A0ADB0)"/>
+      <stop offset="1" stop-color="var(--pack-steel-shadow,#56686D)"/>
+    </linearGradient>
+    <linearGradient id="spear-wood" x1="9" y1="43" x2="31" y2="21" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-shadow,#4C332A)"/>
+      <stop offset="1" stop-color="var(--pack-wood,#98704F)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gspear)" d="M256 80 336 176l-160 240-80-80z"/>
-      <path fill="#fff6d0" d="M256 80l80 96-160 240L96 336z" opacity="0.5"/>
-      <rect x="150" y="320" width="220" height="30" rx="12" fill="#7a4a1a" transform="rotate(-37 150 320)"/>
-  </g>
+  <path d="m8 43 28-28" stroke="url(#spear-wood)" stroke-width="2.5"/>
+  <path d="m35 16 1-10 8-3-3 10-6 7Z" fill="url(#spear-head)" stroke="var(--pack-ink,#35444A)" stroke-width="1.5"/>
+  <path d="m37 15 6-10" stroke="var(--pack-edge,#F2F5EF)" stroke-width="1.5" opacity=".75"/>
+  <path d="m12 34 6 6m-3-9 6 6" stroke="var(--pack-binding,#B79161)" stroke-width="1.5"/>
+  <path d="M6 43l4-7 5 5Z" fill="var(--pack-butt,#594238)" stroke="var(--pack-ink,#35444A)" stroke-width="1.5"/>
+  <path d="M13 38 30 21" stroke="var(--pack-wood-grain,#C19A70)" stroke-width="1.5" opacity=".55"/>
 </svg>

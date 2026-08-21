@@ -3,7 +3,7 @@
   "name": "战鼓",
   "icon": "icon.svg",
   "effect": {
-    "preset": "shock-ring",
+    "preset": "drum-beat",
     "params": {
       "rings": 2,
       "intensity": 2,

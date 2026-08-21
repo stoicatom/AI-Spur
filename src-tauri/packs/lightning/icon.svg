@@ -1,12 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="glightning" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffd93d"/>
-    <stop offset="1" stop-color="#c49000"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#glightning)" d="M286 96 150 272h88l-28 144 150-188h-88l14-132z"/>
-      <path fill="#fff6d0" d="M286 96c-4 20-10 38-18 54l18-10 18 10c-8-16-14-34-18-54z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>闪电</title>
+  <defs><linearGradient id="a" x1="13" y1="9" x2="37" y2="23" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-cloud-light,#AAB7C3)"/><stop offset="1" stop-color="var(--pack-cloud-shadow,#394454)"/></linearGradient><linearGradient id="b" x1="28" y1="22" x2="19" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFF7C2)"/><stop offset=".5" stop-color="var(--pack-bolt,#F4D248)"/><stop offset="1" stop-color="var(--pack-electric,#6DBFD2)"/></linearGradient></defs>
+  <path d="M6 23c-2-5 1-9 7-10 3-7 13-8 19-3 6-1 11 4 10 10 4 1 5 4 4 6H8c-1-1-2-2-2-3Z" fill="url(#a)" stroke="var(--pack-ink,#283342)" stroke-width="1.5"/>
+  <path d="m25 23-8 13h7l-4 10 13-16h-7l5-7Z" fill="url(#b)" stroke="var(--pack-ink,#4B4526)" stroke-width="1.5"/>
+  <path d="m15 29-5 6 4 1-4 5m28-12 4 4-3 2 3 4" stroke="var(--pack-arc,#8BDDEC)" stroke-width="1.5"/>
+  <path d="M12 15c5-4 12-5 18-2" stroke="var(--pack-highlight,#DCE5EB)" stroke-width="1.5" opacity=".75"/>
 </svg>

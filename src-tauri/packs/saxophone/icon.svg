@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>萨克斯</title>
+  <defs>
+    <linearGradient id="sax-brass" x1="10" y1="8" x2="33" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-brass-light,#D6C586)"/>
+      <stop offset=".45" stop-color="var(--pack-brass,#A78754)"/>
+      <stop offset="1" stop-color="var(--pack-brass-shadow,#685346)"/>
+    </linearGradient>
+    <linearGradient id="sax-bell" x1="27" y1="33" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-bell-light,#C8AD75)"/>
+      <stop offset="1" stop-color="var(--pack-bell-shadow,#745543)"/>
+    </linearGradient>
+  </defs>
+  <path d="M7 9h12c6 0 10 5 10 11v12c0 6-4 10-9 10s-9-4-9-10v-6h6v6c0 2 1 4 3 4s3-2 3-4V20c0-3-2-5-5-5H7Z" fill="url(#sax-brass)" stroke="var(--pack-edge,#554C43)" stroke-width="1.5"/>
+  <path d="m26 35 11-4 5 9-4 4H28Z" fill="url(#sax-bell)" stroke="var(--pack-edge,#554C43)" stroke-width="1.5"/>
+  <path d="M10 9 4 7m7 5h10" stroke="var(--pack-mouthpiece,#575B5B)" stroke-width="1.5"/>
+  <path d="M16 18h7m-7 5h7m-7 5h7" stroke="var(--pack-key-rod,#726A5C)" stroke-width="1.5"/>
+  <circle cx="19" cy="18" r="1.5" fill="var(--pack-key,#D8D5C5)"/>
+  <circle cx="19" cy="23" r="1.5" fill="var(--pack-key,#D8D5C5)"/>
+  <circle cx="19" cy="28" r="1.5" fill="var(--pack-key,#D8D5C5)"/>
+  <path d="M12 11c4-1 8-1 11 1" stroke="var(--pack-reflection,#EEE3BB)" stroke-width="1.5" opacity=".58"/>
+  <path d="M31 39h7" stroke="var(--pack-bell-rim,#E1D3A0)" stroke-width="1.5" opacity=".62"/>
+</svg>

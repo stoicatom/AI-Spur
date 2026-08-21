@@ -1,12 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>烈焰</title>
   <defs>
-    <linearGradient id="gflame" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff5a1f"/>
-    <stop offset="1" stop-color="#a01500"/>
-  </linearGradient>
+    <linearGradient id="a" x1="17" y1="8" x2="34" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFF1A8)"/><stop offset=".42" stop-color="var(--pack-flame,#F47A30)"/><stop offset="1" stop-color="var(--pack-ember,#9A2722)"/></linearGradient>
+    <linearGradient id="b" x1="20" y1="28" x2="26" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-core,#FFF9D6)"/><stop offset=".62" stop-color="var(--pack-core-warm,#F5C24A)"/><stop offset="1" stop-color="var(--pack-blue-base,#488EB7)"/></linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gflame)" d="M256 96c-36 40-72 72-72 124 0 44 32 76 72 76s72-32 72-76c0-52-36-84-72-124zm0 156c-16 0-28-12-28-28 0-20 16-40 28-52 12 12 28 32 28 52 0 16-12 28-28 28z"/>
-      <path fill="#ffd9b0" d="M256 96c-8 12-12 26-14 40l14-8 14 8c-2-14-6-28-14-40z"/>
-  </g>
+  <path d="M26 4c2 8-3 12 0 19 2-5 5-8 9-12-1 8 6 12 5 21-1 8-7 13-16 13S8 39 9 30c1-7 5-12 10-17-2 6-1 10 3 13-1-9 0-16 4-22Z" fill="url(#a)" stroke="var(--pack-ink,#4A2424)" stroke-width="1.5"/>
+  <path d="M34 17c1 7 5 11 3 18-2 6-7 9-13 9 7-5 9-11 7-18Z" fill="var(--pack-shadow,#B63A27)" opacity=".72"/>
+  <path d="M24 25c4 5 6 9 4 14-1 4-7 5-10 2-3-4 0-10 4-15 0 4 1 6 3 7-1-3-1-6-1-8Z" fill="url(#b)" stroke="var(--pack-ink,#4A2424)" stroke-width="1.5"/>
+  <path d="M17 24c-4 6-4 11 0 15" stroke="var(--pack-highlight,#FFD76A)" stroke-width="1.5" opacity=".75"/>
 </svg>

@@ -1,13 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>黄铜小号</title>
   <defs>
-    <linearGradient id="gtrumpet" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffd66a"/>
-    <stop offset="1" stop-color="#cc8a00"/>
-  </linearGradient>
+    <linearGradient id="trumpet-brass" x1="8" y1="15" x2="43" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-brass-light,#D7C88D)"/>
+      <stop offset=".5" stop-color="var(--pack-brass,#AA8D53)"/>
+      <stop offset="1" stop-color="var(--pack-brass-shadow,#705C47)"/>
+    </linearGradient>
+    <linearGradient id="trumpet-bell" x1="34" y1="14" x2="44" y2="37" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-bell-light,#CDBC7C)"/>
+      <stop offset="1" stop-color="var(--pack-bell-shadow,#826547)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gtrumpet)" d="M96 160c0 80 40 140 120 180 8 4 16 0 16-8v-40c0-8 8-12 16-8l40 20c16 8 36-4 36-24V160H96z" opacity="0.9"/>
-      <rect x="96" y="136" width="280" height="48" rx="12" fill="#ffb84d"/>
-      <ellipse cx="96" cy="160" rx="12" ry="24" fill="#8a5c00"/>
-  </g>
+  <path d="M4 22h7v6H4Z" fill="var(--pack-mouthpiece,#827665)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
+  <path d="M11 22h23v6H11Z" fill="url(#trumpet-brass)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
+  <path d="M34 17 43 12v24l-9-5Z" fill="url(#trumpet-bell)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
+  <path d="M17 18v12h4V18Zm7 0v12h4V18Zm7 0v12h4V18Z" fill="var(--pack-valve,#A49879)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
+  <path d="M17 14h4v4h-4Zm7-2h4v6h-4Zm7 2h4v4h-4Z" fill="var(--pack-button,#CFCDBB)" stroke="var(--pack-edge,#554E43)" stroke-width="1.5"/>
+  <path d="M18 30v7h14v-7" stroke="var(--pack-tube,#9B895C)" stroke-width="3"/>
+  <path d="M13 24h26" stroke="var(--pack-reflection,#EEE4BC)" stroke-width="1.5" opacity=".58"/>
+  <path d="M36 20h5" stroke="var(--pack-bell-rim,#E4D39D)" stroke-width="1.5" opacity=".65"/>
 </svg>

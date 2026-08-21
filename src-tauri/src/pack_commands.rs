@@ -130,13 +130,30 @@ pub async fn create_custom_pack(
         return Err(format!("未知特效预设: {effect_preset}"));
     }
 
+    let file_name = format!("icon.{ext}");
+    let manifest = PackManifest {
+        id: slug.clone(),
+        name,
+        icon: file_name.clone(),
+        effect: packs::EffectSpec {
+            preset: effect_preset,
+            params: Default::default(),
+        },
+        sound,
+        palette,
+    };
+    // Validate before creating or copying into the pack directory. Scanning
+    // validates too, but that happens after a failed upload could leave files.
+    manifest
+        .validate()
+        .map_err(|error| format!("素材包参数无效: {error}"))?;
+
     let custom_dir = user_custom_packs_dir(&app)?;
     let target_dir = custom_dir.join(&slug);
     if target_dir.exists() {
         return Err(format!("素材包 '{slug}' 已存在"));
     }
 
-    let file_name = format!("icon.{ext}");
     fs::create_dir_all(&target_dir).map_err(|e| format!("创建素材包目录失败: {e}"))?;
 
     // Copy the icon; roll back the directory on any failure so a partial
@@ -145,18 +162,6 @@ pub async fn create_custom_pack(
         let _ = fs::remove_dir_all(&target_dir);
         return Err(format!("复制图标文件失败: {e}"));
     }
-
-    let manifest = PackManifest {
-        id: slug.clone(),
-        name: name.clone(),
-        icon: file_name,
-        effect: packs::EffectSpec {
-            preset: effect_preset,
-            params: Default::default(),
-        },
-        sound,
-        palette,
-    };
 
     // Write pack.json; roll back on failure.
     let json = match serde_json::to_string_pretty(&manifest) {

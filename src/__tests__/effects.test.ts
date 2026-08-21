@@ -7,11 +7,11 @@ describe('特效预设库', () => {
   const vel = { ...DEFAULT_VEL, speed: 3, dir: -Math.PI / 2 };
   const params: Record<string, number> = {};
 
-  it('恰好注册 30 个预设，与 schema 一致', () => {
+  it('恰好注册 42 个预设，与 schema 一致', () => {
     const ids = Object.keys(EFFECT_PRESETS).sort();
     const schemaIds = [...EffectPresetSchema.options].sort();
     expect(ids).toEqual(schemaIds);
-    expect(ids).toHaveLength(30);
+    expect(ids).toHaveLength(42);
   });
 
   it('每个预设都能生成精灵帧（t 全程可运行）', () => {
@@ -72,6 +72,6 @@ describe('特效预设库', () => {
         .join('|');
       seen.add(sig);
     }
-    expect(seen.size).toBe(30);
+    expect(seen.size).toBe(42);
   });
 });

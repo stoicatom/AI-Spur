@@ -1,15 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="butt" stroke-linejoin="miter">
+  <title>火箭</title>
   <defs>
-    <linearGradient id="grocket" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff7a29"/>
-    <stop offset="1" stop-color="#c23e00"/>
-  </linearGradient>
+    <linearGradient id="hull" x1="16" y1="6" x2="34" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#F2F4F2)"/><stop offset=".36" stop-color="var(--pack-hull,#AEB9BC)"/><stop offset=".78" stop-color="var(--pack-shadow,#59656A)"/><stop offset="1" stop-color="var(--pack-underside,#303A3E)"/></linearGradient>
+    <linearGradient id="fin" x1="10" y1="29" x2="36" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-fin-light,#9C6C61)"/><stop offset="1" stop-color="var(--pack-fin,#593D3B)"/></linearGradient>
+    <radialGradient id="port" cx="0" cy="0" r="1" gradientTransform="translate(22 16) rotate(47) scale(7)"><stop stop-color="var(--pack-window-glint,#D7F0ED)"/><stop offset=".36" stop-color="var(--pack-window,#5D8F99)"/><stop offset="1" stop-color="var(--pack-window-shadow,#24444D)"/></radialGradient>
+    <linearGradient id="plume" x1="24" y1="36" x2="24" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-thrust,#D7D1A3)"/><stop offset=".45" stop-color="var(--pack-flame,#B67845)"/><stop offset="1" stop-color="var(--pack-hot,#713A32)"/></linearGradient>
   </defs>
-  <g>
-    <path fill="url(#grocket)" d="M256 96c-28 42-48 78-48 118 0 56 22 90 48 118 26-28 48-62 48-118 0-40-20-76-48-118zm-36 128c-8-26 4-48 36-80 32 32 44 54 36 80-8 26-28 42-36 42s-28-16-36-42z"/>
-      <path fill="#ffd9b0" d="M256 96c-6 10-10 22-12 34l12-6 12 6c-2-12-6-24-12-34z"/>
-      <path fill="#ff8c42" d="M256 332c-20-24-34-52-34-84 0-8 2-16 4-24 10 40 20 68 30 108z" opacity="0.8">
-        <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.9s" repeatCount="indefinite"/>
-      </path>
-  </g>
+  <path d="M24 4c6 5 10 13 9 23l-3 12H18l-3-12C14 17 18 9 24 4Z" fill="url(#hull)" stroke="var(--pack-ink,#394346)" stroke-width="1.5"/>
+  <path d="M18 27 8 34l1 7 11-5m10-9 10 7-1 7-11-5" fill="url(#fin)" stroke="var(--pack-ink,#394346)" stroke-width="1.5"/>
+  <path d="M18 27h12M20 34h8M17 25c5 2 10 2 15 0" stroke="var(--pack-seam,#6E797C)" stroke-width="1"/>
+  <circle cx="24" cy="17" r="5" fill="url(#port)" stroke="var(--pack-ink,#394346)" stroke-width="1.5"/>
+  <path d="M20 15c1.8-2 4.6-2.3 6.4-.4" stroke="var(--pack-window-glint,#D7F0ED)" stroke-width="1" opacity=".78"/>
+  <path d="m19 39 5 8 5-8" fill="url(#plume)" stroke="var(--pack-ink,#513A31)" stroke-width="1.5"/>
+  <path d="M22 5c-2 6-2 13-.9 19" stroke="var(--pack-panel-light,#FFFFFF)" stroke-width="1" opacity=".66"/>
 </svg>

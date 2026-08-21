@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>燎原烈火</title>
+  <defs><linearGradient id="a" x1="13" y1="7" x2="37" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFF0A0)"/><stop offset=".42" stop-color="var(--pack-flame,#F0522D)"/><stop offset="1" stop-color="var(--pack-ember,#86252A)"/></linearGradient><linearGradient id="b" x1="20" y1="24" x2="28" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-core-light,#FFF9D2)"/><stop offset=".55" stop-color="var(--pack-core,#FFD166)"/><stop offset="1" stop-color="var(--pack-core-hot,#EC7B2B)"/></linearGradient></defs>
+  <path d="M24 4c3 8-1 11 4 15 1-5 5-7 7-9 1 8 8 11 8 20a19 19 0 0 1-38 0c0-7 4-12 9-17 0 6 2 8 5 10-1-8 1-14 5-19Z" fill="url(#a)" stroke="var(--pack-ink,#401A24)" stroke-width="1.5"/>
+  <path d="M34 15c4 7 7 11 6 17-1 7-6 12-14 14 7-7 8-16 3-24Z" fill="var(--pack-shadow,#B33B2D)" opacity=".7"/>
+  <path d="M25 22c1 5 6 7 6 13a7.5 7.5 0 0 1-15 0c0-4 3-7 6-10 0 3 1 5 3 6-1-4-1-6 0-9Z" fill="url(#b)" stroke="var(--pack-ink,#401A24)" stroke-width="1.5"/>
+  <path d="M10 35c3 4 7 7 12 8M38 35c-3 4-7 7-12 8" stroke="var(--pack-heat,#FFB34A)" stroke-width="1.5" opacity=".75"/>
+</svg>

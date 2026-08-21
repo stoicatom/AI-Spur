@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import {
   listSoundPresets,
@@ -10,30 +10,60 @@ import {
 } from '../../shared/ipc';
 import type { PanelProps } from './panel-props';
 
+function releasePreviewAudio(audio: HTMLAudioElement): void {
+  audio.onended = null;
+  audio.onerror = null;
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+}
+
 export function SoundPicker({ config, onPatch }: PanelProps) {
   const [presets, setPresets] = useState<SoundPreset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const previewRevisionRef = useRef(0);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    loadPresets();
+    let cancelled = false;
+    mountedRef.current = true;
+    void loadPresets(() => cancelled);
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      stopPreview(false);
+    };
   }, []);
 
-  async function loadPresets() {
+  async function loadPresets(isCancelled = () => !mountedRef.current) {
     try {
       const list = await listSoundPresets();
-      setPresets(list);
-      setError(null);
+      if (!isCancelled()) {
+        setPresets(list);
+        setError(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (!isCancelled()) setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setLoading(false);
+      if (!isCancelled()) setLoading(false);
     }
   }
 
+  function stopPreview(clearPlaying = true): void {
+    previewRevisionRef.current++;
+    const audio = audioRef.current;
+    audioRef.current = null;
+    if (audio) releasePreviewAudio(audio);
+    if (clearPlaying && mountedRef.current) setPlaying(null);
+  }
+
   async function preview(preset: SoundPreset) {
+    stopPreview(false);
+    const revision = previewRevisionRef.current;
     setError(null);
     setPlaying(preset.id);
     try {
@@ -41,12 +71,22 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
       // its own) previews the skin-level whip crack at the sounds root.
       const file = preset.files[0] ?? 'whip.m4a';
       const dataUri = await readSoundData(preset.id, file);
+      if (!mountedRef.current || revision !== previewRevisionRef.current) return;
       const audio = new Audio(dataUri);
+      audioRef.current = audio;
       audio.volume = 0.6;
-      audio.onended = () => setPlaying(null);
-      audio.onerror = () => setPlaying(null);
+      const finish = () => {
+        if (audioRef.current !== audio) return;
+        audioRef.current = null;
+        releasePreviewAudio(audio);
+        if (mountedRef.current) setPlaying(null);
+      };
+      audio.onended = finish;
+      audio.onerror = finish;
       await audio.play();
     } catch (err) {
+      if (!mountedRef.current || revision !== previewRevisionRef.current) return;
+      stopPreview(false);
       setError(err instanceof Error ? err.message : String(err));
       setPlaying(null);
     }
@@ -57,7 +97,7 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
       await setCrackSound(presetId);
       onPatch({ crackSoundId: presetId });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (mountedRef.current) setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -80,9 +120,9 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
       await uploadCustomSound(selected, name);
       await loadPresets();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (mountedRef.current) setError(err instanceof Error ? err.message : String(err));
     } finally {
-      setUploading(false);
+      if (mountedRef.current) setUploading(false);
     }
   }
 
@@ -96,7 +136,7 @@ export function SoundPicker({ config, onPatch }: PanelProps) {
       }
       await loadPresets();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (mountedRef.current) setError(err instanceof Error ? err.message : String(err));
     }
   }
 

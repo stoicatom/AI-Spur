@@ -1,0 +1,65 @@
+{
+  "id": "saxophone",
+  "name": "霓虹萨克斯",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "note-dance",
+    "params": {
+      "noteSpiral": 1.85,
+      "brassGlow": 1.4,
+      "breathFlow": 0.95,
+      "vibrato": 1.65,
+      "phraseLength": 2.1,
+      "bellBurst": 1.35
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "tone",
+        "attack": 0.045,
+        "decay": 1.35,
+        "gain": 0.42,
+        "osc": { "type": "sawtooth", "freq": 233.08, "freqEnd": 226.0 },
+        "filter": { "type": "lowpass", "freq": 2400, "freqEnd": 1320, "q": 1.4 }
+      },
+      {
+        "type": "tone",
+        "attack": 0.055,
+        "decay": 1.25,
+        "gain": 0.26,
+        "osc": { "type": "square", "freq": 466.16, "freqEnd": 452.0 },
+        "filter": { "type": "bandpass", "freq": 1650, "freqEnd": 1180, "q": 2.1 }
+      },
+      {
+        "type": "tone",
+        "attack": 0.06,
+        "decay": 1.1,
+        "gain": 0.16,
+        "osc": { "type": "sine", "freq": 699.24, "freqEnd": 678.0 },
+        "delay": 0.05
+      },
+      {
+        "type": "noise",
+        "attack": 0.025,
+        "decay": 0.95,
+        "gain": 0.2,
+        "noiseColor": "pink",
+        "filter": { "type": "bandpass", "freq": 1240, "freqEnd": 720, "q": 1.6 }
+      },
+      {
+        "type": "chime",
+        "attack": 0.018,
+        "decay": 0.72,
+        "gain": 0.12,
+        "osc": { "type": "sine", "freq": 1398.5, "freqEnd": 1350.0 },
+        "delay": 0.14
+      }
+    ],
+    "masterGain": 0.55
+  },
+  "palette": {
+    "bodyGradient": ["#F2B134", "#0E8F87"],
+    "particleHue": 164
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "downpour",
+  "name": "倾盆暴雨",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "downpour",
+    "params": {
+      "dropDensity": 2.8,
+      "fallSpeed": 2.15,
+      "windSkew": 0.72,
+      "splashEnergy": 1.55,
+      "curtainWidth": 2.4,
+      "sheetDepth": 0.9
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "noise",
+        "attack": 0.02,
+        "decay": 1.7,
+        "gain": 0.66,
+        "noiseColor": "white",
+        "filter": { "type": "highpass", "freq": 1800, "freqEnd": 900, "q": 0.7 }
+      },
+      {
+        "type": "noise",
+        "attack": 0.06,
+        "decay": 2.2,
+        "gain": 0.38,
+        "noiseColor": "pink",
+        "filter": { "type": "bandpass", "freq": 620, "freqEnd": 280, "q": 1.1 }
+      },
+      {
+        "type": "impact",
+        "attack": 0.004,
+        "decay": 0.22,
+        "gain": 0.24,
+        "noiseColor": "white",
+        "filter": { "type": "highpass", "freq": 3200, "q": 1.4 },
+        "delay": 0.17
+      },
+      {
+        "type": "rumble",
+        "attack": 0.12,
+        "decay": 2.4,
+        "gain": 0.3,
+        "osc": { "type": "sine", "freq": 64, "freqEnd": 38 }
+      }
+    ],
+    "masterGain": 0.68
+  },
+  "palette": {
+    "bodyGradient": ["#42B8E6", "#24506D"],
+    "particleHue": 204
+  }
+}

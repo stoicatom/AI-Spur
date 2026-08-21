@@ -1,13 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gwind" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#a8e8ff"/>
-    <stop offset="1" stop-color="#3a88c8"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="none" stroke="url(#gwind)" stroke-width="28" stroke-linecap="round" d="M96 176c40 0 56-20 56-48 0-28-20-44-44-44-24 0-44 16-44 44"/>
-      <path fill="none" stroke="#d0f4ff" stroke-width="18" stroke-linecap="round" d="M120 256c56 0 80-28 80-64 0-36-28-60-64-60-36 0-64 24-64 60" opacity="0.7"/>
-      <path fill="none" stroke="url(#gwind)" stroke-width="22" stroke-linecap="round" d="M96 336c48 0 68-24 68-56 0-32-24-52-52-52-28 0-52 20-52 52" opacity="0.9"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>疾风</title>
+  <defs><linearGradient id="a" x1="5" y1="8" x2="42" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#E5FFFF)"/><stop offset=".48" stop-color="var(--pack-gust,#72CFE1)"/><stop offset="1" stop-color="var(--pack-shadow,#507EB1)"/></linearGradient></defs>
+  <path d="M4 15h25c5 0 7-3 7-6 0-3-2-5-5-5-2 0-4 1-5 3" stroke="url(#a)" stroke-width="1.5"/>
+  <path d="M4 24h34c4 0 7 3 7 7s-3 7-7 7c-3 0-5-2-6-4" stroke="var(--pack-stream,#7192C7)" stroke-width="1.5"/>
+  <path d="M4 33h19c3 0 5-2 5-4" stroke="var(--pack-gust,#72CFE1)" stroke-width="1.5"/>
+  <path d="M13 20c5-6 10-6 14 0-5 2-10 2-14 0Z" fill="var(--pack-leaf,#79B978)" stroke="var(--pack-ink,#36514A)" stroke-width="1.5"/>
+  <path d="M9 13h16m-9 18h13" stroke="var(--pack-highlight,#F2FFFF)" stroke-width="1.5" opacity=".8"/>
 </svg>

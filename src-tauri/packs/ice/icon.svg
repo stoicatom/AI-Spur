@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>冰晶</title>
   <defs>
-    <linearGradient id="gice" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#9fe8ff"/>
-    <stop offset="1" stop-color="#2a7ab8"/>
-  </linearGradient>
+    <linearGradient id="ice-tall" x1="18" y1="5" x2="29" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-ice-light,#E1F2F1)"/>
+      <stop offset=".48" stop-color="var(--pack-ice,#83B7C4)"/>
+      <stop offset="1" stop-color="var(--pack-ice-shadow,#397082)"/>
+    </linearGradient>
+    <linearGradient id="ice-side" x1="8" y1="19" x2="34" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-frost-light,#C8E3E3)"/>
+      <stop offset="1" stop-color="var(--pack-frost-shadow,#4E8998)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gice)" d="M256 96 320 256l-64 160-64-160z"/>
-      <path fill="#e8faff" d="M256 96 288 256h-64z" opacity="0.7"/>
-      <path fill="#4a9ad8" d="M320 256 256 416l-64-160 64 64z" opacity="0.8"/>
-  </g>
+  <path d="m20 5 9 8-3 31-13-9Z" fill="url(#ice-tall)" stroke="var(--pack-ink,#315B68)" stroke-width="1.5"/>
+  <path d="m29 13 8 7-2 22-9 2Z" fill="var(--pack-blue-face,#5B98A9)" stroke="var(--pack-ink,#315B68)" stroke-width="1.5"/>
+  <path d="m13 19-7 9 7 14 13 2-13-9Z" fill="url(#ice-side)" stroke="var(--pack-ink,#315B68)" stroke-width="1.5"/>
+  <path d="m20 5 6 39m3-31-9 12-7-6m0 23 7-17 15 17" stroke="var(--pack-facet-edge,#4D7B89)" stroke-width="1.5"/>
+  <path d="m18 9-4 10 6 5Z" fill="var(--pack-reflection,#F2FBF9)" opacity=".8"/>
+  <path d="m38 8 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="var(--pack-glint,#CEE6E6)"/>
 </svg>

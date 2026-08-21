@@ -132,6 +132,8 @@ export function MaterialPicker({ config, onPatch }: PanelProps) {
                     className="material-card__img"
                     src={material.dataUri}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                   />
                 </span>
                 <span className="material-card__name font-display">{material.name}</span>

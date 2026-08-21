@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * 素材包（Material Pack）—— v3 三轴合一后的唯一选择轴。
  *
- * 一个素材包 = 图标（Figma 精绘 SVG）+ 运动轨迹特效（30 预设之一 + 参数化）
+ * 一个素材包 = 图标（Figma 精绘 SVG）+ 运动轨迹特效（42 预设之一 + 参数化）
  *           + 程序化合成声音配方 + 配色（由图标主色推导）。
  *
  * 取代旧的三轴解耦体系（配色皮肤 skins / 音效包 sound presets / 素材 materials）。
@@ -13,7 +13,7 @@ import { z } from 'zod';
 // ── 运动轨迹特效预设 ────────────────────────────────────────────────────────
 
 /**
- * 30 个特效预设 id。每个预设是 overlay 里一套参数化的轨迹/爆裂程序
+ * 42 个特效预设 id。每个预设是 overlay 里一套参数化的轨迹/爆裂程序
  * （见 src/overlay/effects.ts），内置素材通过 params 定制出独家动画。
  */
 export const EFFECT_PRESET_IDS = [
@@ -47,6 +47,18 @@ export const EFFECT_PRESET_IDS = [
   'vortex',     // 漩涡聚拢（向心旋转）
   'rain',       // 雨丝斜落（斜线粒子）
   'explode',    // 猛烈爆炸（大面积火光）
+  'tornado',    // 龙卷风（漏斗螺旋+上升尘屑）
+  'downpour',   // 暴雨（全屏斜雨+地面涟漪）
+  'wildfire',   // 野火（多簇火舌+热浪）
+  'gunshot',    // 枪击（定向弹道+短促枪口焰）
+  'glass-break',// 玻璃破裂（屏幕裂纹+飞散碎片）
+  'boxing',     // 拳击（镜头冲击+压缩环）
+  'whip-crack', // 鞭梢音爆（链段传导+末梢火花）
+  'note-dance', // 音符跃动（五线谱+节拍跳跃）
+  'groove',     // 黑胶律动（唱片旋转+同心纹）
+  'fireworks',  // 烟花（升空+延迟爆开）
+  'singularity',// 奇点（向心吸入+引力透镜）
+  'drum-beat',  // 鼓点（膜面震动+低频环波）
 ] as const;
 
 export const EffectPresetSchema = z.enum(EFFECT_PRESET_IDS);
@@ -144,13 +156,15 @@ export const MaterialPackSchema = z.object({
 
 export type MaterialPack = z.infer<typeof MaterialPackSchema>;
 
-/** 30 个内置素材包 id，与 `src-tauri/packs/<id>/` 目录一一对应。 */
+/** 42 个内置素材包 id，与 `src-tauri/packs/<id>/` 目录一一对应。 */
 export const BUILTIN_PACK_IDS = [
   'rocket', 'phoenix', 'lightning', 'dragon', 'ninja-star', 'katana',
   'crystal', 'skull', 'flame', 'ice', 'thunder', 'water', 'wind',
   'star', 'moon', 'sun', 'meteor', 'comet', 'guitar', 'drum',
   'bell', 'harp', 'trumpet', 'bow', 'shield', 'axe', 'spear',
   'bomb', 'lotus', 'aurora',
+  'tornado', 'downpour', 'wildfire', 'revolver', 'glass-shot', 'boxing-glove',
+  'bullwhip', 'piano', 'saxophone', 'vinyl', 'fireworks', 'black-hole',
 ] as const;
 
 export type BuiltinPackId = (typeof BUILTIN_PACK_IDS)[number];

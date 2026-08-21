@@ -1,0 +1,67 @@
+{
+  "id": "fireworks",
+  "name": "绚烂烟花",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "fireworks",
+    "params": {
+      "shellRise": 2.4,
+      "burstRadius": 2.15,
+      "starCount": 3.0,
+      "colorTrails": 1.85,
+      "gravityArc": 0.72,
+      "afterglow": 1.55
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "sweep",
+        "attack": 0.01,
+        "decay": 0.75,
+        "gain": 0.42,
+        "osc": { "type": "sawtooth", "freq": 180, "freqEnd": 1540 },
+        "filter": { "type": "bandpass", "freq": 780, "freqEnd": 2500, "q": 1.1 }
+      },
+      {
+        "type": "impact",
+        "attack": 0.001,
+        "decay": 0.5,
+        "gain": 0.9,
+        "noiseColor": "white",
+        "filter": { "type": "lowpass", "freq": 4900, "freqEnd": 420, "q": 0.7 },
+        "delay": 0.32
+      },
+      {
+        "type": "noise",
+        "attack": 0.005,
+        "decay": 1.2,
+        "gain": 0.5,
+        "noiseColor": "white",
+        "filter": { "type": "highpass", "freq": 3100, "freqEnd": 1400, "q": 1.4 },
+        "delay": 0.4
+      },
+      {
+        "type": "rumble",
+        "attack": 0.004,
+        "decay": 1.15,
+        "gain": 0.46,
+        "osc": { "type": "sine", "freq": 88, "freqEnd": 30 },
+        "delay": 0.31
+      },
+      {
+        "type": "chime",
+        "attack": 0.001,
+        "decay": 0.68,
+        "gain": 0.17,
+        "osc": { "type": "sine", "freq": 2980, "freqEnd": 1980 },
+        "delay": 0.48
+      }
+    ],
+    "masterGain": 0.7
+  },
+  "palette": {
+    "bodyGradient": ["#F05AA6", "#F6C85F"],
+    "particleHue": 318
+  }
+}

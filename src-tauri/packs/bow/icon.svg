@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>木质长弓</title>
   <defs>
-    <linearGradient id="gbow" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#c8904d"/>
-    <stop offset="1" stop-color="#7a4a1a"/>
-  </linearGradient>
+    <linearGradient id="bow-laminate" x1="10" y1="5" x2="20" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-light,#C39467)"/>
+      <stop offset=".48" stop-color="var(--pack-wood,#805239)"/>
+      <stop offset="1" stop-color="var(--pack-wood-shadow,#442E27)"/>
+    </linearGradient>
+    <linearGradient id="bow-arrowhead" x1="36" y1="19" x2="44" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-light,#E2E7E5)"/>
+      <stop offset="1" stop-color="var(--pack-steel,#758286)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="none" stroke="url(#gbow)" stroke-width="22" stroke-linecap="round" d="M196 96 C320 160 320 352 196 416"/>
-      <path fill="none" stroke="#e8c890" stroke-width="6" d="M196 96 L196 416"/>
-      <path fill="#f0d0a0" stroke="#7a4a1a" stroke-width="4" d="M196 160 L316 256 L196 352 Z"/>
-  </g>
+  <path d="M12 4c12 8 15 25 0 40l4-1c13-12 13-27 0-38Z" fill="url(#bow-laminate)" stroke="var(--pack-ink,#3E332D)" stroke-width="1.5"/>
+  <path d="M12 5 5 24l7 19" stroke="var(--pack-string,#D6D1C4)" stroke-width="1.5"/>
+  <path d="M5 23h34v2H5Z" fill="var(--pack-shaft,#806246)" stroke="var(--pack-ink,#3E332D)" stroke-width="1.5"/>
+  <path d="m43 24-7-5v10Z" fill="url(#bow-arrowhead)" stroke="var(--pack-ink,#3E332D)" stroke-width="1.5"/>
+  <path d="m10 23-6-5 2 5Zm0 2-6 5 2-5Z" fill="var(--pack-feather,#C8D4D0)" stroke="var(--pack-ink,#3E332D)" stroke-width="1.5"/>
+  <path d="M13 9c7 8 9 16 6 25M18 22h16" stroke="var(--pack-wood-grain,#D0A172)" stroke-width="1.5" opacity=".62"/>
 </svg>

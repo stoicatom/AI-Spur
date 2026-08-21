@@ -1,18 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>木制战鼓</title>
   <defs>
-    <linearGradient id="gdrum" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff7a4d"/>
-    <stop offset="1" stop-color="#a82a00"/>
-  </linearGradient>
+    <linearGradient id="drum-shell" x1="9" y1="19" x2="39" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-light,#A97755)"/>
+      <stop offset=".5" stop-color="var(--pack-wood,#775442)"/>
+      <stop offset="1" stop-color="var(--pack-wood-shadow,#493C37)"/>
+    </linearGradient>
+    <linearGradient id="drum-head" x1="12" y1="14" x2="35" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-hide-light,#D8D0BD)"/>
+      <stop offset="1" stop-color="var(--pack-hide-shadow,#A69B85)"/>
+    </linearGradient>
+    <linearGradient id="drum-stick" x1="9" y1="5" x2="36" y2="25" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-stick-light,#C39A6C)"/>
+      <stop offset="1" stop-color="var(--pack-stick-shadow,#76533A)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <ellipse cx="256" cy="180" rx="100" ry="60" fill="url(#gdrum)"/>
-      <rect x="156" y="180" width="200" height="80" fill="#c23e00"/>
-      <ellipse cx="256" cy="260" rx="100" ry="60" fill="#8a1a00"/>
-      <ellipse cx="256" cy="180" rx="100" ry="60" fill="#ffb07a" opacity="0.5"/>
-      <g stroke="#c23e00" stroke-width="8" stroke-linecap="round">
-        <line x1="156" y1="140" x2="136" y2="96"/><line x1="356" y1="140" x2="376" y2="96"/>
-        <line x1="156" y1="300" x2="136" y2="344"/><line x1="356" y1="300" x2="376" y2="344"/>
-      </g>
-  </g>
+  <path d="m7 8 3-3 18 16-3 3Zm31 0 3-3L23 21l3 3Z" fill="url(#drum-stick)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
+  <path d="M9 18h30v18c0 5-6 8-15 8S9 41 9 36Z" fill="url(#drum-shell)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
+  <ellipse cx="24" cy="18" rx="15" ry="5" fill="url(#drum-head)" stroke="var(--pack-edge,#4F443E)" stroke-width="1.5"/>
+  <path d="M10 23c8 3 20 3 28 0M10 36c8 3 20 3 28 0" stroke="var(--pack-hoop,#61534A)" stroke-width="1.5"/>
+  <path d="m12 24 7 16 10-16 7 16" stroke="var(--pack-lacing,#B59A6C)" stroke-width="1.5"/>
+  <path d="M15 17c5-1 13-1 18 0" stroke="var(--pack-head-grain,#EEE8D8)" stroke-width="1.5" opacity=".58"/>
+  <path d="M14 29v5m20-5v5" stroke="var(--pack-lug,#C0B193)" stroke-width="1.5"/>
 </svg>

@@ -1,12 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gninjastar" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#b8b8c8"/>
-    <stop offset="1" stop-color="#4a4a58"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gninja-star)" d="M256 96 300 212l116-44-60 88 60 88-116-44-44 116-44-116-116 44 60-88-60-88 116 44z"/>
-      <path fill="#e8e8f0" d="M256 96c8 40 20 76 44 116-40 8-76 20-116 44 8-40 20-76 44-116 40-8 20-24 28-44z" opacity="0.6"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>手里剑</title>
+  <defs><linearGradient id="a" x1="10" y1="8" x2="37" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#EEF4F5)"/><stop offset=".45" stop-color="var(--pack-steel,#9CAAB2)"/><stop offset="1" stop-color="var(--pack-shadow,#46515B)"/></linearGradient></defs>
+  <path d="m23 21 1-18 10 10-7 10 18 1-10 10-10-7-1 18-10-10 7-10-18-1 10-10Z" fill="url(#a)" stroke="var(--pack-ink,#303941)" stroke-width="1.5"/>
+  <path d="m24 3 1 21 9-11m11 11-21 1 11 9m-11 11-1-21-9 11M3 24l21-1-11-9" stroke="var(--pack-facet,#66747D)" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="5" fill="var(--pack-hub,#C6D0D4)" stroke="var(--pack-ink,#303941)" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="2" fill="var(--pack-hole,#303941)"/>
+  <path d="M20 19c2-1 4-1 6 0" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".8"/>
 </svg>

@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>武士刀</title>
   <defs>
-    <linearGradient id="gkatana" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#e8e8f5"/>
-    <stop offset="1" stop-color="#8a8aa0"/>
-  </linearGradient>
+    <linearGradient id="katana-blade" x1="18" y1="32" x2="45" y2="5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-shadow,#6D7B80)"/>
+      <stop offset=".48" stop-color="var(--pack-steel,#C8D2D1)"/>
+      <stop offset="1" stop-color="var(--pack-steel-light,#F1F5F2)"/>
+    </linearGradient>
+    <linearGradient id="katana-wrap" x1="5" y1="43" x2="17" y2="33" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wrap-shadow,#312B2E)"/>
+      <stop offset="1" stop-color="var(--pack-wrap,#655456)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gkatana)" d="M380 96 216 260l-40 40 40 40 40-40 164-164-40-40z"/>
-      <path fill="#c23e00" d="M176 300l-44 44 40 40 44-44-40-40z"/>
-      <path fill="#fff" d="M380 96l-40 40 164 164 40-40-164-164z" opacity="0.4"/>
-  </g>
+  <path d="M15 33C26 22 36 11 45 4c-3 11-12 24-26 34Z" fill="url(#katana-blade)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
+  <path d="M20 33c8-8 16-17 22-25-4 10-12 21-22 29Z" fill="var(--pack-edge,#F4F6F1)" opacity=".72"/>
+  <path d="m14 31 7 7-2 3-8-8Z" fill="var(--pack-guard,#927D52)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
+  <path d="m11 34 7 7-8 5-7-7Z" fill="url(#katana-wrap)" stroke="var(--pack-ink,#354044)" stroke-width="1.5"/>
+  <path d="m6 38 7 2m-4-5 7 2m-6 5 3 3" stroke="var(--pack-binding,#B8A06B)" stroke-width="1.5"/>
+  <path d="M20 32c8-8 15-16 21-23" stroke="var(--pack-temper,#9DAEB0)" stroke-width="1.5" opacity=".68"/>
 </svg>

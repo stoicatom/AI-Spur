@@ -6,7 +6,18 @@
  * for sidebar nav at 16px rendered size.
  */
 
-export type IconName = 'trigger' | 'phrases' | 'skins' | 'animation' | 'sounds' | 'theme' | 'stats';
+export type IconName =
+  | 'trigger'
+  | 'phrases'
+  | 'skins'
+  | 'animation'
+  | 'sounds'
+  | 'theme'
+  | 'stats'
+  | 'plus'
+  | 'search'
+  | 'close'
+  | 'trash';
 
 export interface IconProps {
   name: IconName;
@@ -21,8 +32,6 @@ export function Icon({ name, className = '' }: IconProps) {
   return (
     <svg
       className={`icon ${className}`}
-      width="20"
-      height="20"
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -57,26 +66,15 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
     </>
   ),
 
-  // Skins: Layers (visual customization, stacked options)
+  // Skins: T-shirt (wearable appearance / skin customization)
   skins: (
-    <>
-      <rect
-        x="4"
-        y="4"
-        width="12"
-        height="12"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 4V2M13 4V2M16 7H18M16 13H18"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </>
+    <path
+      d="M7 3.5L3.5 5.25L2.5 8.75L5.4 10L6.2 8.5V16.5H13.8V8.5L14.6 10L17.5 8.75L16.5 5.25L13 3.5C12.5 4.6 11.4 5.25 10 5.25C8.6 5.25 7.5 4.6 7 3.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   ),
 
   // Animation: Sine wave (motion, physics, dynamic behavior)
@@ -131,6 +129,28 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
         strokeWidth="1.5"
         strokeLinecap="round"
       />
+    </>
+  ),
+
+  plus: (
+    <path d="M10 3.5V16.5M3.5 10H16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  ),
+
+  search: (
+    <>
+      <circle cx="8.5" cy="8.5" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12.25 12.25L16.5 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </>
+  ),
+
+  close: (
+    <path d="M4.5 4.5L15.5 15.5M15.5 4.5L4.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  ),
+
+  trash: (
+    <>
+      <path d="M4 6H16M7.5 3.5H12.5L13.5 6M6 6L6.75 16.5H13.25L14 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.5 9V13.5M11.5 9V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </>
   ),
 };

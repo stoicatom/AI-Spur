@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>皮革拳套</title>
+  <defs>
+    <linearGradient id="glove-leather" x1="12" y1="9" x2="39" y2="39" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-leather-light,#B77870)"/>
+      <stop offset=".43" stop-color="var(--pack-leather,#894642)"/>
+      <stop offset="1" stop-color="var(--pack-leather-shadow,#48292B)"/>
+    </linearGradient>
+    <linearGradient id="glove-cuff" x1="10" y1="37" x2="29" y2="45" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-cuff-light,#705456)"/>
+      <stop offset="1" stop-color="var(--pack-cuff,#352B30)"/>
+    </linearGradient>
+  </defs>
+  <path d="M10 29c-2-7 1-13 7-16 1-5 7-7 12-4 6-1 10 3 10 9 4 3 5 8 2 13-3 5-8 7-15 7H15c-3-2-5-5-5-9Z" fill="url(#glove-leather)" stroke="var(--pack-ink,#422C2E)" stroke-width="1.5"/>
+  <path d="M12 25c4-4 9-4 12 0 3 4 1 9-3 13h-7c-4-3-5-8-2-13Z" fill="var(--pack-palm,#673735)" stroke="var(--pack-ink,#422C2E)" stroke-width="1.5"/>
+  <path d="M17 14c1 4 4 6 8 7m4-11c-1 5 2 8 7 9" stroke="var(--pack-seam-light,#D59B91)" stroke-width="1.5" opacity=".78"/>
+  <path d="M10 36h20v9H10c-2 0-4-2-4-4v-1c0-2 2-4 4-4Z" fill="url(#glove-cuff)" stroke="var(--pack-ink,#422C2E)" stroke-width="1.5"/>
+  <path d="M9 40h19" stroke="var(--pack-stitch,#B87C73)" stroke-width="1.5" stroke-dasharray="2 2"/>
+  <path d="M31 15c3 1 5 3 5 5" stroke="var(--pack-surface-light,#D9AAA0)" stroke-width="1.5" opacity=".55"/>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>黑胶唱机</title>
+  <defs>
+    <linearGradient id="vinyl-plinth" x1="7" y1="10" x2="42" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-plinth-light,#6D6D68)"/>
+      <stop offset=".48" stop-color="var(--pack-plinth,#454A4A)"/>
+      <stop offset="1" stop-color="var(--pack-plinth-shadow,#2D3435)"/>
+    </linearGradient>
+    <radialGradient id="vinyl-disc" cx="0" cy="0" r="1" gradientTransform="translate(18 23) rotate(46) scale(16)">
+      <stop stop-color="var(--pack-disc-light,#62676A)"/>
+      <stop offset=".48" stop-color="var(--pack-disc,#303739)"/>
+      <stop offset="1" stop-color="var(--pack-disc-shadow,#1E282A)"/>
+    </radialGradient>
+  </defs>
+  <path d="M6 11h34l3 4v23H6Z" fill="url(#vinyl-plinth)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <path d="M6 11h34l3 4H10Z" fill="var(--pack-plinth-edge,#8A8A80)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <circle cx="20" cy="25" r="14" fill="url(#vinyl-disc)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <circle cx="20" cy="25" r="10" stroke="var(--pack-groove,#737B7A)" stroke-width="1.5" opacity=".56"/>
+  <circle cx="20" cy="25" r="6" stroke="var(--pack-groove,#737B7A)" stroke-width="1.5" opacity=".5"/>
+  <circle cx="20" cy="25" r="4" fill="var(--pack-label,#8A7861)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <circle cx="20" cy="25" r="1.25" fill="var(--pack-spindle,#D1CEBE)"/>
+  <path d="M37 15v9l-7 8-3-2 7-8v-7Z" fill="var(--pack-arm,#B5B2A2)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <path d="M27 30 31 33l-2 3-4-2Z" fill="var(--pack-cartridge,#4E5656)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
+  <path d="M9 38v4m29-4v4M35 17h3" stroke="var(--pack-hardware,#B7B7AC)" stroke-width="1.5"/>
+</svg>

@@ -1,13 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gthunder" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffe04d"/>
-    <stop offset="1" stop-color="#a87800"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <ellipse cx="256" cy="200" rx="110" ry="96" fill="url(#gthunder)"/>
-      <path fill="#7a4a00" d="M256 104 356 200 256 296 156 200z"/>
-      <path fill="#fff6d0" d="M256 104l100 96h-100z" opacity="0.5"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>雷鼓</title>
+  <defs><linearGradient id="a" x1="11" y1="10" x2="37" y2="27" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#AEBBC7)"/><stop offset=".5" stop-color="var(--pack-cloud,#66748C)"/><stop offset="1" stop-color="var(--pack-shadow,#303C55)"/></linearGradient><linearGradient id="b" x1="25" y1="22" x2="21" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-lightning,#FFF3A1)"/><stop offset=".5" stop-color="var(--pack-bolt,#F4C849)"/><stop offset="1" stop-color="var(--pack-hot,#B97820)"/></linearGradient></defs>
+  <path d="M7 22a7 7 0 0 1 8-8 11 11 0 0 1 20 2 6 6 0 0 1 6 6Z" fill="url(#a)" stroke="var(--pack-ink,#273247)" stroke-width="1.5"/>
+  <path d="m25 21-8 13h7l-2 10 10-14h-7Z" fill="url(#b)" stroke="var(--pack-ink,#4B3B2A)" stroke-width="1.5"/>
+  <path d="M8 30c-4 3-4 8 0 11m32-11c4 3 4 8 0 11M12 33c-2 2-2 4 0 6m24-6c2 2 2 4 0 6" stroke="var(--pack-rumble,#8B76B1)" stroke-width="1.5"/>
+  <path d="M12 17c5-4 12-4 18-1" stroke="var(--pack-highlight,#D9E5ED)" stroke-width="1.5" opacity=".78"/>
 </svg>

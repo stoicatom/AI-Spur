@@ -13,13 +13,53 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
+#[path = "packs_validation.rs"]
+mod validation;
+
 /// 运动轨迹特效预设 id（与 TS `EFFECT_PRESET_IDS` 保持一致）。
 pub const EFFECT_PRESETS: &[&str] = &[
-    "jet", "rise", "bolt", "wave", "orbit", "dash", "shatter", "burst",
-    "flame-rise", "shatter-ice", "shock-ring", "water-splash", "whirl",
-    "star-burst", "impact", "comet", "trail-burst", "pulse", "ring",
-    "petal", "echo", "arc", "spiral", "split", "chain", "glow",
-    "twinkle", "vortex", "rain", "explode",
+    "jet",
+    "rise",
+    "bolt",
+    "wave",
+    "orbit",
+    "dash",
+    "shatter",
+    "burst",
+    "flame-rise",
+    "shatter-ice",
+    "shock-ring",
+    "water-splash",
+    "whirl",
+    "star-burst",
+    "impact",
+    "comet",
+    "trail-burst",
+    "pulse",
+    "ring",
+    "petal",
+    "echo",
+    "arc",
+    "spiral",
+    "split",
+    "chain",
+    "glow",
+    "twinkle",
+    "vortex",
+    "rain",
+    "explode",
+    "tornado",
+    "downpour",
+    "wildfire",
+    "gunshot",
+    "glass-break",
+    "boxing",
+    "whip-crack",
+    "note-dance",
+    "groove",
+    "fireworks",
+    "singularity",
+    "drum-beat",
 ];
 
 /// 声音层类型（与 TS `SoundLayerTypeSchema` 保持一致）。
@@ -161,32 +201,7 @@ pub struct PackManifest {
 impl PackManifest {
     /// 校验必需字段与取值范围。
     pub fn validate(&self) -> Result<(), String> {
-        if self.id.is_empty()
-            || !self
-                .id
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-')
-        {
-            return Err(format!("invalid pack id: {}", self.id));
-        }
-        if self.name.is_empty() || self.name.len() > 40 {
-            return Err("pack name must be 1-40 chars".into());
-        }
-        if !EFFECT_PRESETS.contains(&self.effect.preset.as_str()) {
-            return Err(format!("unknown effect preset: {}", self.effect.preset));
-        }
-        if self.sound.layers.is_empty() || self.sound.layers.len() > 6 {
-            return Err("sound recipe must have 1-6 layers".into());
-        }
-        for layer in &self.sound.layers {
-            if !(0.0..=1.0).contains(&layer.gain) {
-                return Err(format!("layer gain out of range: {}", layer.gain));
-            }
-        }
-        if !(0..=359).contains(&self.palette.particle_hue) {
-            return Err("particleHue out of range 0-359".into());
-        }
-        Ok(())
+        validation::validate(self)
     }
 }
 
@@ -262,158 +277,4 @@ pub fn list_packs(builtin_dir: &Path, user_dir: Option<&Path>) -> Vec<MaterialPa
         }
     }
     packs
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn valid_manifest() -> PackManifest {
-        PackManifest {
-            id: "rocket".into(),
-            name: "火箭".into(),
-            icon: "icon.svg".into(),
-            effect: EffectSpec {
-                preset: "jet".into(),
-                params: HashMap::new(),
-            },
-            sound: SoundRecipe {
-                layers: vec![SoundLayer {
-                    layer_type: SoundLayerType::Noise,
-                    attack: 0.01,
-                    decay: 0.4,
-                    gain: 0.6,
-                    filter: None,
-                    osc: None,
-                    noise_color: Some(NoiseColor::White),
-                    delay: 0.0,
-                }],
-                master_gain: 0.8,
-            },
-            palette: PackPalette {
-                body_gradient: ["#FF4400".into(), "#FF6A00".into()],
-                particle_hue: 24,
-            },
-        }
-    }
-
-    #[test]
-    fn valid_manifest_passes() {
-        assert!(valid_manifest().validate().is_ok());
-    }
-
-    #[test]
-    fn unknown_effect_preset_fails() {
-        let mut m = valid_manifest();
-        m.effect.preset = "not-a-preset".into();
-        assert!(m.validate().is_err());
-    }
-
-    #[test]
-    fn empty_layers_fail() {
-        let mut m = valid_manifest();
-        m.sound.layers.clear();
-        assert!(m.validate().is_err());
-    }
-
-    #[test]
-    fn out_of_range_hue_fails() {
-        let mut m = valid_manifest();
-        m.palette.particle_hue = 400;
-        assert!(m.validate().is_err());
-    }
-
-    #[test]
-    fn scan_missing_dir_yields_nothing() {
-        let packs = scan_packs_in(Path::new("/nonexistent/aispur/packs"), true);
-        assert!(packs.is_empty());
-    }
-
-    #[test]
-    fn serializes_camel_case() {
-        let pack = MaterialPack {
-            id: "test".into(),
-            name: "测试".into(),
-            builtin: true,
-            image_file: "icon.svg".into(),
-            data_uri: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=".into(),
-            effect: EffectSpec {
-                preset: "jet".into(),
-                params: HashMap::new(),
-            },
-            sound: SoundRecipe {
-                layers: vec![SoundLayer {
-                    layer_type: SoundLayerType::Noise,
-                    attack: 0.01,
-                    decay: 0.4,
-                    gain: 0.6,
-                    filter: None,
-                    osc: None,
-                    noise_color: None,
-                    delay: 0.0,
-                }],
-                master_gain: 0.8,
-            },
-            palette: PackPalette {
-                body_gradient: ["#111111".into(), "#333333".into()],
-                particle_hue: 200,
-            },
-        };
-        let json = serde_json::to_value(&pack).unwrap();
-        assert_eq!(json["imageFile"], "icon.svg");
-        assert_eq!(json["effect"]["preset"], "jet");
-        // f32 序列化有精度误差，近似比较。
-        assert!((json["sound"]["masterGain"].as_f64().unwrap() - 0.8).abs() < 1e-6);
-        assert_eq!(json["palette"]["particleHue"], 200);
-        assert_eq!(json["builtin"], true);
-    }
-}
-
-#[cfg(test)]
-mod serde_tests {
-    use super::*;
-
-    /// 向导发送的 recipe 可能缺省 filter/osc/noiseColor/delay 字段
-    /// （serde Option 字段必须加 #[serde(default)] 才能容忍缺失）。
-    #[test]
-    fn sound_recipe_accepts_missing_option_fields() {
-        let json = serde_json::json!({
-            "layers": [
-                {
-                    "type": "noise",
-                    "attack": 0.008,
-                    "decay": 0.4,
-                    "gain": 0.7
-                    // filter / osc / noiseColor / delay 全部缺省
-                },
-                {
-                    "type": "impact",
-                    "attack": 0.002,
-                    "decay": 0.3,
-                    "gain": 0.8,
-                    "osc": { "type": "sine", "freq": 150 }
-                    // osc.freqEnd 缺省
-                }
-            ],
-            "masterGain": 0.85
-        });
-        let recipe: SoundRecipe = serde_json::from_value(json).unwrap();
-        assert_eq!(recipe.layers.len(), 2);
-        assert!(recipe.layers[0].filter.is_none());
-        assert!(recipe.layers[0].osc.is_none());
-        assert!(recipe.layers[1].osc.as_ref().unwrap().freq_end.is_none());
-    }
-
-    /// filter 内 freqEnd 缺省也应容忍。
-    #[test]
-    fn sound_filter_accepts_missing_freq_end() {
-        let json = serde_json::json!({
-            "type": "lowpass",
-            "freq": 3000
-            // freqEnd / q 缺省
-        });
-        let f: SoundFilter = serde_json::from_value(json).unwrap();
-        assert!(f.freq_end.is_none());
-        assert_eq!(f.q, 1.0); // default_q
-    }
 }

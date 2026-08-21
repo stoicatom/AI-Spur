@@ -1,0 +1,55 @@
+{
+  "id": "boxing-glove",
+  "name": "重拳震屏",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "boxing",
+    "params": {
+      "punchForce": 2.75,
+      "gloveMass": 1.8,
+      "compression": 0.42,
+      "screenKnockback": 2.1,
+      "sweatSpray": 1.15,
+      "recovery": 0.68
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.001,
+        "decay": 0.36,
+        "gain": 0.94,
+        "noiseColor": "white",
+        "filter": { "type": "lowpass", "freq": 1900, "freqEnd": 190, "q": 0.7 }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.002,
+        "decay": 0.72,
+        "gain": 0.72,
+        "osc": { "type": "sine", "freq": 132, "freqEnd": 34 }
+      },
+      {
+        "type": "noise",
+        "attack": 0.003,
+        "decay": 0.2,
+        "gain": 0.42,
+        "noiseColor": "pink",
+        "filter": { "type": "bandpass", "freq": 880, "freqEnd": 420, "q": 1.5 }
+      },
+      {
+        "type": "sweep",
+        "attack": 0.001,
+        "decay": 0.25,
+        "gain": 0.24,
+        "osc": { "type": "triangle", "freq": 390, "freqEnd": 82 }
+      }
+    ],
+    "masterGain": 0.74
+  },
+  "palette": {
+    "bodyGradient": ["#E84855", "#742B62"],
+    "particleHue": 350
+  }
+}

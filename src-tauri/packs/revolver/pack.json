@@ -1,0 +1,56 @@
+{
+  "id": "revolver",
+  "name": "左轮枪击",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "gunshot",
+    "params": {
+      "muzzleEnergy": 2.5,
+      "recoilKick": 1.45,
+      "tracerSpeed": 3.1,
+      "smokeCurl": 0.85,
+      "casingSpin": 2.2,
+      "flashCone": 1.35
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.001,
+        "decay": 0.24,
+        "gain": 0.95,
+        "noiseColor": "white",
+        "filter": { "type": "bandpass", "freq": 1800, "freqEnd": 320, "q": 0.9 }
+      },
+      {
+        "type": "noise",
+        "attack": 0.001,
+        "decay": 0.42,
+        "gain": 0.74,
+        "noiseColor": "white",
+        "filter": { "type": "lowpass", "freq": 6500, "freqEnd": 680, "q": 0.6 }
+      },
+      {
+        "type": "rumble",
+        "attack": 0.002,
+        "decay": 0.62,
+        "gain": 0.5,
+        "osc": { "type": "sine", "freq": 110, "freqEnd": 35 }
+      },
+      {
+        "type": "chime",
+        "attack": 0.001,
+        "decay": 0.28,
+        "gain": 0.2,
+        "osc": { "type": "triangle", "freq": 3260, "freqEnd": 2280 },
+        "delay": 0.08
+      }
+    ],
+    "masterGain": 0.76
+  },
+  "palette": {
+    "bodyGradient": ["#F0A43A", "#3A4656"],
+    "particleHue": 38
+  }
+}

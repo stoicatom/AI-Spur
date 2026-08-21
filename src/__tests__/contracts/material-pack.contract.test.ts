@@ -73,8 +73,8 @@ describe('Material Pack IPC contract', () => {
   });
 
   describe('effect preset enum', () => {
-    it('恰好 30 个预设', () => {
-      expect(EffectPresetSchema.options).toHaveLength(30);
+    it('恰好 42 个预设', () => {
+      expect(EffectPresetSchema.options).toHaveLength(42);
     });
 
     it('包含关键预设', () => {

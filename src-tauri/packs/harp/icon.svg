@@ -1,15 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>木制竖琴</title>
   <defs>
-    <linearGradient id="gharp" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffc48a"/>
-    <stop offset="1" stop-color="#b8703a"/>
-  </linearGradient>
+    <linearGradient id="harp-wood" x1="11" y1="8" x2="35" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-light,#C6A174)"/>
+      <stop offset=".5" stop-color="var(--pack-wood,#8A684B)"/>
+      <stop offset="1" stop-color="var(--pack-wood-shadow,#56453A)"/>
+    </linearGradient>
+    <linearGradient id="harp-neck" x1="15" y1="8" x2="41" y2="12" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-neck-light,#D7BE91)"/>
+      <stop offset="1" stop-color="var(--pack-neck,#7B6047)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gharp)" d="M256 96v280c-60-12-104-48-104-96 0-60 44-120 104-184zm0 0v280c60-12 104-48 104-96 0-60-44-120-104-184z" fill-rule="evenodd"/>
-      <g stroke="#fff6d0" stroke-width="4" opacity="0.7">
-        <line x1="256" y1="120" x2="196" y2="280"/><line x1="256" y1="160" x2="208" y2="300"/>
-        <line x1="256" y1="120" x2="316" y2="280"/><line x1="256" y1="160" x2="304" y2="300"/>
-      </g>
-  </g>
+  <path d="M10 42 15 10h6l-4 32Z" fill="url(#harp-wood)" stroke="var(--pack-edge,#51473E)" stroke-width="1.5"/>
+  <path d="M15 10c8-5 18-5 26-1l-2 5c-7-2-13-2-20 2Z" fill="url(#harp-neck)" stroke="var(--pack-edge,#51473E)" stroke-width="1.5"/>
+  <path d="M41 9c-7 11-11 23-12 33h-7c2-12 7-24 17-33Z" fill="url(#harp-wood)" stroke="var(--pack-edge,#51473E)" stroke-width="1.5"/>
+  <path d="M19 16 18 42m5-28-1 28m5-29-1 29m5-28-2 28m6-27-3 27" stroke="var(--pack-string,#C9D3C7)" stroke-width="1.5"/>
+  <path d="M9 42h22l-2 4H8Z" fill="var(--pack-base,#625548)" stroke="var(--pack-edge,#51473E)" stroke-width="1.5"/>
+  <path d="M14 15 11 39m14-29c5-1 9 0 12 1" stroke="var(--pack-grain,#E2C79A)" stroke-width="1.5" opacity=".48"/>
 </svg>

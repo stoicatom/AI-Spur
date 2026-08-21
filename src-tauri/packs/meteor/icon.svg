@@ -1,15 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gmeteor" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff7a4d"/>
-    <stop offset="1" stop-color="#a83a00"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gmeteor)" d="M336 96 128 304c-16 16-16 40 0 56s40 16 56 0L392 152l-56-56z"/>
-      <path fill="#ffd9b0" d="M336 96l56 56-40 40-56-56z" opacity="0.6"/>
-      <path fill="#ff9c6a" d="M96 384c40-8 64-20 88-44-8 40-24 60-88 44z" opacity="0.7">
-        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="0.8s" repeatCount="indefinite"/>
-      </path>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>流星</title>
+  <defs><linearGradient id="a" x1="3" y1="6" x2="31" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-tail-clear,#FFF0A8)" stop-opacity="0"/><stop offset=".45" stop-color="var(--pack-plasma,#F59A38)"/><stop offset="1" stop-color="var(--pack-hot,#D9472D)"/></linearGradient><radialGradient id="b" cx="0" cy="0" r="1" gradientTransform="translate(29 27) rotate(45) scale(17)"><stop stop-color="var(--pack-light,#A98A78)"/><stop offset=".5" stop-color="var(--pack-rock,#65535A)"/><stop offset="1" stop-color="var(--pack-shadow,#302C35)"/></radialGradient></defs>
+  <path d="M3 4c14 7 23 14 30 23l-6 8C20 24 13 15 3 4Zm2 14c9 3 16 8 23 15l-3 4C18 29 12 23 5 18Z" fill="url(#a)"/>
+  <path d="m28 21 8-1 7 5 2 8-5 9-9 3-8-5-3-8Z" fill="url(#b)" stroke="var(--pack-ink,#302A31)" stroke-width="1.5"/>
+  <path d="m29 22 7-1 4 5-6 4-10-1Z" fill="var(--pack-hot-face,#BC7155)"/>
+  <path d="m27 25 7 5-3 7-8 3m11-10 6-4 4 7-4 9" stroke="var(--pack-facet,#443A40)" stroke-width="1.5"/>
+  <path d="m25 25 5-2" stroke="var(--pack-highlight,#D5B49A)" stroke-width="1.5"/>
 </svg>

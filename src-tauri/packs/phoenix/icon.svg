@@ -1,13 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gphoenix" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff6a3d"/>
-    <stop offset="1" stop-color="#b02800"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gphoenix)" d="M256 96c-30 20-56 52-66 88-6 22-4 46 6 66 20-18 42-30 60-30s40 12 60 30c10-20 12-44 6-66-10-36-36-68-66-88zm-10 60c-8 24-22 44-40 58 8-26 22-44 40-58zm20 0c18 14 32 32 40 58-18-14-32-32-40-58z"/>
-      <path fill="#ffb199" d="M256 96c-14 10-26 24-36 40l36-20 36 20c-10-16-22-30-36-40z"/>
-      <path fill="url(#gphoenix)" d="M256 300c-30 12-52 32-68 56l68-16 68 16c-16-24-38-44-68-56z" opacity="0.9"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>凤凰</title>
+  <defs><linearGradient id="a" x1="7" y1="7" x2="38" y2="35" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#F7CF7A)"/><stop offset=".48" stop-color="var(--pack-wing,#C95D37)"/><stop offset="1" stop-color="var(--pack-shadow,#662E2B)"/></linearGradient><linearGradient id="b" x1="27" y1="13" x2="19" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-gold,#E7A844)"/><stop offset=".62" stop-color="var(--pack-breast,#A94732)"/><stop offset="1" stop-color="var(--pack-tail,#71302C)"/></linearGradient></defs>
+  <path d="M25 21C19 11 11 6 3 8c6 4 9 8 11 13l-9-3c4 9 11 14 20 14 8 0 15-5 19-14l-9 3c2-5 5-9 10-13-8-2-15 3-20 13Z" fill="url(#a)" stroke="var(--pack-ink,#48292A)" stroke-width="1.5"/>
+  <path d="M25 22c-2-5-1-10 3-13 3-2 6-1 9 1l-4 2 4 2-5 2c1 7-2 13-7 17-5-3-6-7-5-11Z" fill="url(#b)" stroke="var(--pack-ink,#48292A)" stroke-width="1.5"/>
+  <path d="M24 32C20 38 17 42 12 45c2-6 3-10 2-14m11 2c0 5 0 8 2 12 3-5 5-9 5-15" fill="url(#b)" stroke="var(--pack-ink,#48292A)" stroke-width="1.5"/>
+  <path d="M8 11c6 3 10 7 13 13M7 19c5 2 9 5 12 9m21-17c-6 3-10 7-12 13m12-5c-5 2-9 5-12 9" stroke="var(--pack-highlight,#F3C276)" stroke-width="1.5" opacity=".8"/>
+  <circle cx="31" cy="11" r="1" fill="var(--pack-eye,#2D2222)"/>
 </svg>

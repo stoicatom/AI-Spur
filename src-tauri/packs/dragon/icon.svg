@@ -1,12 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gdragon" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#2ee88a"/>
-    <stop offset="1" stop-color="#007a3d"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gdragon)" d="M256 96c-60 0-100 36-100 80 0 36 28 60 64 60 28 0 44-14 44-30 0-14-10-24-26-24-14 0-26 8-26 20 0 10 8 18 20 18 8 0 14-4 14-10 0-6-4-10-10-10-4 0-8 4-8 8 0 4 2 6 6 6 2 0 4-2 4-4s-2-4-4-4c-2 0-4 2-4 4 0 2 2 4 4 4 2 0 2-2 2-4 0-2-2-2-2 0 0 2 2 2 2 0 0-2-2-2-2 0 0 2 0 4 2 4 4 0 6-6 6-14 0-22-10-22-24 0-16 14-28 34-28 20 0 34 12 34 32 0 20-18 40-48 40-40 0-72-28-72-68 0-48 44-88 108-88 64 0 108 40 108 88 0 36-26 64-60 64-24 0-42-12-42-28 0-12 8-20 20-20 8 0 14 4 14 10 0 6-6 10-14 10-10 0-16-6-16-14 0-6 4-12 12-12 8 0 14 4 14 10 0 4-4 8-8 8-4 0-6-2-6-4 0-2 2-4 6-4 2 0 4 2 4 4 0 2-2 2-4 2-2 0-4-2-4-2z"/>
-      <path fill="#a8ffd0" d="M256 96c-6 0-12 0-18 2l18 18 18-18c-6-2-12-2-18-2z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>神龙</title>
+  <defs><linearGradient id="a" x1="18" y1="11" x2="35" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#8FC99B)"/><stop offset=".45" stop-color="var(--pack-scale,#3F815D)"/><stop offset="1" stop-color="var(--pack-shadow,#1F4338)"/></linearGradient></defs>
+  <path d="m25 14-5-10 9 6 8-6-1 11" fill="var(--pack-horn,#D7C59A)" stroke="var(--pack-ink,#213A34)" stroke-width="1.5"/>
+  <path d="M6 44c9-4 13-10 11-17-2-7 2-13 10-16 7-2 15 2 17 9l-5 2 6 4-9 7-10-2c-3 8-9 13-20 13Z" fill="url(#a)" stroke="var(--pack-ink,#213A34)" stroke-width="1.5"/>
+  <path d="m36 22 9 4-9 7-10-2 4-6Z" fill="var(--pack-jaw,#2A5948)" stroke="var(--pack-ink,#213A34)" stroke-width="1.5"/>
+  <path d="M12 39c7 1 12-3 14-10l-5-5c0-5 3-8 8-10-8 2-13 7-12 13 2 7-1 11-5 12Z" fill="var(--pack-shadow,#1F4338)"/>
+  <path d="m19 20-8-4 5 7-8 3 9 2m11-16 2 7 7-3M14 37c6 0 10-3 12-8" stroke="var(--pack-ridge,#9BCBA2)" stroke-width="1.5"/>
+  <path d="m32 18 3-1 2 2-3 2Z" fill="var(--pack-eye,#D5A83F)" stroke="var(--pack-ink,#213A34)" stroke-width="1.5"/>
 </svg>

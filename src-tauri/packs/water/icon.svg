@@ -1,13 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gwater" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#4a8cff"/>
-    <stop offset="1" stop-color="#0040a0"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gwater)" d="M96 208c40-32 80-32 120 0s80 32 120 0 40-16 40-16v56c0 20-20 32-40 32H136c-20 0-40-12-40-32v-40z" opacity="0.9"/>
-      <path fill="#b0d4ff" d="M96 208c40-32 80-32 120 0s80 32 120 0 40-16 40-16" fill="none" stroke="#c8e4ff" stroke-width="6" stroke-linecap="round"/>
-      <path fill="url(#gwater)" d="M96 288c40-32 80-32 120 0s80 32 120 0v32c0 20-20 32-40 32H136c-20 0-40-12-40-32v-32z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>碧波</title>
+  <defs><linearGradient id="a" x1="16" y1="8" x2="32" y2="41" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#D9FFFF)"/><stop offset=".45" stop-color="var(--pack-water,#4BB9E8)"/><stop offset="1" stop-color="var(--pack-shadow,#17619F)"/></linearGradient></defs>
+  <path d="M24 4C18 13 10 21 10 30a14 14 0 0 0 28 0c0-9-8-17-14-26Z" fill="url(#a)" stroke="var(--pack-ink,#244B6A)" stroke-width="1.5"/>
+  <path d="M14 29c4 3 8 3 12 0s8-3 11 0" stroke="var(--pack-foam,#E4FFFF)" stroke-width="1.5"/>
+  <path d="M18 39c4 2 9 2 13-1M8 44h32" stroke="var(--pack-ripple,#55BDAE)" stroke-width="1.5"/>
+  <path d="M19 13c3 4 4 7 3 11" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".82"/>
 </svg>

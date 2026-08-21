@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>倾盆暴雨</title>
+  <defs>
+    <linearGradient id="a" x1="12" y1="9" x2="35" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#AAB8C5)"/><stop offset=".48" stop-color="var(--pack-cloud,#647587)"/><stop offset="1" stop-color="var(--pack-shadow,#303A4B)"/></linearGradient>
+    <linearGradient id="b" x1="19" y1="26" x2="13" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-rain-light,#A7E9F2)"/><stop offset="1" stop-color="var(--pack-rain,#359BC5)"/></linearGradient>
+  </defs>
+  <path d="M6 24c-2-5 1-10 7-11 3-7 13-9 19-3 5-1 10 3 10 8 4 1 5 4 4 6Z" fill="url(#a)" stroke="var(--pack-ink,#25303F)" stroke-width="1.5"/>
+  <path d="M9 22h35c-5 5-29 6-35 0Z" fill="var(--pack-cloud-base,#384759)"/>
+  <path d="m11 28-5 13m12-13-6 16m13-16-6 16m13-16-6 16m13-16-5 13" stroke="url(#b)" stroke-width="1.5"/>
+  <path d="M4 44h12m5 0h23" stroke="var(--pack-water,#3B82A6)" stroke-width="1.5"/>
+</svg>

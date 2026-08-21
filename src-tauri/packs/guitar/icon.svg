@@ -1,16 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>电吉他</title>
   <defs>
-    <linearGradient id="gguitar" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ff9c4d"/>
-    <stop offset="1" stop-color="#a84a00"/>
-  </linearGradient>
+    <radialGradient id="guitar-body" cx="0" cy="0" r="1" gradientTransform="translate(15 30) rotate(42) scale(19)">
+      <stop stop-color="var(--pack-body-light,#B98572)"/>
+      <stop offset=".5" stop-color="var(--pack-body,#805D58)"/>
+      <stop offset="1" stop-color="var(--pack-body-shadow,#4A4141)"/>
+    </radialGradient>
+    <linearGradient id="guitar-neck" x1="25" y1="26" x2="42" y2="5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-neck-light,#B68C62)"/>
+      <stop offset="1" stop-color="var(--pack-neck,#785B45)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <rect x="200" y="96" width="112" height="280" rx="20" fill="url(#gguitar)"/>
-      <circle cx="256" cy="120" r="20" fill="#fff6d0"/>
-      <circle cx="256" cy="180" r="12" fill="#1a1a20"/>
-      <circle cx="256" cy="230" r="12" fill="#1a1a20"/>
-      <circle cx="256" cy="280" r="12" fill="#1a1a20"/>
-      <rect x="228" y="96" width="10" height="280" fill="#ffd9b0" opacity="0.5"/>
-  </g>
+  <path d="M19 20c-4-3-8-2-10 1-2 3-1 7 2 9-3 4-1 9 3 11 4 2 9 0 11-4 3-4 2-8-1-11l7-8-5-5Z" fill="url(#guitar-body)" stroke="var(--pack-edge,#4E4847)" stroke-width="1.5"/>
+  <path d="m25 25 12-16 4 3-12 16Z" fill="url(#guitar-neck)" stroke="var(--pack-edge,#4E4847)" stroke-width="1.5"/>
+  <path d="m37 9 3-5 5 3-3 6-1-1Z" fill="var(--pack-headstock,#665649)" stroke="var(--pack-edge,#4E4847)" stroke-width="1.5"/>
+  <path d="M14 26c4 0 8 3 8 8l3-3" fill="var(--pack-pickguard,#C8C1B0)" stroke="var(--pack-edge,#4E4847)" stroke-width="1.5"/>
+  <path d="m23 29 16-19m-13 16 4 3m0-7 4 3" stroke="var(--pack-string,#E1DED3)" stroke-width="1.5"/>
+  <path d="m18 30 5 4m-8-1 5 4" stroke="var(--pack-pickup,#3F4446)" stroke-width="1.5"/>
+  <circle cx="16" cy="36" r="1.75" fill="var(--pack-control,#A8AAA3)" stroke="var(--pack-edge,#4E4847)" stroke-width="1.5"/>
+  <path d="M11 25c3-2 6-2 9-1" stroke="var(--pack-varnish,#D8B299)" stroke-width="1.5" opacity=".5"/>
 </svg>

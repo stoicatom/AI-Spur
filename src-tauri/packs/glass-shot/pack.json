@@ -1,0 +1,57 @@
+{
+  "id": "glass-shot",
+  "name": "弹孔碎屏",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "glass-break",
+    "params": {
+      "crackBranches": 8.0,
+      "impactRadius": 1.35,
+      "shardVelocity": 2.45,
+      "shardSpin": 2.8,
+      "refraction": 1.6,
+      "fractureDelay": 0.12
+    }
+  },
+  "sound": {
+    "layers": [
+      {
+        "type": "impact",
+        "attack": 0.001,
+        "decay": 0.18,
+        "gain": 0.76,
+        "noiseColor": "white",
+        "filter": { "type": "bandpass", "freq": 2400, "freqEnd": 780, "q": 1.2 }
+      },
+      {
+        "type": "noise",
+        "attack": 0.002,
+        "decay": 0.72,
+        "gain": 0.64,
+        "noiseColor": "white",
+        "filter": { "type": "highpass", "freq": 4300, "freqEnd": 1800, "q": 0.8 }
+      },
+      {
+        "type": "chime",
+        "attack": 0.001,
+        "decay": 0.9,
+        "gain": 0.3,
+        "osc": { "type": "sine", "freq": 3820, "freqEnd": 2160 },
+        "delay": 0.09
+      },
+      {
+        "type": "chime",
+        "attack": 0.004,
+        "decay": 1.15,
+        "gain": 0.2,
+        "osc": { "type": "triangle", "freq": 5190, "freqEnd": 3080 },
+        "delay": 0.21
+      }
+    ],
+    "masterGain": 0.66
+  },
+  "palette": {
+    "bodyGradient": ["#A8F0F4", "#497EA5"],
+    "particleHue": 191
+  }
+}

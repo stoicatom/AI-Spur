@@ -1,12 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gstar" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffd94d"/>
-    <stop offset="1" stop-color="#b88400"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <path fill="url(#gstar)" d="M256 80 300 212l132-44-76 108 76 108-132-44-44 132-44-132-132 44 76-108-76-108 132 44z"/>
-      <path fill="#fff6d0" d="M256 80c4 40 12 72 44 132-40-4-72-12-132-44 40-4 72-12 132-44 40 4 12 16 16 28 0 0 4-20-8-44z" opacity="0.6"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>星芒</title>
+  <defs><linearGradient id="a" x1="13" y1="8" x2="34" y2="39" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#FFFBE0)"/><stop offset=".48" stop-color="var(--pack-star,#F3C650)"/><stop offset="1" stop-color="var(--pack-shadow,#A96D29)"/></linearGradient></defs>
+  <path d="m24 3 4 15 14-6-9 12 11 9-15-4-5 16-4-16-16 4 11-9-9-12 14 6Z" fill="url(#a)" stroke="var(--pack-ink,#4B3851)" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="5" fill="var(--pack-core,#FFF1A0)" stroke="var(--pack-ink,#4B3851)" stroke-width="1.5"/>
+  <path d="M7 39c9 5 24 5 34-2" stroke="var(--pack-orbit,#62AFC0)" stroke-width="1.5"/>
+  <path d="M22 20c2-2 4-2 6 0" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".85"/>
 </svg>

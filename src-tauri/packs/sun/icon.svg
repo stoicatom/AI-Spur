@@ -1,18 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="gsun" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#ffc42e"/>
-    <stop offset="1" stop-color="#cc7a00"/>
-  </linearGradient>
-  </defs>
-  <g>
-    <ellipse cx="256" cy="240" rx="84" ry="84" fill="url(#gsun)"/>
-      <g stroke="#ffc42e" stroke-width="14" stroke-linecap="round" opacity="0.9">
-        <line x1="256" y1="80" x2="256" y2="120"/><line x1="256" y1="360" x2="256" y2="400"/>
-        <line x1="96" y1="240" x2="136" y2="240"/><line x1="376" y1="240" x2="416" y2="240"/>
-        <line x1="143" y1="127" x2="170" y2="154"/><line x1="342" y1="326" x2="369" y2="353"/>
-        <line x1="143" y1="353" x2="170" y2="326"/><line x1="342" y1="154" x2="369" y2="127"/>
-      </g>
-      <ellipse cx="220" cy="200" rx="30" ry="22" fill="#fff6d0" opacity="0.5"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <title>烈日</title>
+  <defs><radialGradient id="a" cx="0" cy="0" r="1" gradientTransform="translate(20 18) rotate(45) scale(18)"><stop stop-color="var(--pack-light,#FFF6B2)"/><stop offset=".5" stop-color="var(--pack-sun,#F4B942)"/><stop offset="1" stop-color="var(--pack-shadow,#C37422)"/></radialGradient></defs>
+  <path d="M24 3v7m0 28v7M3 24h7m28 0h7M9 9l5 5m20 20 5 5M9 39l5-5m20-20 5-5" stroke="var(--pack-ray,#E98635)" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="11" fill="url(#a)" stroke="var(--pack-ink,#5A382A)" stroke-width="1.5"/>
+  <path d="M18 20c3-4 8-4 12-1" stroke="var(--pack-glow,#FFF7B7)" stroke-width="1.5"/>
+  <circle cx="19" cy="29" r="1" fill="var(--pack-sunspot,#D1872B)"/><circle cx="28" cy="31" r="1.4" fill="var(--pack-sunspot,#D1872B)"/>
 </svg>

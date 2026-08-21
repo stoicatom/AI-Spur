@@ -1,14 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>战斧</title>
   <defs>
-    <linearGradient id="gaxe" x1="0.3" y1="0" x2="0.7" y2="1">
-    <stop offset="0" stop-color="#c8b0e8"/>
-    <stop offset="1" stop-color="#6a3aa8"/>
-  </linearGradient>
+    <linearGradient id="axe-steel" x1="25" y1="7" x2="42" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-light,#E1E8E9)"/>
+      <stop offset=".47" stop-color="var(--pack-steel,#94A1A6)"/>
+      <stop offset="1" stop-color="var(--pack-steel-shadow,#4B5960)"/>
+    </linearGradient>
+    <linearGradient id="axe-wood" x1="31" y1="13" x2="8" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-light,#B9875C)"/>
+      <stop offset=".52" stop-color="var(--pack-wood,#855336)"/>
+      <stop offset="1" stop-color="var(--pack-wood-shadow,#4D3024)"/>
+    </linearGradient>
   </defs>
-  <g>
-    <path fill="url(#gaxe)" d="M96 220c0-40 32-72 72-72h24v144h-24c-40 0-72-32-72-72z"/>
-      <path fill="#fff6d0" d="M96 220c0-40 32-72 72-72h24l-24 144h-24c-40 0-72-32-72-72z" opacity="0.5"/>
-      <rect x="168" y="148" width="160" height="36" rx="10" fill="#7a4a1a"/>
-      <rect x="300" y="96" width="36" height="180" rx="10" fill="#5a2a0a"/>
-  </g>
+  <path d="m8 41 4 3 21-30-5-4Z" fill="url(#axe-wood)" stroke="var(--pack-ink,#3A4347)" stroke-width="1.5"/>
+  <path d="m10 38 5 4-2 3-5-3Z" fill="var(--pack-grip,#3D2B25)" stroke="var(--pack-ink,#3A4347)" stroke-width="1.5"/>
+  <path d="M27 8c5-3 11-3 17 1-1 8-7 15-17 18l-7-7Z" fill="url(#axe-steel)" stroke="var(--pack-ink,#3A4347)" stroke-width="1.5"/>
+  <path d="m27 8-6 10 6 8 5-12Z" fill="var(--pack-steel-shadow,#59666C)" stroke="var(--pack-ink,#3A4347)" stroke-width="1.5"/>
+  <path d="M31 10c4-1 8 0 11 1-2 5-6 10-12 12 3-4 5-8 6-12-2-.5-3-.5-5-1Z" fill="var(--pack-edge,#F1F5F4)" opacity=".76"/>
+  <path d="m14 34 15-21M15 38l-3-2" stroke="var(--pack-wood-grain,#C99A6B)" stroke-width="1.5" opacity=".62"/>
 </svg>

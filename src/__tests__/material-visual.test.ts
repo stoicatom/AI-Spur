@@ -129,4 +129,19 @@ describe('ImageMaterial（零分配粒子爆裂）', () => {
     material.updateAndDrawCrack(ctx, 1200);
     expect(internals.crackOn).toBe(false);
   });
+
+  it('3D 主路径提前结束时可同步清理 2D 回退状态', () => {
+    const material = new ImageMaterial();
+    material.startCrack(0, 0);
+    const internals = material as unknown as {
+      crackOn: boolean;
+      particles: unknown[];
+    };
+
+    expect(internals.crackOn).toBe(true);
+    expect(internals.particles.length).toBeGreaterThan(0);
+    material.cancelCrack();
+    expect(internals.crackOn).toBe(false);
+    expect(internals.particles).toHaveLength(0);
+  });
 });

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <title>立式钢琴</title>
+  <defs>
+    <linearGradient id="piano-case" x1="7" y1="11" x2="41" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-case-light,#77756E)"/>
+      <stop offset=".48" stop-color="var(--pack-case,#46484A)"/>
+      <stop offset="1" stop-color="var(--pack-case-shadow,#2E3436)"/>
+    </linearGradient>
+    <linearGradient id="piano-keys" x1="10" y1="25" x2="38" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-key-light,#F4F1E8)"/>
+      <stop offset="1" stop-color="var(--pack-key-shadow,#C8C6BF)"/>
+    </linearGradient>
+  </defs>
+  <path d="M7 12h29l5 5v23H7Z" fill="url(#piano-case)" stroke="var(--pack-edge,#373D3E)" stroke-width="1.5"/>
+  <path d="M7 12h29l5 5H12Z" fill="var(--pack-lid,#93918A)" stroke="var(--pack-edge,#373D3E)" stroke-width="1.5"/>
+  <path d="M11 18h24v6H11Z" fill="var(--pack-panel,#5A5C5C)" stroke="var(--pack-edge,#373D3E)" stroke-width="1.5"/>
+  <path d="M10 25h28v10H10Z" fill="url(#piano-keys)" stroke="var(--pack-edge,#373D3E)" stroke-width="1.5"/>
+  <path d="M15 25v10m5-10v10m5-10v10m5-10v10m5-10v10" stroke="var(--pack-key-seam,#888B88)" stroke-width="1.5"/>
+  <path d="M12 25h4v6h-4Zm9 0h4v6h-4Zm9 0h4v6h-4Z" fill="var(--pack-black-key,#252A2B)" stroke="var(--pack-edge,#373D3E)" stroke-width="1.5"/>
+  <path d="M11 35v8m24-8v8M18 43h12" stroke="var(--pack-leg,#3A403F)" stroke-width="1.5"/>
+  <path d="M23 41v3m3-3v3" stroke="var(--pack-pedal,#B09A61)" stroke-width="1.5"/>
+  <path d="M10 16h18" stroke="var(--pack-varnish,#C8C5B9)" stroke-width="1.5" opacity=".45"/>
+</svg>

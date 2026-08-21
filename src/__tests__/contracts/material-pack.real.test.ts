@@ -85,7 +85,7 @@ describe('Material Pack real-payload contract', () => {
     expect(parsed.sound.layers[0].osc).toBeUndefined();
   });
 
-  it('全部 30 个 pack.json 都能被 schema 解析', () => {
+  it('全部内置 pack.json 都能被 schema 解析', () => {
     const fs = require('node:fs');
     const ids = fs.readdirSync(packsDir).filter((d: string) => fs.statSync(`${packsDir}/${d}`).isDirectory());
     expect(ids.length).toBeGreaterThanOrEqual(30);

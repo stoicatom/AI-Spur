@@ -49,6 +49,16 @@ body {
   }
 }
 
+@media (max-width: 640px) {
+  .settings-root {
+    min-width: 0;
+  }
+
+  .content {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
 /* ─── Sidebar ───────────────────────────────────────────────────────────── */
 
 .sidebar {
@@ -162,6 +172,8 @@ body {
 /* Icon component (geometric SVG icons) */
 .icon {
   display: inline-block;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
   color: inherit;
 }
@@ -171,12 +183,7 @@ body {
 .content {
   position: relative;
   padding: var(--pad-panel);
-  /* 锻造画廊：底色之上叠一层极淡的熔炉暖光（顶部透亮 → 底部微炽），
-   * 与半透明展柜卡片呼应，打破纯平色块的割裂感。 */
-  background:
-    radial-gradient(120% 90% at 50% -10%, oklch(93% 0.05 50 / 0.30) 0%, transparent 55%),
-    radial-gradient(140% 100% at 50% 115%, oklch(58% 0.20 38 / 0.08) 0%, transparent 60%),
-    var(--surface-page);
+  background: var(--surface-page);
   overflow-y: auto;
 }
 
@@ -291,23 +298,4 @@ body {
 
 .btn--primary:active {
   background: var(--accent-active);
-}
-
-/* ─── 暗色模式：熔炉氛围独立调色 ───────────────────────────────────────── */
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .content {
-    /* 暗色下炉光更收敛：顶部冷炭、底部微弱余烬，避免刺眼 */
-    background:
-      radial-gradient(120% 90% at 50% -10%, oklch(36% 0.08 40 / 0.35) 0%, transparent 55%),
-      radial-gradient(140% 100% at 50% 115%, oklch(47% 0.19 34 / 0.14) 0%, transparent 60%),
-      var(--surface-page);
-  }
-}
-
-[data-theme="dark"] .content {
-  background:
-    radial-gradient(120% 90% at 50% -10%, oklch(36% 0.08 40 / 0.35) 0%, transparent 55%),
-    radial-gradient(140% 100% at 50% 115%, oklch(47% 0.19 34 / 0.14) 0%, transparent 60%),
-    var(--surface-page);
 }
