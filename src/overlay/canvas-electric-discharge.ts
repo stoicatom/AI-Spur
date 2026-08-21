@@ -48,10 +48,19 @@ function channelLength(height: number, strikeY: number): number {
   return Math.min(desired, Math.max(150, strikeY + height * 0.1));
 }
 
-function canvasPoint(point: ElectricPoint, strikeX: number, strikeY: number, length: number): CanvasPoint {
+function canvasPoint(
+  point: ElectricPoint,
+  strikeX: number,
+  strikeY: number,
+  length: number,
+  directionX = 0,
+  directionY = 1,
+): CanvasPoint {
+  const perpendicularX = directionY;
+  const perpendicularY = -directionX;
   return {
-    x: strikeX + point.x * length,
-    y: strikeY - (1 - point.y) * length,
+    x: strikeX - directionX * (1 - point.y) * length + perpendicularX * point.x * length,
+    y: strikeY - directionY * (1 - point.y) * length + perpendicularY * point.x * length,
   };
 }
 
@@ -65,6 +74,8 @@ function drawChannelPass(
   width: number,
   color: string,
   alpha: number,
+  directionX: number,
+  directionY: number,
   stats: { segmentVisits: number; strokes: number },
 ): void {
   if (alpha <= 0.002) return;
@@ -75,8 +86,8 @@ function drawChannelPass(
     ctx.beginPath();
     for (const segment of topology.segments) {
       if (segment.depth !== depth || segment.reveal > reveal) continue;
-      const from = canvasPoint(segment.from, strikeX, strikeY, length);
-      const to = canvasPoint(segment.to, strikeX, strikeY, length);
+      const from = canvasPoint(segment.from, strikeX, strikeY, length, directionX, directionY);
+      const to = canvasPoint(segment.to, strikeX, strikeY, length, directionX, directionY);
       ctx.moveTo(from.x, from.y);
       ctx.lineTo(to.x, to.y);
       stats.segmentVisits++;
@@ -100,6 +111,7 @@ function drawRadialExposure(
   alpha: number,
   inner: string,
   outer: string,
+  rotation: number,
   stats: { gradients: number },
 ): void {
   if (alpha <= 0.002) return;
@@ -110,7 +122,7 @@ function drawRadialExposure(
   ctx.globalAlpha = alpha;
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.ellipse(x, y, radiusX, radiusY, 0, 0, TAU);
+  ctx.ellipse(x, y, radiusX, radiusY, rotation, 0, TAU);
   ctx.fill();
   stats.gradients++;
 }
@@ -121,20 +133,21 @@ function drawCloudScatter(
   y: number,
   length: number,
   envelope: ElectricEnvelope,
+  rotation: number,
   stats: { gradients: number },
 ): void {
   const alpha = envelope.cloud;
   drawRadialExposure(
     ctx, x, y, length * 0.48, length * 0.15, alpha * 0.22,
-    'rgba(225, 240, 255, .92)', 'rgba(69, 103, 139, 0)', stats,
+    'rgba(225, 240, 255, .92)', 'rgba(69, 103, 139, 0)', rotation, stats,
   );
   drawRadialExposure(
     ctx, x - length * 0.22, y + length * 0.025, length * 0.31, length * 0.11,
-    alpha * 0.12, 'rgba(202, 225, 248, .72)', 'rgba(56, 76, 104, 0)', stats,
+    alpha * 0.12, 'rgba(202, 225, 248, .72)', 'rgba(56, 76, 104, 0)', rotation, stats,
   );
   drawRadialExposure(
     ctx, x + length * 0.24, y - length * 0.018, length * 0.34, length * 0.12,
-    alpha * 0.14, 'rgba(213, 234, 252, .78)', 'rgba(56, 76, 104, 0)', stats,
+    alpha * 0.14, 'rgba(213, 234, 252, .78)', 'rgba(56, 76, 104, 0)', rotation, stats,
   );
 }
 
@@ -144,11 +157,12 @@ function drawImpactExposure(
   y: number,
   length: number,
   envelope: ElectricEnvelope,
+  rotation: number,
   stats: { gradients: number; rings: number },
 ): void {
   drawRadialExposure(
     ctx, x, y, length * 0.22, length * 0.075, envelope.impact * 0.82,
-    'rgba(255, 255, 255, .98)', 'rgba(96, 163, 226, 0)', stats,
+    'rgba(255, 255, 255, .98)', 'rgba(96, 163, 226, 0)', rotation, stats,
   );
   if (envelope.impact <= 0.01) return;
   const radius = length * (0.025 + (1 - envelope.impact) * 0.12);
@@ -156,7 +170,7 @@ function drawImpactExposure(
   ctx.strokeStyle = 'rgba(220, 241, 255, .9)';
   ctx.lineWidth = 1.25;
   ctx.beginPath();
-  ctx.ellipse(x, y, radius, radius * 0.24, 0, 0, TAU);
+  ctx.ellipse(x, y, radius, radius * 0.24, rotation, 0, TAU);
   ctx.stroke();
   stats.rings++;
 }
@@ -170,6 +184,7 @@ function drawPressureRings(
   envelope: ElectricEnvelope,
   count: number,
   expansion: number,
+  rotation: number,
   stats: { rings: number },
 ): void {
   for (let index = 0; index < count; index++) {
@@ -181,7 +196,7 @@ function drawPressureRings(
     ctx.strokeStyle = 'rgba(171, 215, 244, .82)';
     ctx.lineWidth = Math.max(0.7, 2.2 - wave * 1.25);
     ctx.beginPath();
-    ctx.ellipse(x, y, radius, radius * 0.18, 0, 0, TAU);
+    ctx.ellipse(x, y, radius, radius * 0.18, rotation, 0, TAU);
     ctx.stroke();
     stats.rings++;
   }
@@ -202,18 +217,24 @@ export function drawCanvasElectricDischarge(
   hue = 204,
   kind: ElectricDischargeKind = 'lightning',
   reducedMotion = prefersReducedElectricMotion(),
+  directionX = 0,
+  directionY = 1,
 ): CanvasElectricStats {
   const safeWidth = Math.max(1, width);
   const safeHeight = Math.max(1, height);
   const x = clamp(strikeX, -safeWidth * 0.1, safeWidth * 1.1);
   const y = clamp(strikeY, 0, safeHeight);
+  const directionLength = Math.hypot(directionX, directionY) || 1;
+  const unitDirectionX = directionX / directionLength;
+  const unitDirectionY = directionY / directionLength;
+  const rotation = Math.atan2(unitDirectionY, unitDirectionX) - Math.PI / 2;
   const t = clamp01(progress);
   const config = resolveElectricDischargeConfig(kind, params, reducedMotion);
   const topology = generateElectricDischarge(config);
   const flicker = numberParam(params, 'flicker', kind === 'thunder' ? 1.7 : 1);
   const envelope = electricEnvelope(t, reducedMotion, flicker);
   const length = channelLength(safeHeight, y);
-  const cloud = canvasPoint({ x: 0, y: 0 }, x, y, length);
+  const cloud = canvasPoint({ x: 0, y: 0 }, x, y, length, unitDirectionX, unitDirectionY);
   const ionHue = Math.round(206 + Math.sin(hue * Math.PI / 180) * 4);
   const stats = { segmentVisits: 0, strokes: 0, gradients: 0, rings: 0 };
 
@@ -226,31 +247,31 @@ export function drawCanvasElectricDischarge(
     ctx.fillStyle = 'rgba(225, 240, 255, 1)';
     ctx.fillRect(0, 0, safeWidth, safeHeight);
   }
-  drawCloudScatter(ctx, cloud.x, cloud.y, length, envelope, stats);
+  drawCloudScatter(ctx, cloud.x, cloud.y, length, envelope, rotation, stats);
 
   const leaderAlpha = Math.max(envelope.preflash * 0.2, envelope.leaderProgress < 1 ? 0.13 : 0);
   drawChannelPass(
     ctx, topology, x, y, length, envelope.leaderProgress,
-    reducedMotion ? 1 : 1.25, `hsl(${ionHue}, 70%, 72%)`, leaderAlpha, stats,
+    reducedMotion ? 1 : 1.25, `hsl(${ionHue}, 70%, 72%)`, leaderAlpha, unitDirectionX, unitDirectionY, stats,
   );
   drawChannelPass(
     ctx, topology, x, y, length, 1,
-    reducedMotion ? 5.5 : 8.5, `hsl(${ionHue}, 90%, 63%)`, envelope.glow * 0.28, stats,
+    reducedMotion ? 5.5 : 8.5, `hsl(${ionHue}, 90%, 63%)`, envelope.glow * 0.28, unitDirectionX, unitDirectionY, stats,
   );
   drawChannelPass(
     ctx, topology, x, y, length, 1,
-    reducedMotion ? 2.2 : 2.8, 'rgba(236, 248, 255, 1)', envelope.core * 0.9, stats,
+    reducedMotion ? 2.2 : 2.8, 'rgba(236, 248, 255, 1)', envelope.core * 0.9, unitDirectionX, unitDirectionY, stats,
   );
   drawChannelPass(
     ctx, topology, x, y, length, 1,
-    0.82, 'rgba(255, 255, 255, 1)', envelope.core, stats,
+    0.82, 'rgba(255, 255, 255, 1)', envelope.core, unitDirectionX, unitDirectionY, stats,
   );
 
-  drawImpactExposure(ctx, x, y, length, envelope, stats);
+  drawImpactExposure(ctx, x, y, length, envelope, rotation, stats);
   if (kind === 'thunder') {
     const rings = Math.round(clamp(numberParam(params, 'rings', 3), 2, reducedMotion ? 3 : 5));
     const expansion = clamp(numberParam(params, 'expansion', 1), 0.5, 3);
-    drawPressureRings(ctx, x, y, length, t, envelope, rings, expansion, stats);
+    drawPressureRings(ctx, x, y, length, t, envelope, rings, expansion, rotation, stats);
   }
   ctx.restore();
   return Object.freeze(stats);

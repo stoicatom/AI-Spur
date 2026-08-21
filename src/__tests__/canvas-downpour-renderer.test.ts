@@ -23,7 +23,7 @@ describe('Canvas full-screen downpour', () => {
     const xs = lines.map(([x]) => x);
     expect(Math.min(...xs)).toBeLessThan(144);
     expect(Math.max(...xs)).toBeGreaterThan(1296);
-    expect(lines.length).toBeGreaterThan(360);
+    expect(lines.length).toBeGreaterThan(720);
     expect(ellipses.some(([, y]) => y > 860)).toBe(true);
   });
 });

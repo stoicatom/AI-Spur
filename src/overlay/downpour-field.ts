@@ -26,6 +26,7 @@ export type DownpourSplash = Readonly<{ x: number; y: number; radius: number; ph
 const TAU = Math.PI * 2;
 const BASE_WIDTH = 1280;
 const BASE_HEIGHT = 720;
+const BASE_DROPS = 46;
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 const finite = (value: unknown, fallback: number): number => typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 const frac = (value: number): number => value - Math.floor(value);
@@ -56,7 +57,7 @@ export function downpourLayerCount(
 ): number {
   const areaScale = clamp((Math.max(1, width) * Math.max(1, height)) / (BASE_WIDTH * BASE_HEIGHT), 0.35, 3.2);
   const layerRatio = layer === 'background' ? 0.42 : layer === 'middle' ? 0.82 : 1.16;
-  return Math.max(18, Math.round(34 * areaScale * config.density * layerRatio));
+  return Math.max(24, Math.round(BASE_DROPS * areaScale * config.density * layerRatio));
 }
 
 function layerIndex(layer: DownpourLayer): number {
@@ -84,12 +85,13 @@ export function downpourDropAt(
   // Seed above and below the viewport so every frame has a continuous sheet.
   const phase = fieldHash(index, 37 + layerId * 17);
   const fallPixels = (time * 0.001 * (250 + 120 * config.fallSpeed) * depth);
-  const rawX = lane * span + (jitter - 0.5) * safeWidth * 0.035 + fallPixels * config.windSkew * 0.18;
+  const vx = clamp(config.windSkew * 62 * depth, -128, 128);
+  const rawX = lane * span + (jitter - 0.5) * safeWidth * 0.035
+    + fallPixels * (vx / Math.max(1, (250 + 120 * config.fallSpeed) * depth));
   const x = frac(rawX / span) * span - overscan;
   const y = ((phase * (safeHeight + 180) + fallPixels) % (safeHeight + 180)) - 90;
   const vy = (250 + 120 * config.fallSpeed) * depth;
-  const vx = clamp(config.windSkew * 34 * depth, -78, 78);
-  const length = (18 + 24 * config.fallSpeed) * depth;
+  const length = (26 + 38 * config.fallSpeed) * depth;
   return { x, y, vx, vy, length, depth, layer };
 }
 

@@ -2,7 +2,8 @@
  * 素材包运动轨迹特效库。
  *
  * 基础预设按物理语义拆分，系列专属预设由 effects-family-presets 提供。
- * 所有预设均为纯计算，并统一受 115 粒子的单次发射预算约束。
+ * 所有常规预设均为纯计算，并受单次发射预算约束；满屏暴雨按视口大小
+ * 使用独立的高密度雨幕预算，不受常规粒子上限限制。
  */
 
 import type { EffectPresetId } from '../shared/material-packs';

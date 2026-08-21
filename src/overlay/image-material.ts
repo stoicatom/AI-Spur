@@ -1,5 +1,7 @@
 import { resolveEffect, type EffectPreset } from './effects';
 import { drawCanvasDownpour } from './canvas-downpour';
+import { drawCanvasElectricDischarge } from './canvas-electric-discharge';
+import { electricGlideAt } from './electric-glide';
 import { drawCrackLighting } from './material-crack-lighting';
 import { advanceAndDrawParticles } from './material-particle-canvas';
 import { crackStyle, type CrackStyle } from './material-styles';
@@ -160,7 +162,7 @@ export class ImageMaterial {
     this.crackX = x;
     this.crackY = y;
     this.crackVel = vel;
-    this.particles = !this.useLegacyStyle && this.presetId === 'downpour'
+    this.particles = !this.useLegacyStyle && (this.presetId === 'downpour' || this.presetId === 'bolt')
       ? []
       : this.useLegacyStyle
       ? this.style.emit(x, y, vel)
@@ -203,6 +205,24 @@ export class ImageMaterial {
       const width = ctx.canvas.clientWidth || window.innerWidth;
       const height = ctx.canvas.clientHeight || window.innerHeight;
       drawCanvasDownpour(ctx, width, height, this.effectParams, now - this.crackT0, this._particleHue, 1 - Math.max(0, progress - .8) / .2);
+    } else if (!this.useLegacyStyle && this.presetId === 'bolt') {
+      const width = ctx.canvas.clientWidth || window.innerWidth;
+      const height = ctx.canvas.clientHeight || window.innerHeight;
+      const speed = Math.min(2.8, Math.max(0.35, this.crackVel.speed / 3.2));
+      const impulse = Math.min(4.8, Math.max(0.32, 0.46 + speed * 0.92));
+      const stiffness = Number.isFinite(this.effectParams.stiffness) ? this.effectParams.stiffness : 1;
+      const drag = Number.isFinite(this.effectParams.drag) ? this.effectParams.drag : 0.962;
+      const glide = electricGlideAt(progress, this.crackDurationMs, width, height, impulse, stiffness, drag);
+      const directionLength = Math.hypot(this.crackVel.vx, this.crackVel.vy) || 1;
+      const directionX = this.crackVel.vx / directionLength;
+      const directionY = this.crackVel.vy / directionLength;
+      drawCanvasElectricDischarge(
+        ctx, width, height,
+        x + directionX * glide.offset,
+        y + directionY * glide.offset,
+        this.effectParams, progress, this._particleHue, 'lightning', undefined,
+        directionX, directionY,
+      );
     } else {
       advanceAndDrawParticles(ctx, this.particles, now, this._particleHue, dt);
     }

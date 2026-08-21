@@ -44,6 +44,18 @@ function downpourContext(): CanvasRenderingContext2D {
   } as unknown as CanvasRenderingContext2D;
 }
 
+function electricContext() {
+  const moveXs: number[] = [];
+  const gradient = { addColorStop() {} } as CanvasGradient;
+  const ctx = {
+    canvas: { clientWidth: 1440, clientHeight: 900 },
+    globalAlpha: 1, strokeStyle: '', fillStyle: '', lineWidth: 1, lineCap: 'butt', lineJoin: 'miter',
+    save() {}, restore() {}, beginPath() {}, moveTo(x: number) { moveXs.push(x); }, lineTo() {}, stroke() {},
+    ellipse() {}, fill() {}, fillRect() {}, createRadialGradient() { return gradient; },
+  } as unknown as CanvasRenderingContext2D;
+  return { ctx, moveXs };
+}
+
 describe('ImageMaterial image lifecycle', () => {
   beforeEach(() => {
     FakeImage.instances.length = 0;
@@ -127,5 +139,23 @@ describe('ImageMaterial image lifecycle', () => {
     expect(material.crackAlive).toBe(true);
     material.updateAndDrawCrack(downpourContext(), 2000);
     expect(material.crackAlive).toBe(false);
+  });
+
+  it('renders a bolt fallback as a directional cross-screen glide', () => {
+    vi.spyOn(performance, 'now').mockReturnValue(100);
+    const material = new ImageMaterial();
+    material.loadPack('bolt.svg', 'bolt', { branches: 4, jaggedness: 1.3, flicker: 1.1 }, 204);
+    material.startCrack(720, 450, { vx: 1, vy: 0, speed: 6, dir: 0 });
+
+    const first = electricContext();
+    material.updateAndDrawCrack(first.ctx, 100 + effectDurationFor('bolt') * 0.22);
+    const firstX = first.moveXs[0];
+    const second = electricContext();
+    material.updateAndDrawCrack(second.ctx, 100 + effectDurationFor('bolt') * 0.48);
+    const secondX = second.moveXs[0];
+
+    expect(first.moveXs.length).toBeGreaterThan(0);
+    expect(second.moveXs.length).toBeGreaterThan(0);
+    expect(secondX - firstX).toBeGreaterThan(180);
   });
 });

@@ -143,7 +143,7 @@ const downpour: EffectPreset = {
     const layers: DownpourLayer[] = ['background', 'middle', 'foreground'];
     const raw = layers.map((layer) => downpourLayerCount(width, height, config, layer));
     const areaScale = Math.sqrt(width * height / (1280 * 720));
-    const rainBudget = Math.round(Math.max(66, Math.min(96, 72 * areaScale * Math.sqrt(config.density))));
+    const rainBudget = Math.round(Math.max(96, Math.min(220, 148 * areaScale * Math.sqrt(config.density))));
     const total = raw.reduce((sum, value) => sum + value, 0);
     for (let layerId = 0; layerId < layers.length; layerId++) {
       const layer = layers[layerId]; const count = Math.max(12, Math.round(rainBudget * raw[layerId] / total));
@@ -160,7 +160,7 @@ const downpour: EffectPreset = {
     }
     const mistCount = Math.max(4, Math.min(7, Math.round(width / 240)));
     for (let i = 0; i < mistCount; i++) out.push({ x: (i + 0.5) / mistCount * width, y: height - 12, vx: (fieldHash(i, 149) - 0.5) * 0.25, vy: -0.16, life: 1, decay: 0.01, size: 28 + fieldHash(i, 151) * 22, hue: 206, gravity: -0.002, shape: 6, angle: 0 });
-    return out.slice(0, 115);
+    return out;
   },
 };
 

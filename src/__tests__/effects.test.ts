@@ -34,7 +34,8 @@ describe('特效预设库', () => {
       const preset = EFFECT_PRESETS[id];
       const particles = preset.emit(100, 100, vel, params);
       expect(particles.length, `${id} particle count`).toBeGreaterThan(0);
-      expect(particles.length, `${id} particle cap`).toBeLessThanOrEqual(120);
+      const cap = id === 'downpour' ? 260 : 120;
+      expect(particles.length, `${id} particle cap`).toBeLessThanOrEqual(cap);
       for (const p of particles.slice(0, 5)) {
         expect(Number.isFinite(p.x)).toBe(true);
         expect(Number.isFinite(p.vy)).toBe(true);

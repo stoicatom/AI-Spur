@@ -12,7 +12,7 @@ describe('Canvas downpour fallback', () => {
     const left = EFFECT_PRESETS.downpour.emit(120, 120, { vx: -1, vy: 0, speed: 8, dir: Math.PI }, params);
     const right = EFFECT_PRESETS.downpour.emit(120, 120, { vx: 1, vy: 0, speed: 1, dir: 0 }, params);
     expect(left).toEqual(right);
-    expect(left.length).toBeLessThanOrEqual(115);
+    expect(left.length).toBeLessThanOrEqual(260);
     const rain = left.filter((particle) => particle.shape === 4);
     expect(Math.min(...rain.map((particle) => particle.x))).toBeLessThan(144);
     expect(Math.max(...rain.map((particle) => particle.x))).toBeGreaterThan(1296);

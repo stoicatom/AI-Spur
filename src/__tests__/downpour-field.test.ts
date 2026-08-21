@@ -40,6 +40,24 @@ describe('downpour full-viewport field', () => {
       .toBeGreaterThan(1296);
   });
 
+  it('keeps a dense, long, wind-driven foreground curtain', () => {
+    const foregroundCount = downpourLayerCount(1440, 900, config, 'foreground');
+    const backgroundCount = downpourLayerCount(1440, 900, config, 'background');
+    const drop = downpourDropAt(0, foregroundCount, 1440, 900, config, 'foreground', 630);
+    expect(foregroundCount).toBeGreaterThan(200);
+    expect(foregroundCount).toBeGreaterThan(backgroundCount * 2);
+    expect(drop.length).toBeGreaterThan(100);
+    expect(Math.abs(Math.atan2(drop.vx, drop.vy))).toBeGreaterThan(0.08);
+  });
+
+  it('advects each drop at the same horizontal speed used by its streak angle', () => {
+    const count = downpourLayerCount(1440, 900, config, 'middle');
+    const index = Math.floor(count * 0.37);
+    const start = downpourDropAt(index, count, 1440, 900, config, 'middle', 0);
+    const later = downpourDropAt(index, count, 1440, 900, config, 'middle', 37);
+    expect(later.x - start.x).toBeCloseTo(start.vx * 0.037, 4);
+  });
+
   it('distributes ground splashes across the full bottom edge', () => {
     const splashes = Array.from({ length: 24 }, (_, index) =>
       downpourSplashAt(index, 24, 1440, 900, config, 520));
