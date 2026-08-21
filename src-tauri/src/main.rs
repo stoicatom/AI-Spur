@@ -7,6 +7,7 @@ mod custom_skins;
 mod macro_sender;
 mod material_commands;
 mod materials;
+mod pack_icons;
 mod pack_commands;
 mod packs;
 mod shortcut;

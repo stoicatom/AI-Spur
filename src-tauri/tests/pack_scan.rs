@@ -40,6 +40,33 @@ fn real_bundled_packs_all_parse() {
 }
 
 #[test]
+fn builtin_packs_prefer_the_redesigned_material_icons() {
+    let packs = packs::scan_packs_in(&bundled_packs_dir(), true);
+    for (pack_id, material_id) in [
+        ("rocket", "rocket"),
+        ("bullwhip", "whip"),
+        ("katana", "sword"),
+        ("downpour", "rain"),
+    ] {
+        let pack = packs
+            .iter()
+            .find(|pack| pack.id == pack_id)
+            .unwrap_or_else(|| panic!("missing pack {pack_id}"));
+        let icon = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join(format!("materials/{material_id}/{material_id}.svg")),
+        )
+        .unwrap_or_else(|error| panic!("failed to read {material_id}: {error}"));
+        let expected = format!(
+            "data:image/svg+xml;base64,{}",
+            aispur::sounds::base64_encode(&icon)
+        );
+
+        assert_eq!(pack.data_uri, expected, "{pack_id} did not use {material_id}");
+    }
+}
+
+#[test]
 fn every_pack_has_unique_preset_or_params() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("packs");
     let packs = packs::scan_packs_in(&dir, true);

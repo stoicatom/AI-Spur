@@ -252,7 +252,14 @@ fn parse_pack(dir: &Path, builtin: bool) -> Option<MaterialPack> {
     let manifest: PackManifest = serde_json::from_str(&content).ok()?;
     manifest.validate().ok()?;
 
-    let asset_path = safe_asset_path(dir, &manifest.icon)?;
+    let pack_icon = safe_asset_path(dir, &manifest.icon)?;
+    // Built-in packs use the redesigned 512px material artwork when a
+    // matching material exists; custom packs always keep their uploaded icon.
+    let asset_path = if builtin {
+        crate::pack_icons::preferred_builtin_icon(dir, &manifest.id, pack_icon)
+    } else {
+        pack_icon
+    };
     if !asset_path.is_file() {
         return None;
     }
