@@ -3,19 +3,20 @@ import * as THREE from 'three';
 import type { EffectPresetId } from '../shared/material-packs';
 import { resolveEffect, type EffectPreset } from './effects';
 import { DEFAULT_EFFECT_DURATION_MS } from './effect-timings';
-import { scaleMaterialSpriteFrame } from './material-animation-constants';
 import { DEFAULT_VEL, type WhipVel } from './particles';
-import { geometry, profileFor, type PhysicalProfile } from './three-effect-profiles';
+import { profileFor, type PhysicalProfile } from './three-effect-profiles';
 import { CinematicLayers } from './three-effect-layers';
 import { pixelRatioFor, resolveMaterialPhysics, type MaterialPhysics } from './three-effect-physics';
-import { seedParticleStates, stepParticle, type ParticleState } from './three-particle-motion';
-import { placeThreeSpriteFrame } from './three-sprite-frame';
+import { stepParticle, type ParticleState } from './three-particle-motion';
+import { updateThreeImageSpriteFrame } from './three-sprite-frame';
 import { disposeSceneResources, disposeTextureOnce } from './three-effect-resources';
 import { renderContractFor } from './three-effect-contract';
-import { domainForProfile, materialForDomain } from './three-material-domains';
 import { CinematicRenderPipeline } from './three-render-pipeline';
 import { updateParticleMatrices } from './three-particle-render';
 import { materialIdentityFor } from './material-identity';
+import type { ImageHeroLayers } from './three-image-hero';
+import { createImageSpriteStack } from './three-image-sprite-stack';
+import { createParticleStage } from './three-particle-stage';
 type SpriteRequest = { texture: THREE.Texture | null };
 export type ThreeEffectSpec = {
   packId: string;
@@ -35,6 +36,7 @@ export class ThreeEffectRenderer {
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
   private readonly root = new THREE.Group();
   private sprite: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> | null = null;
+  private hero: ImageHeroLayers | null = null;
   private particles: THREE.InstancedMesh | null = null;
   private states: ParticleState[] = [];
   private light: THREE.PointLight | null = null;
@@ -141,8 +143,10 @@ export class ThreeEffectRenderer {
     const eased = 1 - Math.pow(1 - Math.max(0, (t - 0.08) / 0.92), 3);
     this.layers?.update(t, now, p);
     if (this.sprite) {
-      const frame = scaleMaterialSpriteFrame(this.effect.sprite(t, this.vel, this.params));
-      placeThreeSpriteFrame(this.sprite, frame, this.origin);
+      updateThreeImageSpriteFrame(
+        this.sprite, this.hero, this.effect, t, this.vel, this.params,
+        now, this.physics, this.origin, this.direction,
+      );
     }
     if (this.light) {
       this.light.position.set(this.origin.x + this.direction.x * eased * 60, this.origin.y + this.direction.y * eased * 60, 50);
@@ -191,23 +195,12 @@ export class ThreeEffectRenderer {
     this.clearScene();
   }
   private addParticles(color: THREE.Color, vel: WhipVel): void {
-    const count = this.physics.count;
-    const energy = this.physics.energy;
-    const material = materialForDomain(color, energy, domainForProfile(this.profile));
-    material.opacity = 0.92;
-    this.particles = new THREE.InstancedMesh(geometry(this.profile.particle, 3.4 + energy * 2.2), material, count);
-    this.particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.root.add(this.particles);
-    this.states = seedParticleStates(
-      count,
-      this.origin,
-      this.direction,
-      this.profile,
-      this.physics,
-      vel,
-      this.width,
-      this.height,
+    const stage = createParticleStage(
+      this.root, this.profile, this.physics, this.origin, this.direction,
+      vel, this.width, this.height, color,
     );
+    this.particles = stage.particles;
+    this.states = stage.states;
   }
   private loadSprite(url: string, energy: number, runId: number, attach = true): void {
     const request: SpriteRequest = { texture: null };
@@ -222,11 +215,18 @@ export class ThreeEffectRenderer {
       }
       this.texture = loaded;
       if (!attach) return;
-      const material = new THREE.MeshBasicMaterial({ map: loaded, color: 0xffffff, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
       const spriteSize = 64 + Math.sqrt(energy) * 24;
-      this.sprite = new THREE.Mesh(new THREE.PlaneGeometry(spriteSize, spriteSize), material);
+      const stack = createImageSpriteStack(
+        loaded,
+        spriteSize,
+        new THREE.Color(`hsl(${this.hue}, 100%, 62%)`),
+        energy,
+      );
+      this.sprite = stack.sprite;
       this.sprite.position.set(this.origin.x, this.origin.y, 40);
       this.root.add(this.sprite);
+      this.hero = stack.hero;
+      this.hero.objects.forEach((object) => this.root.add(object));
     };
     const reject = () => {
       if (this.spriteRequest === request) { this.spriteRequest = null; this.texture = null; }
@@ -241,7 +241,7 @@ export class ThreeEffectRenderer {
   private clearScene(): void {
     disposeSceneResources(this.root, this.texture, this.disposedTextures);
     this.root.clear();
-    this.sprite = null; this.particles = null; this.states = []; this.light = null; this.layers = null;
+    this.sprite = null; this.hero = null; this.particles = null; this.states = []; this.light = null; this.layers = null;
     this.spriteRequest = null;
     this.texture = null;
     this.renderer.renderLists.dispose();

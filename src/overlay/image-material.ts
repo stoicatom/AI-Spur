@@ -1,7 +1,7 @@
 import { resolveEffect, type EffectPreset } from './effects';
 import { drawCanvasDownpour } from './canvas-downpour';
 import { drawCanvasElectricDischarge } from './canvas-electric-discharge';
-import { drawCanvasMaterialSprite } from './canvas-material-sprite';
+import { drawImageMaterialFrame } from './draw-image-material-frame';
 import { electricGlideAt } from './electric-glide';
 import { drawCrackLighting } from './material-crack-lighting';
 import { advanceAndDrawParticles } from './material-particle-canvas';
@@ -240,7 +240,8 @@ export class ImageMaterial {
       const frame = this.useLegacyStyle
         ? this.style.sprite(progress, this.crackVel)
         : this.effect.sprite(progress, this.crackVel, this.effectParams);
-      drawCanvasMaterialSprite(ctx, this.img, frame, x, y, this.fitW, this.fitH);
+      drawImageMaterialFrame(ctx, this.img, frame, x, y, this.fitW, this.fitH,
+        this.hue, this.useLegacyStyle ? 1 : 1.15, now);
     }
   }
 }

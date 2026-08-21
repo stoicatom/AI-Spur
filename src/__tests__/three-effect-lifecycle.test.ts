@@ -147,6 +147,10 @@ describe('ThreeEffectRenderer GPU 生命周期', () => {
     pending.onLoad(pending.texture as never);
 
     const root = (effect as unknown as { root: THREE.Group }).root;
+    expect(root.getObjectByName('image-hero-energy')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-echo-near')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-echo-far')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-pulse')).toBeTruthy();
     const sprite = root.children.find((child): child is THREE.Mesh => {
       if (!(child instanceof THREE.Mesh)) return false;
       const material = child.material;
@@ -173,6 +177,24 @@ describe('ThreeEffectRenderer GPU 生命周期', () => {
       8,
     );
     expect((sprite?.material as THREE.MeshBasicMaterial).opacity).toBeCloseTo(frame.alpha, 8);
+    effect.dispose();
+  });
+
+  it('取消素材动画时释放 Hero 层几何体与材质', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.start(spec('asset://hero'), 0);
+    const pending = state.loads[0];
+    pending.onLoad(pending.texture as never);
+
+    const root = (effect as unknown as { root: THREE.Group }).root;
+    const energy = root.getObjectByName('image-hero-energy') as THREE.Mesh;
+    const geometryDispose = vi.spyOn(energy.geometry, 'dispose');
+    const materialDispose = vi.spyOn(energy.material as THREE.Material, 'dispose');
+
+    effect.cancel();
+
+    expect(geometryDispose).toHaveBeenCalledTimes(1);
+    expect(materialDispose).toHaveBeenCalledTimes(1);
     effect.dispose();
   });
 });
