@@ -1,6 +1,7 @@
 import { resolveEffect, type EffectPreset } from './effects';
 import { drawCanvasDownpour } from './canvas-downpour';
 import { drawCanvasElectricDischarge } from './canvas-electric-discharge';
+import { drawCanvasMaterialSprite } from './canvas-material-sprite';
 import { electricGlideAt } from './electric-glide';
 import { drawCrackLighting } from './material-crack-lighting';
 import { advanceAndDrawParticles } from './material-particle-canvas';
@@ -8,6 +9,7 @@ import { crackStyle, type CrackStyle } from './material-styles';
 import { DEFAULT_VEL, drawImpact, type Particle, type WhipVel } from './particles';
 import { renderContractFor } from './three-effect-contract';
 import { DEFAULT_EFFECT_DURATION_MS, effectDurationFor } from './effect-timings';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from './material-animation-constants';
 import type { EffectPresetId } from '../shared/material-packs';
 
 const CURSOR_MAX_PX = 96;
@@ -167,6 +169,10 @@ export class ImageMaterial {
       : this.useLegacyStyle
       ? this.style.emit(x, y, vel)
       : this.effect.emit(x, y, vel, this.effectParams);
+    for (const particle of this.particles) {
+      particle.decay /= MATERIAL_ANIMATION_DURATION_SCALE;
+      if (particle.delay !== undefined) particle.delay *= MATERIAL_ANIMATION_DURATION_SCALE;
+    }
   }
 
   /** 清理被 3D 主路径或窗口隐藏流程提前终止的 2D 回退状态。 */
@@ -230,28 +236,11 @@ export class ImageMaterial {
       drawCrackLighting(ctx, progress, x, y, this.hue);
       drawImpact(ctx, now, x, y, this.crackVel, progress);
     }
-    if (this.useLegacyStyle || contract.sourceSprite) {
-      this.drawCrackSprite(ctx, progress, x, y);
+    if (this.ready && (this.useLegacyStyle || contract.sourceSprite)) {
+      const frame = this.useLegacyStyle
+        ? this.style.sprite(progress, this.crackVel)
+        : this.effect.sprite(progress, this.crackVel, this.effectParams);
+      drawCanvasMaterialSprite(ctx, this.img, frame, x, y, this.fitW, this.fitH);
     }
-  }
-
-  private drawCrackSprite(
-    ctx: CanvasRenderingContext2D,
-    progress: number,
-    x: number,
-    y: number,
-  ): void {
-    if (!this.ready) return;
-    const sprite = this.useLegacyStyle
-      ? this.style.sprite(progress, this.crackVel)
-      : this.effect.sprite(progress, this.crackVel, this.effectParams);
-    const width = this.fitW * sprite.scale;
-    const height = this.fitH * sprite.scale;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, sprite.alpha);
-    ctx.translate(x + sprite.dx, y + sprite.dy);
-    if (sprite.rot) ctx.rotate(sprite.rot);
-    ctx.drawImage(this.img, -width / 2, -height / 2, width, height);
-    ctx.restore();
   }
 }

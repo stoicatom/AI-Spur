@@ -2,6 +2,7 @@ import type * as THREE from 'three';
 import type { WhipVel } from './particles';
 import type { MaterialPhysics } from './three-effect-physics';
 import type { PhysicalProfile } from './three-effect-profiles';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from './material-animation-constants';
 
 const DT = 1 / 60;
 
@@ -46,6 +47,7 @@ export function seedParticleStates(
     state.spin = (i % 2 ? 1 : -1) * (0.4 + i % 7 * 0.16);
     state.z = (i % 11) * 2.8;
     state.decay = profile.motion === 'downpour' ? 0.006 : profile.motion === 'fireworks' ? 0.007 : 0.011 + (i % 5) * 0.001;
+    state.decay /= MATERIAL_ANIMATION_DURATION_SCALE;
     state.groundY = -height / 2;
     switch (profile.motion) {
       case 'tornado': {

@@ -1,15 +1,18 @@
 /** GPU material effects with one orthographic scene and instanced meshes. */
 import * as THREE from 'three';
 import type { EffectPresetId } from '../shared/material-packs';
-import type { WhipVel } from './particles';
+import { resolveEffect, type EffectPreset } from './effects';
+import { DEFAULT_EFFECT_DURATION_MS } from './effect-timings';
+import { scaleMaterialSpriteFrame } from './material-animation-constants';
+import { DEFAULT_VEL, type WhipVel } from './particles';
 import { geometry, profileFor, type PhysicalProfile } from './three-effect-profiles';
 import { CinematicLayers } from './three-effect-layers';
 import { pixelRatioFor, resolveMaterialPhysics, type MaterialPhysics } from './three-effect-physics';
 import { seedParticleStates, stepParticle, type ParticleState } from './three-particle-motion';
-import { placeFamilySprite } from './three-family-timeline';
+import { placeThreeSpriteFrame } from './three-sprite-frame';
 import { disposeSceneResources, disposeTextureOnce } from './three-effect-resources';
 import { renderContractFor } from './three-effect-contract';
-import { materialForDomain, type MaterialDomain } from './three-material-domains';
+import { domainForProfile, materialForDomain } from './three-material-domains';
 import { CinematicRenderPipeline } from './three-render-pipeline';
 import { updateParticleMatrices } from './three-particle-render';
 import { materialIdentityFor } from './material-identity';
@@ -37,12 +40,15 @@ export class ThreeEffectRenderer {
   private light: THREE.PointLight | null = null;
   private layers: CinematicLayers | null = null;
   private started = 0;
-  private duration = 1200;
+  private duration = DEFAULT_EFFECT_DURATION_MS;
   private alive = false;
   private width = 1;
   private height = 1;
   private profile: PhysicalProfile = profileFor('jet');
   private physics: MaterialPhysics = resolveMaterialPhysics(this.profile, {}, 1);
+  private effect: EffectPreset = resolveEffect('jet');
+  private vel: WhipVel = DEFAULT_VEL;
+  private params: Record<string, number> = {};
   private hue = 24;
   private origin = new THREE.Vector3();
   private direction = new THREE.Vector2(1, 0);
@@ -96,6 +102,9 @@ export class ThreeEffectRenderer {
     const runId = ++this.runId;
     this.clearScene();
     this.profile = profileFor(spec.preset);
+    this.effect = resolveEffect(spec.preset);
+    this.vel = spec.vel;
+    this.params = spec.params;
     const contract = renderContractFor(spec.preset);
     this.duration = this.profile.duration;
     const identity = materialIdentityFor(spec.packId, spec.preset, spec.params);
@@ -121,8 +130,8 @@ export class ThreeEffectRenderer {
     this.lastUpdate = now;
     this.accumulator = 0;
     this.alive = true;
-    // Specialized stages own their geometry and never consume the source icon.
-    // Avoid decoding and uploading a texture that cannot affect a frame.
+    // The physical stage and source sprite are separate layers: every preset
+    // keeps its material identity without re-enabling generic particles.
     if (spec.url && contract.sourceSprite) this.loadSprite(spec.url, energy, runId);
   }
   update(now = performance.now()): boolean {
@@ -131,7 +140,10 @@ export class ThreeEffectRenderer {
     const p = this.profile;
     const eased = 1 - Math.pow(1 - Math.max(0, (t - 0.08) / 0.92), 3);
     this.layers?.update(t, now, p);
-    if (this.sprite) placeFamilySprite(this.sprite, t, now, p, this.physics, this.origin, this.direction);
+    if (this.sprite) {
+      const frame = scaleMaterialSpriteFrame(this.effect.sprite(t, this.vel, this.params));
+      placeThreeSpriteFrame(this.sprite, frame, this.origin);
+    }
     if (this.light) {
       this.light.position.set(this.origin.x + this.direction.x * eased * 60, this.origin.y + this.direction.y * eased * 60, 50);
       this.light.intensity = 6 * this.physics.energy * Math.sin(Math.PI * Math.min(1, t * 1.6));
@@ -234,18 +246,5 @@ export class ThreeEffectRenderer {
     this.texture = null;
     this.renderer.renderLists.dispose();
     try { this.renderer.clear(true, true, true); } catch {}
-  }
-}
-/** Select a physical surface response for the compatibility particle path. */
-export function domainForProfile(profile: PhysicalProfile): MaterialDomain {
-  switch (profile.motion) {
-    case 'flame': case 'wildfire': case 'fireworks': return 'fire';
-    case 'splash': case 'rain': case 'downpour': case 'wave': return 'water';
-    case 'shards': return profile.shape === 'octa' ? 'ice' : 'glass';
-    case 'fracture': return 'glass';
-    case 'tornado': case 'vortex': case 'singularity': return 'smoke';
-    case 'petal': return 'fabric';
-    case 'impact': return 'rock';
-    default: return profile.family === 'rhythm' ? 'wood' : 'metal';
   }
 }

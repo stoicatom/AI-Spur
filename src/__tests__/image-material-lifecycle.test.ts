@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImageMaterial } from '../overlay/image-material';
 import { effectDurationFor } from '../overlay/effect-timings';
+import { resolveEffect } from '../overlay/effects';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from '../overlay/material-animation-constants';
+import type { Particle } from '../overlay/particles';
 
 class FakeImage {
   static instances: FakeImage[] = [];
@@ -33,6 +36,7 @@ function internals(material: ImageMaterial) {
   return material as unknown as {
     img: FakeImage;
     pendingImage: FakeImage | null;
+    particles: Particle[];
   };
 }
 
@@ -63,6 +67,7 @@ describe('ImageMaterial image lifecycle', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -129,15 +134,42 @@ describe('ImageMaterial image lifecycle', () => {
       .toBe(effectDurationFor('downpour'));
   });
 
-  it('keeps Canvas rain alive through 1,899 ms and stops at its 1,900 ms timeline end', () => {
+  it('extends emitted Canvas particle decay and fracture delay with the material timeline', () => {
+    vi.spyOn(performance, 'now').mockReturnValue(100);
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const params = { fractureDelay: 0.08 };
+    const vel = { vx: 1, vy: 0, speed: 4, dir: 0 };
+    const baseline = resolveEffect('glass-break').emit(100, 80, vel, params);
+    const material = new ImageMaterial();
+    material.loadPack('', 'glass-break', params, 204);
+    material.startCrack(100, 80, vel);
+
+    const actual = internals(material).particles;
+    expect(actual).toHaveLength(baseline.length);
+    for (let index = 0; index < actual.length; index++) {
+      expect(actual[index].decay).toBeCloseTo(
+        baseline[index].decay / MATERIAL_ANIMATION_DURATION_SCALE,
+        8,
+      );
+      const baselineDelay = baseline[index].delay;
+      if (baselineDelay !== undefined) {
+        expect(actual[index].delay).toBeCloseTo(
+          baselineDelay * MATERIAL_ANIMATION_DURATION_SCALE,
+          8,
+        );
+      }
+    }
+  });
+
+  it('keeps Canvas rain alive through 2,849 ms and stops at its 2,850 ms timeline end', () => {
     vi.spyOn(performance, 'now').mockReturnValue(100);
     const material = new ImageMaterial();
     material.loadPack('storm.svg', 'downpour', {}, 204);
     material.startCrack(720, 450);
 
-    material.updateAndDrawCrack(downpourContext(), 1999);
+    material.updateAndDrawCrack(downpourContext(), 2949);
     expect(material.crackAlive).toBe(true);
-    material.updateAndDrawCrack(downpourContext(), 2000);
+    material.updateAndDrawCrack(downpourContext(), 2950);
     expect(material.crackAlive).toBe(false);
   });
 

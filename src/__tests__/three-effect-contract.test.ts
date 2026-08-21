@@ -14,7 +14,7 @@ describe('Three effect render contracts', () => {
 
   it.each(['downpour', 'tornado', 'wildfire'] as const)('%s owns its complete stage', (id) => {
     expect(renderContractFor(id)).toEqual({
-      sourceSprite: false,
+      sourceSprite: true,
       genericParticles: false,
       pointLight: false,
     });
@@ -22,7 +22,7 @@ describe('Three effect render contracts', () => {
 
   it('keeps only explicit compatibility presets on the generic path', () => {
     expect(renderContractFor('spiral')).toMatchObject({ sourceSprite: true, genericParticles: true });
-    expect(renderContractFor('jet')).toMatchObject({ sourceSprite: false, genericParticles: false });
-    expect(renderContractFor('fireworks')).toMatchObject({ sourceSprite: false, genericParticles: false, pointLight: true });
+    expect(renderContractFor('jet')).toMatchObject({ sourceSprite: true, genericParticles: false });
+    expect(renderContractFor('fireworks')).toMatchObject({ sourceSprite: true, genericParticles: false, pointLight: true });
   });
 });

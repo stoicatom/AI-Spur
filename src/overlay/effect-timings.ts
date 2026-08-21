@@ -1,7 +1,9 @@
 import type { EffectPresetId } from '../shared/material-packs';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from './material-animation-constants';
 
 /** Shared effect durations keep Canvas fallback, WebGL, and audio timelines aligned. */
-export const DEFAULT_EFFECT_DURATION_MS = 1200;
+const BASE_DEFAULT_EFFECT_DURATION_MS = 1200;
+export const DEFAULT_EFFECT_DURATION_MS = Math.round(BASE_DEFAULT_EFFECT_DURATION_MS * MATERIAL_ANIMATION_DURATION_SCALE);
 
 const DURATION_OVERRIDES: Readonly<Partial<Record<EffectPresetId, number>>> = Object.freeze({
   tornado: 1800,
@@ -19,7 +21,8 @@ const DURATION_OVERRIDES: Readonly<Partial<Record<EffectPresetId, number>>> = Ob
 });
 
 export function effectDurationFor(id: EffectPresetId): number {
-  return DURATION_OVERRIDES[id] ?? DEFAULT_EFFECT_DURATION_MS;
+  const baseDuration = DURATION_OVERRIDES[id] ?? BASE_DEFAULT_EFFECT_DURATION_MS;
+  return Math.round(baseDuration * MATERIAL_ANIMATION_DURATION_SCALE);
 }
 
 /** The tip snaps after the tension wave has reached the end of the lash. */

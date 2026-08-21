@@ -3,10 +3,9 @@ import type { EffectPresetId } from '../shared/material-packs';
 /**
  * Rendering responsibilities for one preset.
  *
- * A family stage is already a complete visual composition.  The legacy
- * sprite/particle/light layers are therefore opt-in instead of being added to
- * every run, which prevents a rain stage from turning into a glowing icon
- * burst and keeps the GPU budget predictable.
+ * A family stage remains the complete physical composition. The source sprite
+ * is a separate material-identity layer; generic particles stay opt-in so a
+ * rain stage does not turn into a generic icon burst.
  */
 export type EffectRenderContract = Readonly<{
   sourceSprite: boolean;
@@ -14,8 +13,8 @@ export type EffectRenderContract = Readonly<{
   pointLight: boolean;
 }>;
 
-const NONE: EffectRenderContract = Object.freeze({
-  sourceSprite: false,
+const MATERIAL_STAGE: EffectRenderContract = Object.freeze({
+  sourceSprite: true,
   genericParticles: false,
   pointLight: false,
 });
@@ -27,12 +26,12 @@ const LEGACY_GENERIC: EffectRenderContract = Object.freeze({
 });
 
 const EMISSIVE_STAGE: EffectRenderContract = Object.freeze({
-  sourceSprite: false,
+  sourceSprite: true,
   genericParticles: false,
   pointLight: true,
 });
 
-/** Presets whose family stage owns the complete scene. */
+/** Presets whose family stage owns the complete physical scene. */
 const SPECIALIZED = new Set<EffectPresetId>([
   'jet', 'rise', 'bolt', 'wave', 'orbit', 'dash', 'shatter', 'burst',
   'flame-rise', 'shatter-ice', 'shock-ring', 'water-splash', 'whirl',
@@ -54,9 +53,9 @@ const EMISSIVE = new Set<EffectPresetId>([
 export function renderContractFor(id: EffectPresetId): EffectRenderContract {
   if (LEGACY.has(id)) return LEGACY_GENERIC;
   if (SPECIALIZED.has(id)) {
-    return EMISSIVE.has(id) ? EMISSIVE_STAGE : NONE;
+    return EMISSIVE.has(id) ? EMISSIVE_STAGE : MATERIAL_STAGE;
   }
-  return NONE;
+  return MATERIAL_STAGE;
 }
 
-export const DEFAULT_EFFECT_RENDER_CONTRACT = NONE;
+export const DEFAULT_EFFECT_RENDER_CONTRACT = MATERIAL_STAGE;

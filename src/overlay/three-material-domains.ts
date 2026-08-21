@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { PhysicalProfile } from './three-effect-profiles';
 
 export type MaterialDomain =
   | 'metal'
@@ -85,4 +86,18 @@ export function materialForDomain(
 
 export function materialDomainParameters(domain: MaterialDomain): Readonly<DomainParams> {
   return DOMAIN_PARAMS[domain];
+}
+
+/** Select a physical surface response for the compatibility particle path. */
+export function domainForProfile(profile: PhysicalProfile): MaterialDomain {
+  switch (profile.motion) {
+    case 'flame': case 'wildfire': case 'fireworks': return 'fire';
+    case 'splash': case 'rain': case 'downpour': case 'wave': return 'water';
+    case 'shards': return profile.shape === 'octa' ? 'ice' : 'glass';
+    case 'fracture': return 'glass';
+    case 'tornado': case 'vortex': case 'singularity': return 'smoke';
+    case 'petal': return 'fabric';
+    case 'impact': return 'rock';
+    default: return profile.family === 'rhythm' ? 'wood' : 'metal';
+  }
 }

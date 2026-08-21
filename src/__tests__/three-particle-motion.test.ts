@@ -6,6 +6,7 @@ import { profileFor } from '../overlay/three-effect-profiles';
 import { seedParticleStates, stepParticle, type ParticleState } from '../overlay/three-particle-motion';
 import type { Particle } from '../overlay/particles';
 import { materialIdentityFor } from '../overlay/material-identity';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from '../overlay/material-animation-constants';
 
 const origin = new THREE.Vector3(40, -20, 0);
 const direction = new THREE.Vector2(0.8, 0.6).normalize();
@@ -18,6 +19,19 @@ function simulate(state: ParticleState, hz: number): ParticleState {
 }
 
 describe('refresh-rate independent particle integration', () => {
+  it('extends seeded Three particle lifetime without changing the 60 Hz step', () => {
+    const profile = profileFor('gunshot');
+    const physics = resolveMaterialPhysics(profile, {}, 4);
+    const seeded = seedParticleStates(
+      1, origin, direction, profile, physics,
+      { vx: 0.8, vy: -0.6, speed: 4, dir: -0.64 }, 1280, 720,
+    )[0];
+
+    expect(seeded.decay).toBeCloseTo(0.011 / MATERIAL_ANIMATION_DURATION_SCALE, 8);
+    stepParticle(seeded, 0, origin, direction, profile, physics);
+    expect(seeded.age).toBeCloseTo(1 / 60, 8);
+  });
+
   it('keeps equal-time Three trajectories consistent at 60 and 120 Hz', () => {
     const profile = profileFor('gunshot');
     const physics = resolveMaterialPhysics(profile, { muzzleEnergy: 1.4 }, 4);

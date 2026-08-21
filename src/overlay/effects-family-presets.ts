@@ -1,6 +1,7 @@
 import type { Particle, WhipVel } from './particles';
 import { P } from './particles';
 import type { EffectPreset, SpriteFrame } from './effects-core';
+import { effectDurationFor } from './effect-timings';
 import {
   downpourDropAt,
   downpourLayerCount,
@@ -133,7 +134,7 @@ const downpour: EffectPreset = {
   id: 'downpour',
   sprite: (t, _vel, params) => {
     const config = resolveDownpourField(params);
-    const drop = downpourDropAt(0, 1, 640, 480, config, 'foreground', t * 1900);
+    const drop = downpourDropAt(0, 1, 640, 480, config, 'foreground', t * effectDurationFor('downpour'));
     return { dx: drop.x - 320, dy: drop.y - 240, scale: 0.74, rot: -Math.atan2(drop.vx, drop.vy), alpha: fade(t, 0.84) };
   },
   emit: (cx, cy, _vel, params) => {

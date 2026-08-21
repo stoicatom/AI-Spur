@@ -50,6 +50,12 @@ vi.mock('three', async () => {
 });
 
 import * as THREE from 'three';
+import { resolveEffect } from '../overlay/effects';
+import {
+  MATERIAL_ANIMATION_AREA_SCALE,
+  MATERIAL_SOURCE_SPRITE_LINEAR_SCALE,
+} from '../overlay/material-animation-constants';
+import { profileFor } from '../overlay/three-effect-profiles';
 import { ThreeEffectRenderer } from '../overlay/three-effects';
 
 const spec = (url = 'asset://sprite'): ThreeEffectSpec => ({
@@ -113,10 +119,10 @@ describe('ThreeEffectRenderer GPU 生命周期', () => {
     expect(() => effect.start(spec(), 2)).toThrow('disposed');
   });
 
-  it('专属场景不加载不会被使用的素材纹理，慢帧仍保留全部固定物理步长', () => {
+  it('专属场景保留素材身份纹理，慢帧仍保留全部固定物理步长', () => {
     const effect = new ThreeEffectRenderer(document.createElement('canvas'));
     effect.start({ ...spec('asset://storm'), preset: 'downpour', params: { dropDensity: 2.8 } }, 0);
-    expect(state.loads).toHaveLength(0);
+    expect(state.loads).toHaveLength(1);
 
     effect.start(spec(''), 0);
     expect((effect as unknown as { root: THREE.Group }).root
@@ -124,6 +130,49 @@ describe('ThreeEffectRenderer GPU 生命周期', () => {
     effect.update(100);
     const states = (effect as unknown as { states: Array<{ age: number }> }).states;
     expect(states[0]?.age).toBeCloseTo(.1, 5);
+    effect.dispose();
+  });
+
+  it('纹理回调挂载素材精灵，并逐帧应用当前预设的 SpriteFrame', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.resize(800, 600);
+    const current = {
+      ...spec('asset://spiral'),
+      x: 260,
+      y: 180,
+      params: { turns: 3.4, radius: 1.35 },
+    };
+    effect.start(current, 0);
+    const pending = state.loads[0];
+    pending.onLoad(pending.texture as never);
+
+    const root = (effect as unknown as { root: THREE.Group }).root;
+    const sprite = root.children.find((child): child is THREE.Mesh => {
+      if (!(child instanceof THREE.Mesh)) return false;
+      const material = child.material;
+      return !Array.isArray(material)
+        && material instanceof THREE.MeshBasicMaterial
+        && material.map === pending.texture as unknown as THREE.Texture;
+    });
+    expect(sprite).toBeDefined();
+
+    const progress = 0.5;
+    effect.update(profileFor(current.preset).duration * progress);
+    const frame = resolveEffect(current.preset).sprite(progress, current.vel, current.params);
+    expect(sprite?.position.x).toBeCloseTo(
+      current.x - 400 + frame.dx * MATERIAL_ANIMATION_AREA_SCALE,
+      8,
+    );
+    expect(sprite?.position.y).toBeCloseTo(
+      300 - current.y - frame.dy * MATERIAL_ANIMATION_AREA_SCALE,
+      8,
+    );
+    expect(sprite?.rotation.z).toBeCloseTo(-frame.rot, 8);
+    expect(sprite?.scale.x).toBeCloseTo(
+      frame.scale * MATERIAL_SOURCE_SPRITE_LINEAR_SCALE,
+      8,
+    );
+    expect((sprite?.material as THREE.MeshBasicMaterial).opacity).toBeCloseTo(frame.alpha, 8);
     effect.dispose();
   });
 });
