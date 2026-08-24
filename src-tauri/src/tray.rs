@@ -67,7 +67,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             } = event
             {
                 let app = tray.app_handle();
-                if let Err(error) = present_settings_window(&app) {
+                if let Err(error) = present_settings_window(app) {
                     eprintln!("[settings] failed to present from tray click: {error}");
                 }
             }

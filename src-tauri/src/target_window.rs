@@ -26,8 +26,12 @@ const TERMINAL_APPS: &[&str] = &[
     // Windows terminals
     "Windows Terminal",
     "WindowsTerminal",
+    "WindowsTerminal.exe",
     "PowerShell",
+    "powershell.exe",
+    "pwsh.exe",
     "Command Prompt",
+    "cmd.exe",
     "ConEmu",
     "Cmder",
     "MobaXterm",
@@ -73,6 +77,11 @@ fn is_safe_app(name: &str) -> bool {
         .any(|safe| lowered.contains(&safe.to_lowercase()))
 }
 
+#[cfg(any(target_os = "windows", test))]
+fn process_name_from_path(path: &str) -> &str {
+    path.rsplit(['\\', '/']).next().unwrap_or(path)
+}
+
 /// True when the currently focused macOS application looks like a terminal or
 /// an editor that runs a terminal, i.e. safe to inject into.
 ///
@@ -100,9 +109,44 @@ pub fn active_app_is_safe() -> bool {
     is_safe_app(&name)
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
 pub fn active_app_is_safe() -> bool {
     true
+}
+
+#[cfg(target_os = "windows")]
+pub fn active_app_is_safe() -> bool {
+    use windows_sys::Win32::Foundation::CloseHandle;
+    use windows_sys::Win32::System::Threading::{
+        OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, QueryFullProcessImageNameW,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetForegroundWindow, GetWindowThreadProcessId,
+    };
+
+    // SAFETY: These Win32 calls read the foreground process into caller-owned
+    // buffers; the process handle is closed before returning on every path.
+    let hwnd = unsafe { GetForegroundWindow() };
+    if hwnd.is_null() {
+        return false;
+    }
+    let mut pid = 0u32;
+    if unsafe { GetWindowThreadProcessId(hwnd, &mut pid) } == 0 || pid == 0 {
+        return false;
+    }
+    let process = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) };
+    if process.is_null() {
+        return false;
+    }
+    let mut path = [0u16; 1024];
+    let mut length = path.len() as u32;
+    let ok = unsafe { QueryFullProcessImageNameW(process, 0, path.as_mut_ptr(), &mut length) != 0 };
+    unsafe { CloseHandle(process) };
+    if !ok || length == 0 {
+        return false;
+    }
+    let process_path = String::from_utf16_lossy(&path[..length as usize]);
+    is_safe_app(process_name_from_path(&process_path))
 }
 
 /// A candidate app under the cursor.
@@ -377,6 +421,24 @@ mod tests {
         assert!(!is_safe_app("Google Chrome"));
         assert!(!is_safe_app("Finder"));
         assert!(!is_safe_app(""));
+    }
+
+    #[test]
+    fn process_name_parser_handles_windows_and_posix_paths() {
+        assert_eq!(
+            process_name_from_path(r"C:\\Windows\\System32\\cmd.exe"),
+            "cmd.exe"
+        );
+        assert_eq!(process_name_from_path("/usr/bin/kitty"), "kitty");
+        assert_eq!(process_name_from_path("Terminal"), "Terminal");
+    }
+
+    #[test]
+    fn windows_terminal_process_names_are_safe() {
+        assert!(is_safe_app("cmd.exe"));
+        assert!(is_safe_app("powershell.exe"));
+        assert!(is_safe_app("pwsh.exe"));
+        assert!(is_safe_app("WindowsTerminal.exe"));
     }
 
     #[test]

@@ -54,7 +54,8 @@ Windows 真实运行验证未完成：当前环境只有 `aarch64-apple-darwin` 
 
 - Rust 集成测试确认 `Ctrl+C -> phrase -> Enter` 顺序。
 - macOS 会检查前台应用及光标下窗口是否为安全终端。
-- Windows/Linux 的 `active_app_is_safe()` 当前直接返回 `true`，因此非终端前台窗口也可能收到合成输入。这不满足跨平台安全闭环，必须在 Windows 真实平台补充前台进程/窗口白名单检查后才能发布。
+- Windows 现在通过 `GetForegroundWindow -> GetWindowThreadProcessId -> QueryFullProcessImageNameW` 读取前台进程，并按终端进程白名单放行；未知进程或 API 失败会拒绝宏。Windows 真实 runner 仍需验证权限、UWP 窗口和不同终端宿主的实际进程名。
+- Linux 的 `active_app_is_safe()` 仍为兼容性回退 `true`，Wayland/X11 前台窗口识别另列为跨平台 P1，不应与 Windows 安全结论混淆。
 
 ### 4. 设置持久化
 
@@ -80,7 +81,7 @@ Windows 真实运行验证未完成：当前环境只有 `aarch64-apple-darwin` 
 
 ### P0：发布前必须处理
 
-1. Windows 前台应用安全识别：实现并测试 Windows 前台窗口进程名/类型白名单；不能继续让非 macOS 分支无条件返回安全。
+1. Windows 前台应用安全识别真实验证：源码已加入前台进程白名单，但 Windows runner 仍需覆盖 PowerShell、Windows Terminal、UWP、管理员权限和进程查询失败场景。
 2. 输入权限闭环：检测 enigo 初始化/发送权限失败，给设置页可操作的系统权限说明和重试入口，而不是只写 stderr。
 3. 补齐真实平台 E2E：Windows 托盘、任务栏恢复、`Ctrl/Cmd+Shift+数字` 注册和宏安全门禁必须在 Windows runner 实测。
 

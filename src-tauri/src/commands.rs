@@ -76,12 +76,9 @@ pub async fn save_config(
     if previous_hotkey != config.hotkey {
         let config_to_persist = config.clone();
         let config_path = state.config_path.clone();
-        shortcut::rebind(
-            &app,
-            &previous_hotkey,
-            &config.hotkey,
-            move || config::save_config(&config_path, &config_to_persist).map_err(|e| e.to_string()),
-        )?;
+        shortcut::rebind(&app, &previous_hotkey, &config.hotkey, move || {
+            config::save_config(&config_path, &config_to_persist).map_err(|e| e.to_string())
+        })?;
     } else {
         config::save_config(&state.config_path, &config).map_err(|e| e.to_string())?;
     }
