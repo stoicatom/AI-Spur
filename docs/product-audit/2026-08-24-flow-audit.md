@@ -21,7 +21,7 @@ Windows 真实运行验证未完成：当前环境只有 `aarch64-apple-darwin` 
 | 前端生产构建 | `pnpm build` | 通过；Vite 提示既有大 chunk 警告 |
 | Rust 格式 | `cargo fmt --check` | 通过 |
 | Rust 静态检查 | `cargo clippy --all-targets --all-features -- -D warnings` | 通过 |
-| Rust 单测 | `cargo test --lib` | 通过，73 个测试 |
+| Rust 单测 | `cargo test --lib` | 通过，74 个测试 |
 | Rust 集成测试 | `cargo test --test trigger_chain` | 通过，5 个测试 |
 | Windows target | `cargo check --target x86_64-pc-windows-msvc` | 未通过：target 未安装，`can't find crate for std/core` |
 | WebdriverIO | `pnpm exec wdio run wdio.conf.ts` | 未执行：缺少 `@wdio/local-runner` / `wdio-local-runner` |
