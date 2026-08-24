@@ -98,4 +98,18 @@ describe('全屏电影化能量层', () => {
     dragonStage.update(.46, 640); dragonEnergy.getMatrixAt(4, first);
     expect(first.elements).toEqual(repeated);
   });
+
+  it('神龙和左轮的公共场保持局部，不再覆盖到视口边缘', () => {
+    for (const preset of ['wave', 'gunshot'] as const) {
+      const packId = preset === 'wave' ? 'dragon' : 'revolver';
+      const ctx = context(preset, 1280, 720, packId);
+      const stage = new FullFieldSpectacleLayer(ctx);
+      stage.update(0.58, 620);
+      const field = named<THREE.Mesh>(ctx.root, 'full-field-atmosphere');
+      const ring = named<THREE.Mesh>(ctx.root, 'full-field-shock-ring-0');
+      const material = field.material as THREE.ShaderMaterial;
+      expect(material.uniforms.uReach.value).toBeLessThan(420);
+      expect(ring.scale.x).toBeLessThan(420);
+    }
+  });
 });

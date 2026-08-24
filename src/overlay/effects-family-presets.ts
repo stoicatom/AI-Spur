@@ -219,13 +219,14 @@ const gunshot: EffectPreset = {
     const muzzleEnergy = num(params, 'muzzleEnergy', 1);
     const recoilKick = num(params, 'recoilKick', 1);
     const tracerSpeed = num(params, 'tracerSpeed', 1);
+    const bulletDistance = num(params, 'bulletDistance', 340);
     const smokeCurl = num(params, 'smokeCurl', 1);
     const casingSpin = num(params, 'casingSpin', 1);
     const flashCone = num(params, 'flashCone', 1);
     const muzzleX = cx + Math.cos(d) * (34 - recoilKick * 7);
     const muzzleY = cy + Math.sin(d) * (34 - recoilKick * 7);
     const tracer = aimBeam(
-      P.beam(muzzleX, muzzleY, Math.round(6 + flashCone * 5), 58 * tracerSpeed, { shape: 4, hue: [38, 62] }),
+      P.beam(muzzleX, muzzleY, Math.round(6 + flashCone * 5), Math.max(58, bulletDistance * 0.34) * tracerSpeed, { shape: 4, hue: [38, 62] }),
       d,
       0.12 + flashCone * 0.19,
       1.5 + tracerSpeed * 1.55,
@@ -256,7 +257,12 @@ const gunshot: EffectPreset = {
       particle.angle = ejectAngle + casingSpin * (index + 1) * 0.72;
       particle.decay = 0.016 + index * 0.001;
     }
-    return cap([tracer, muzzleFlash, sparks, smoke, casings]);
+    const impactX = cx + Math.cos(d) * bulletDistance;
+    const impactY = cy + Math.sin(d) * bulletDistance;
+    const impact = P.burst(impactX, impactY, 14, 3, 8 * muzzleEnergy, { shape: 5, gravity: 0, hue: [26, 54] });
+    const impactRing = P.ringWave(impactX, impactY, 10, 16 + flashCone * 10, 2.4, { shape: 3, gravity: 0, hue: [36, 64] });
+    const impactSparks = P.spark(impactX, impactY, 10, 3, 8 * muzzleEnergy, { shape: 5, gravity: 0, hue: [30, 62] });
+    return cap([tracer, muzzleFlash, sparks, smoke, casings, impact, impactRing, impactSparks]);
   },
 };
 

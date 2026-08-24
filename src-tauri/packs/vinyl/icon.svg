@@ -1,22 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
-  <title>黑胶唱机</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
+  <title>黑胶律动</title>
   <defs>
-    <linearGradient id="vinyl-plinth" x1="7" y1="10" x2="42" y2="40" gradientUnits="userSpaceOnUse">
-      <stop stop-color="var(--pack-plinth-light,#6D6D68)"/>
-      <stop offset=".48" stop-color="var(--pack-plinth,#454A4A)"/>
-      <stop offset="1" stop-color="var(--pack-plinth-shadow,#2D3435)"/>
-    </linearGradient>
-    <radialGradient id="vinyl-disc" cx="0" cy="0" r="1" gradientTransform="translate(18 23) rotate(46) scale(16)">
-      <stop stop-color="var(--pack-disc-light,#62676A)"/>
-      <stop offset=".48" stop-color="var(--pack-disc,#303739)"/>
-      <stop offset="1" stop-color="var(--pack-disc-shadow,#1E282A)"/>
+    <radialGradient id="vy-disc" cx="20" cy="20" r="17">
+      <stop stop-color="var(--pack-disc-light,#8266A8)"/>
+      <stop offset=".72" stop-color="var(--pack-disc,#523E75)"/>
+      <stop offset="1" stop-color="var(--pack-disc-edge,#33244F)"/>
     </radialGradient>
+    <linearGradient id="vy-sheen" x1="10" y1="10" x2="34" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-sheen,#56C6A9)" stop-opacity=".55"/>
+      <stop offset=".45" stop-color="var(--pack-sheen,#56C6A9)" stop-opacity="0"/>
+      <stop offset="1" stop-color="var(--pack-sheen-2,#B49AE8)" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="vy-arm" x1="30" y1="6" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-arm-light,#D8CFEC)"/>
+      <stop offset="1" stop-color="var(--pack-arm,#8F7FB8)"/>
+    </linearGradient>
     <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
       <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
       <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
       <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
-      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="49" result="grain"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="42" result="grain"/>
       <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
       <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
       <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
@@ -25,7 +29,6 @@
       <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
       <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
       <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
-
       <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
         <feDistantLight azimuth="224" elevation="58"/>
       </feDiffuseLighting>
@@ -44,16 +47,17 @@
   </defs>
   <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
   <g filter="url(#studio-light)">
-  <path d="M6 11h34l3 4v23H6Z" fill="url(#vinyl-plinth)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <path d="M6 11h34l3 4H10Z" fill="var(--pack-plinth-edge,#8A8A80)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <circle cx="20" cy="25" r="14" fill="url(#vinyl-disc)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <circle cx="20" cy="25" r="10" stroke="var(--pack-groove,#737B7A)" stroke-width="1.5" opacity=".56"/>
-  <circle cx="20" cy="25" r="6" stroke="var(--pack-groove,#737B7A)" stroke-width="1.5" opacity=".5"/>
-  <circle cx="20" cy="25" r="4" fill="var(--pack-label,#8A7861)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <circle cx="20" cy="25" r="1.25" fill="var(--pack-spindle,#D1CEBE)"/>
-  <path d="M37 15v9l-7 8-3-2 7-8v-7Z" fill="var(--pack-arm,#B5B2A2)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <path d="M27 30 31 33l-2 3-4-2Z" fill="var(--pack-cartridge,#4E5656)" stroke="var(--pack-edge,#343C3D)" stroke-width="1.5"/>
-  <path d="M9 38v4m29-4v4M35 17h3" stroke="var(--pack-hardware,#B7B7AC)" stroke-width="1.5"/>
-
+  <circle cx="21" cy="25" r="17" fill="url(#vy-disc)" stroke="var(--pack-ink,#150F26)" stroke-width="1.5"/>
+  <circle cx="21" cy="25" r="17" fill="url(#vy-sheen)"/>
+  <circle cx="21" cy="25" r="13.5" stroke="var(--pack-groove,#9A78C8)" stroke-width="1.5" opacity=".55"/>
+  <circle cx="21" cy="25" r="10.5" stroke="var(--pack-groove,#9A78C8)" stroke-width="1.5" opacity=".48"/>
+  <circle cx="21" cy="25" r="7.5" stroke="var(--pack-groove,#9A78C8)" stroke-width="1.5" opacity=".4"/>
+  <circle cx="21" cy="25" r="4.6" fill="var(--pack-label,#56C6A9)" stroke="var(--pack-ink,#150F26)" stroke-width="1.5"/>
+  <path d="M18.5 23.5c1.7-.8 3.3-.8 5 0" stroke="var(--pack-label-line,#D4FBEE)" stroke-width="1.5" opacity=".7"/>
+  <circle cx="21" cy="25" r="1.3" fill="var(--pack-spindle,#EAE2F8)"/>
+  <path d="M10 15c4-4 10-6 16-5" stroke="var(--pack-shine,#C9B6F0)" stroke-width="1.5" opacity=".55"/>
+  <path d="M39 8v14l-8 9-3.5-3 8-8.5V8Z" fill="url(#vy-arm)" stroke="var(--pack-ink,#150F26)" stroke-width="1.5"/>
+  <path d="m28.5 28.5 4 3.5-2.5 3-4-3.5Z" fill="var(--pack-cartridge,#3B2F58)" stroke="var(--pack-ink,#150F26)" stroke-width="1.5"/>
+  <circle cx="39" cy="8" r="2.6" fill="var(--pack-pivot,#A793D0)" stroke="var(--pack-ink,#150F26)" stroke-width="1.5"/>
   </g>
 </svg>

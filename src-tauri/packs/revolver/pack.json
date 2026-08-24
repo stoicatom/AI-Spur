@@ -8,6 +8,7 @@
       "muzzleEnergy": 2.5,
       "recoilKick": 1.45,
       "tracerSpeed": 3.1,
+      "bulletDistance": 380,
       "smokeCurl": 0.85,
       "casingSpin": 2.2,
       "flashCone": 1.35

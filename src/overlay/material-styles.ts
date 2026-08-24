@@ -14,6 +14,8 @@ import { RHYTHM_STYLES } from './material-style-rhythm';
 import { SIGNATURE_STYLES } from './material-style-signature';
 import { SWORD_STYLES } from './material-style-sword';
 import { WONDER_STYLES } from './material-style-wonder';
+import { COSMIC_STYLES } from './material-style-cosmic';
+import { MODERN_WEAPON_STYLES } from './material-style-modern';
 import { rand, TAU, type CrackStyle, type CrackStyleFactory } from './material-style-core';
 import { MATERIAL_HUE, type Particle } from './particles';
 
@@ -32,6 +34,8 @@ const STYLE_FACTORIES: Record<string, CrackStyleFactory> = {
   ...DAILY_STYLES,
   ...WONDER_STYLES,
   ...LIVING_STYLES,
+  ...COSMIC_STYLES,
+  ...MODERN_WEAPON_STYLES,
 };
 
 function fallbackStyle(id: string): CrackStyle {

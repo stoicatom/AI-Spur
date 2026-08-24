@@ -50,15 +50,53 @@ function water(): CrackStyle {
     ],
   };
 }
-/** tornado · 龙卷风：螺旋上升 + 负重力柱 */
+/** tornado · 龙卷风：强力螺旋上升 + 负重力柱 + 碎屑卷入 */
 function tornado(): CrackStyle {
   const H = MATERIAL_HUE.tornado; // 185
   return {
     hue: H,
-    sprite: (t, _vel) => ({ dx: t * 100, dy: -t * 180, scale: 1 + t * 2.8, rot: t * Math.PI * 6, alpha: 1 - t }),
+    sprite: (t, _vel) => {
+      // 旋转上升，带有吸入扭曲效果
+      const rot = t * Math.PI * 8; // 快速旋转
+      const scale = 1 + t * 3.2; // 更大的膨胀
+      return {
+        dx: t * 100,
+        dy: -t * 200,
+        scale,
+        rot,
+        alpha: 1 - t * 0.8
+      };
+    },
     emit: (cx, cy, _vel) => [
-      ...P.spiral(cx, cy, 20, 4, 160, { hue: [H - 15, H + 15], gravity: -0.04 }),
-      ...P.pillar(cx, cy, 12, 140, { hue: [H - 10, H + 10] }),
+      // 主螺旋气流（多层，密集）
+      ...P.spiral(cx, cy, 28, 5, 180, {
+        hue: [H - 15, H + 15],
+        gravity: -0.06
+      }),
+      ...P.spiral(cx, cy, 24, 4, 160, {
+        hue: [H - 10, H + 10],
+        gravity: -0.05
+      }),
+      // 负重力柱（上升气流）
+      ...P.pillar(cx, cy, 18, 160, {
+        hue: [H - 10, H + 10]
+      }),
+      // 卷入的碎屑和尘土
+      ...P.burst(cx, cy + 40, 20, 2, 8, {
+        hue: [40, 60],
+        shape: 2,
+        gravity: -0.08
+      }),
+      // 外围风圈（环形扩散）
+      ...P.shockRing(cx, cy, 16, 60, 120, {
+        hue: [H - 20, H + 20],
+        gravity: 0
+      }),
+      // 底部吸入效果（向心螺旋）
+      ...P.spiral(cx, cy + 80, 14, -3, 100, {
+        hue: [H - 5, H + 5],
+        gravity: 0
+      }),
     ],
   };
 }

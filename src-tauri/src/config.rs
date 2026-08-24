@@ -35,6 +35,18 @@ pub enum Theme {
     Auto,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum WindowPresence {
+    /// Keep AISpur tray-resident; closing settings hides the window and, on
+    /// macOS, returns the process to accessory mode.
+    #[default]
+    Tray,
+    /// Keep a normal Dock/taskbar entry so the settings window can be restored
+    /// after it is closed (minimized on Windows/Linux, hidden on macOS).
+    Persistent,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
@@ -54,6 +66,8 @@ pub struct Config {
     pub theme: Theme,
     pub language: String, // "auto" | "zh-CN" | "en-US"
     pub first_launch: bool,
+    #[serde(default)]
+    pub window_presence: WindowPresence,
     /// ID of the active material pack (v3 single axis: icon + effect + sound + palette).
     /// Replaces v2's three-axis active_skin / crack_sound_id / active_material_id.
     /// Kept in sync with the TS `activePackId` (Zod `.default('rocket')`).
@@ -87,6 +101,7 @@ impl Default for Config {
             theme: Theme::Auto,
             language: "auto".to_string(),
             first_launch: true,
+            window_presence: WindowPresence::Tray,
             active_pack_id: "rocket".to_string(),
         }
     }
@@ -460,6 +475,19 @@ mod tests {
     #[test]
     fn default_config_has_rocket_pack() {
         assert_eq!(Config::default().active_pack_id, "rocket");
+    }
+
+    #[test]
+    fn window_presence_defaults_to_tray_and_roundtrips_persistent() {
+        assert_eq!(Config::default().window_presence, WindowPresence::Tray);
+        let config = Config {
+            window_presence: WindowPresence::Persistent,
+            ..Config::default()
+        };
+        let json = serde_json::to_value(&config).unwrap();
+        assert_eq!(json["windowPresence"], "persistent");
+        let parsed: Config = serde_json::from_value(json).unwrap();
+        assert_eq!(parsed.window_presence, WindowPresence::Persistent);
     }
 
     #[test]

@@ -29,6 +29,7 @@ import type { MaterialPack } from '../shared/material-packs';
 import { ThreeEffectHost } from './three-effect-host';
 import { UnlistenRegistry } from './unlisten-registry';
 import { resizeCanvas2D } from './canvas-pixel-budget';
+import { MacroRecoveryState } from './macro-recovery';
 
 const canvasEl = document.getElementById('whip-canvas') as HTMLCanvasElement | null;
 if (!canvasEl) throw new Error('whip-canvas element not found');
@@ -64,19 +65,29 @@ let mouseX = width / 2;
 let mouseY = height / 2;
 let active = false; // 覆盖层是否处于活跃状态
 let macroFailureVisible = false;
+const macroRecovery = new MacroRecoveryState();
 
 const macroStatus = document.getElementById('macro-status') as HTMLElement | null;
 const macroStatusMessage = document.getElementById('macro-status__message') as HTMLElement | null;
 const macroRetry = document.getElementById('macro-status__retry') as HTMLButtonElement | null;
 const macroSettings = document.getElementById('macro-status__settings') as HTMLButtonElement | null;
 const macroClose = document.getElementById('macro-status__close') as HTMLButtonElement | null;
+if (macroSettings && /Windows/i.test(navigator.userAgent)) {
+  macroSettings.textContent = '查看 Windows 诊断';
+}
 
 function hideMacroFailure(): void {
   macroFailureVisible = false;
   if (macroStatus) macroStatus.hidden = true;
 }
 
-function showMacroFailure(failure: MacroFailedPayload): void {
+function showMacroFailure(failure: MacroFailedPayload, source: 'event' | 'fallback' = 'event'): void {
+  // A failure from a previous crack can arrive after the user has retried.
+  // Never let that stale event replace the current recovery state.
+  const accepted = source === 'event'
+    ? macroRecovery.acceptEvent(failure.attemptId)
+    : macroRecovery.shouldShowFallback(failure.attemptId);
+  if (!accepted) return;
   if (!macroStatus || !macroStatusMessage) return;
   macroFailureVisible = true;
   macroStatus.dataset.code = failure.code;
@@ -91,25 +102,56 @@ function showMacroFailure(failure: MacroFailedPayload): void {
     .catch(() => {});
 }
 
+function nextMacroAttempt(): number {
+  return macroRecovery.beginAttempt();
+}
+
+function showMacroInvokeFailure(error: unknown, attemptId: number): void {
+  // A structured event may win the race with invoke rejection. Never replace
+  // its classification or permission action with a generic fallback.
+  const message = error instanceof Error ? error.message : String(error);
+  const normalized = message.toLocaleLowerCase();
+  const code: MacroFailedPayload['code'] =
+    /permission|accessibility|权限|辅助功能|输入权限/.test(normalized)
+      ? 'Permission'
+      : /safety|terminal|前台|终端|安全/.test(normalized)
+        ? 'SafetyGate'
+        : 'SendFailure';
+  showMacroFailure({
+    code,
+    message: message || '宏发送失败，请确认终端仍处于可输入状态后重试。',
+    retryable: code !== 'SafetyGate',
+    attemptId,
+  }, 'fallback');
+}
+
 async function retryMacro(): Promise<void> {
   hideMacroFailure();
+  const attemptId = nextMacroAttempt();
   try {
-    await triggerMacro();
+    await triggerMacro(undefined, attemptId);
     await dismiss();
   } catch (error) {
     console.error('[overlay] macro retry failed:', error);
-    // Rust emits the authoritative structured event for command failures.
-    // Keep the previous classification intact when invoke rejection and the
-    // event are delivered in either order.
+    // The event is authoritative when it arrives; this visible fallback also
+    // covers the small startup/listener race where invoke rejects first.
+    showMacroInvokeFailure(error, attemptId);
   }
 }
 
 macroRetry?.addEventListener('click', () => void retryMacro());
 macroSettings?.addEventListener('click', () => {
-  hideMacroFailure();
   openInputPermissions()
     .then(() => dismiss())
-    .catch((error) => console.error('[overlay] open settings failed:', error));
+    .catch((error) => {
+      console.error('[overlay] open settings failed:', error);
+      showMacroFailure({
+        code: 'Permission',
+        message: error instanceof Error ? error.message : String(error),
+        retryable: true,
+        attemptId: macroRecovery.latestAttempt,
+      });
+    });
 });
 macroClose?.addEventListener('click', () => {
   hideMacroFailure();
@@ -177,11 +219,11 @@ function playEffectSound(x: number, vel: WhipVel) {
 function triggerCrack(x: number, y: number, vel: WhipVel) {
   if (material.crackAlive || !active) return;
   hideMacroFailure();
+  const attemptId = nextMacroAttempt();
   // 判定瞬间即发键：终端保持焦点，Ctrl+C 早发早生效。
-  triggerMacro().catch((err) => {
+  triggerMacro(undefined, attemptId).catch((err) => {
     console.error('[overlay] macro failed:', err);
-    // Rust emits the authoritative structured macro-failed event. This
-    // rejection is logged only so it cannot overwrite its classification.
+    showMacroInvokeFailure(err, attemptId);
   });
   active = false;
   playEffectSound(x, vel);

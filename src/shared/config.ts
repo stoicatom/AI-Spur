@@ -6,6 +6,9 @@ export type AnimationMode = z.infer<typeof AnimationModeSchema>;
 export const ThemeSchema = z.enum(['light', 'dark', 'auto']);
 export type Theme = z.infer<typeof ThemeSchema>;
 
+export const WindowPresenceSchema = z.enum(['tray', 'persistent']);
+export type WindowPresence = z.infer<typeof WindowPresenceSchema>;
+
 export const ConfigSchema = z.object({
   version: z.literal('3.0'),
   hotkey: z.string().min(1),
@@ -27,6 +30,7 @@ export const ConfigSchema = z.object({
   theme: ThemeSchema,
   language: z.enum(['auto', 'zh-CN', 'en-US']).default('auto'),
   firstLaunch: z.boolean(),
+  windowPresence: WindowPresenceSchema.default('tray'),
   /**
    * 活跃素材包 id（v3 唯一选择轴：图标+特效+声音+配色）。
    * 取代 v2 的 activeSkin / crackSoundId / activeMaterialId 三轴。
@@ -59,5 +63,6 @@ export const DEFAULT_CONFIG: Config = {
   theme: 'auto',
   language: 'auto',
   firstLaunch: true,
+  windowPresence: 'tray',
   activePackId: 'rocket',
 };

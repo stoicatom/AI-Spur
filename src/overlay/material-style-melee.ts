@@ -101,15 +101,66 @@ function boomerang(): CrackStyle {
     ],
   };
 }
-/** axe · 战斧：回旋劈砍 */
+/** axe · 战斧：重劈挥砍 + 冲击波 + 金属火花 */
 function axe(): CrackStyle {
   const H = MATERIAL_HUE.axe; // 210
   return {
     hue: H,
-    sprite: (t, _vel) => ({ dx: t * 180, dy: t * 80, scale: 1 + t * 2.5, rot: t * Math.PI * 2.5, alpha: 1 - t }),
+    sprite: (t, _vel) => {
+      // 阶段1: 上扬蓄力 (0-0.3)
+      // 阶段2: 下劈 (0.3-0.7)
+      // 阶段3: 冲击余波 (0.7-1.0)
+      const phase1 = t < 0.3;
+      const phase2 = t >= 0.3 && t < 0.7;
+
+      let dx = 0, dy = 0, rot = 0;
+      if (phase1) {
+        const t1 = t / 0.3;
+        dx = t1 * 40;
+        dy = -t1 * 80;
+        rot = -t1 * Math.PI * 0.5;
+      } else if (phase2) {
+        const t2 = (t - 0.3) / 0.4;
+        dx = 40 + t2 * 140;
+        dy = -80 + t2 * 200;
+        rot = -Math.PI * 0.5 + t2 * Math.PI * 3;
+      } else {
+        const t3 = (t - 0.7) / 0.3;
+        dx = 180 + t3 * 40;
+        dy = 120 + t3 * 40;
+        rot = Math.PI * 2.5;
+      }
+
+      return {
+        dx,
+        dy,
+        scale: 1 + t * 2.5,
+        rot,
+        alpha: 1 - t * 0.8
+      };
+    },
     emit: (cx, cy, vel) => [
-      ...P.arcSweep(cx, cy, 18, vel.dir - Math.PI * 0.5, vel.dir + Math.PI * 0.3, 180, { hue: [H - 15, H + 15], shape: 1 }),
-      ...P.shards(cx, cy, 12, 3, 9, { hue: [35, 55] }),
+      // 劈砍弧光（宽阔的弧形斩击）
+      ...P.arcSweep(cx, cy, 24, vel.dir - Math.PI * 0.6, vel.dir + Math.PI * 0.2, 200, {
+        hue: [H - 15, H + 15],
+        shape: 1,
+        gravity: 0.08
+      }),
+      // 金属碰撞火花（橙黄色）
+      ...P.spark(cx + 60, cy + 40, 18, 4, 10, { hue: [25, 45] }),
+      // 木屑碎片
+      ...P.shards(cx, cy, 14, 3, 9, { hue: [25, 40], shape: 2 }),
+      // 冲击波（砸地效果）
+      ...P.shockRing(cx + 60, cy + 60, 16, 40, 80, {
+        hue: [H - 20, H + 20],
+        gravity: 0
+      }),
+      // 尘土扬起
+      ...P.burst(cx + 60, cy + 60, 12, 2, 6, {
+        hue: [35, 55],
+        shape: 0,
+        gravity: 0.12
+      }),
     ],
   };
 }
@@ -143,15 +194,58 @@ function flail(): CrackStyle {
     ],
   };
 }
-/** chakram · 环刃：旋转飞出+冲击波 */
+/** chakram · 环刃：高速旋转飞行 + 刀光轨迹 + 空气涡流 */
 function chakram(): CrackStyle {
   const H = MATERIAL_HUE.chakram; // 215
   return {
     hue: H,
-    sprite: (t, _vel) => ({ dx: t * 200, dy: -t * 40, scale: 1 + t * 2.6, rot: t * Math.PI * 6, alpha: 1 - t }),
+    sprite: (t, _vel) => {
+      // 高速旋转飞行，带弧线轨迹
+      const dx = t * 220;
+      const dy = -t * 60 + Math.sin(t * Math.PI * 2) * 20; // 波浪轨迹
+      const rot = t * Math.PI * 8; // 快速旋转
+      return {
+        dx,
+        dy,
+        scale: 1 + t * 2.8,
+        rot,
+        alpha: 1 - t * 0.7
+      };
+    },
     emit: (cx, cy, _vel) => [
-      ...P.shockRing(cx, cy, 18, 30, 60, { hue: [H - 10, H + 10], gravity: 0 }),
-      ...P.burst(cx, cy, 12, 6, 12, { hue: [H - 5, H + 5], shape: 1 }),
+      // 刀光轨迹（锋利的弧形光刃）
+      ...P.arcSweep(cx, cy, 20, -Math.PI * 0.3, Math.PI * 0.3, 160, {
+        hue: [H - 5, H + 5],
+        shape: 1,
+        gravity: 0
+      }),
+      // 旋转产生的环形冲击波（多层）
+      ...P.shockRing(cx, cy, 16, 30, 60, {
+        hue: [H - 10, H + 10],
+        gravity: 0
+      }),
+      ...P.shockRing(cx, cy, 14, 50, 90, {
+        hue: [H - 15, H + 15],
+        gravity: 0
+      }),
+      // 刃口发射的锋利光刃粒子（快速直线飞出）
+      ...P.beam(cx, cy, 12, 80, {
+        hue: [195, 225]
+      }),
+      ...P.beam(cx, cy, 12, 80, {
+        hue: [195, 225]
+      }),
+      // 空气涡流效果（螺旋）
+      ...P.spiral(cx, cy, 18, 2, 120, {
+        hue: [H - 20, H + 20],
+        gravity: 0
+      }),
+      // 金属反光粒子
+      ...P.burst(cx, cy, 14, 6, 12, {
+        hue: [200, 230],
+        shape: 0,
+        gravity: 0.03
+      }),
     ],
   };
 }

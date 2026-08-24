@@ -1,23 +1,114 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
+    <!-- 龙卷风主体渐变（深灰） -->
     <linearGradient id="g_tornado" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0" stop-color="#B0BEC5"/>
-      <stop offset="0.5" stop-color="#90A4AE"/>
-      <stop offset="1" stop-color="#607D8B"/>
+      <stop offset="0" stop-color="#78909C"/>
+      <stop offset="0.5" stop-color="#607D8B"/>
+      <stop offset="1" stop-color="#546E7A"/>
     </linearGradient>
+    <!-- 内核渐变（更深） -->
+    <linearGradient id="g_core" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#546E7A"/>
+      <stop offset="0.5" stop-color="#455A64"/>
+      <stop offset="1" stop-color="#37474F"/>
+    </linearGradient>
+    <!-- 发光效果 -->
+    <filter id="glow_tornado">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <g fill="none" stroke="url(#g_tornado)" stroke-linecap="round">
-    <path d="M100 80 L412 80" stroke-width="20" opacity="0.3"/>
-    <path d="M120 130 L392 130" stroke-width="22" opacity="0.4"/>
-    <path d="M140 180 L372 180" stroke-width="24" opacity="0.5"/>
-    <path d="M160 230 L352 230" stroke-width="26" opacity="0.6"/>
-    <path d="M180 280 L332 280" stroke-width="28" opacity="0.7"/>
-    <path d="M200 330 L312 330" stroke-width="30" opacity="0.8"/>
-    <path d="M220 380 L292 380" stroke-width="32" opacity="0.9"/>
-    <path d="M240 430 L272 430" stroke-width="34"/>
-    <path d="M110 105 Q180 140 250 170" stroke="#78909C" stroke-width="4" opacity="0.3" fill="none"/>
-    <path d="M150 205 Q220 240 290 270" stroke="#78909C" stroke-width="4" opacity="0.3" fill="none"/>
-    <circle cx="320" cy="200" r="8" fill="#FFFFFF" opacity="0.4"/>
-    <circle cx="240" cy="280" r="6" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- 外层旋涡（漏斗形状）- 添加深色描边确保白背景可见 -->
+  <g fill="none" stroke-linecap="round" opacity="0.6" filter="url(#glow_tornado)">
+    <!-- 深色描边层（白背景可见） -->
+    <path d="M 120 80 L 392 80" stroke="#263238" stroke-width="26"/>
+    <path d="M 135 120 L 377 120" stroke="#263238" stroke-width="28"/>
+    <path d="M 150 160 L 362 160" stroke="#263238" stroke-width="30"/>
+    <path d="M 165 200 L 347 200" stroke="#263238" stroke-width="32"/>
+    <path d="M 180 240 L 332 240" stroke="#263238" stroke-width="34"/>
+    <path d="M 195 280 L 317 280" stroke="#263238" stroke-width="36"/>
+    <path d="M 210 320 L 302 320" stroke="#263238" stroke-width="38"/>
+    <path d="M 225 360 L 287 360" stroke="#263238" stroke-width="40"/>
+    <path d="M 238 400 L 274 400" stroke="#263238" stroke-width="42"/>
+    <path d="M 248 440 L 264 440" stroke="#263238" stroke-width="44"/>
+    <!-- 灰色渐变层（叠加） -->
+    <path d="M 120 80 L 392 80" stroke="url(#g_tornado)" stroke-width="24"/>
+    <path d="M 135 120 L 377 120" stroke="url(#g_tornado)" stroke-width="26"/>
+    <path d="M 150 160 L 362 160" stroke="url(#g_tornado)" stroke-width="28"/>
+    <path d="M 165 200 L 347 200" stroke="url(#g_tornado)" stroke-width="30"/>
+    <path d="M 180 240 L 332 240" stroke="url(#g_tornado)" stroke-width="32"/>
+    <path d="M 195 280 L 317 280" stroke="url(#g_tornado)" stroke-width="34"/>
+    <path d="M 210 320 L 302 320" stroke="url(#g_tornado)" stroke-width="36"/>
+    <path d="M 225 360 L 287 360" stroke="url(#g_tornado)" stroke-width="38"/>
+    <path d="M 238 400 L 274 400" stroke="url(#g_tornado)" stroke-width="40"/>
+    <path d="M 248 440 L 264 440" stroke="url(#g_tornado)" stroke-width="42"/>
+  </g>
+
+  <!-- 内层核心（深色）- 增强对比度 -->
+  <g fill="none" stroke-linecap="round" opacity="0.9" filter="url(#glow_tornado)">
+    <path d="M 180 100 L 332 100" stroke="#1C2428" stroke-width="18"/>
+    <path d="M 190 140 L 322 140" stroke="#1C2428" stroke-width="20"/>
+    <path d="M 200 180 L 312 180" stroke="#1C2428" stroke-width="22"/>
+    <path d="M 210 220 L 302 220" stroke="#1C2428" stroke-width="24"/>
+    <path d="M 220 260 L 292 260" stroke="#1C2428" stroke-width="26"/>
+    <path d="M 230 300 L 282 300" stroke="#1C2428" stroke-width="28"/>
+    <path d="M 238 340 L 274 340" stroke="#1C2428" stroke-width="30"/>
+    <path d="M 246 380 L 266 380" stroke="#1C2428" stroke-width="32"/>
+    <path d="M 252 420 L 260 420" stroke="#1C2428" stroke-width="34"/>
+  </g>
+
+  <!-- 旋转线（增加动感） -->
+  <g fill="none" stroke="#455A64" stroke-width="5" opacity="0.4" stroke-linecap="round">
+    <path d="M 140 100 Q 200 130 260 150" filter="url(#glow_tornado)"/>
+    <path d="M 372 100 Q 312 130 252 150" filter="url(#glow_tornado)"/>
+    <path d="M 170 190 Q 220 220 270 240" filter="url(#glow_tornado)"/>
+    <path d="M 342 190 Q 292 220 242 240" filter="url(#glow_tornado)"/>
+    <path d="M 200 280 Q 240 310 256 330" filter="url(#glow_tornado)"/>
+    <path d="M 312 280 Q 272 310 256 330" filter="url(#glow_tornado)"/>
+  </g>
+
+  <!-- 碎屑和尘土（深色，白背景可见） -->
+  <g opacity="0.5">
+    <circle cx="150" cy="150" r="4" fill="#546E7A"/>
+    <circle cx="360" cy="140" r="3" fill="#607D8B"/>
+    <circle cx="200" cy="220" r="5" fill="#455A64"/>
+    <circle cx="310" cy="210" r="4" fill="#546E7A"/>
+    <circle cx="230" cy="300" r="6" fill="#37474F"/>
+    <circle cx="280" cy="290" r="5" fill="#455A64"/>
+    <circle cx="250" cy="380" r="7" fill="#546E7A"/>
+    <circle cx="265" cy="370" r="6" fill="#607D8B"/>
+
+    <!-- 飞舞的碎片 -->
+    <rect x="180" y="180" width="8" height="3" fill="#607D8B" transform="rotate(30 184 181)"/>
+    <rect x="330" y="190" width="6" height="3" fill="#546E7A" transform="rotate(-20 333 191)"/>
+    <rect x="220" y="270" width="10" height="4" fill="#455A64" transform="rotate(45 225 272)"/>
+    <rect x="290" y="265" width="7" height="3" fill="#607D8B" transform="rotate(-35 293 266)"/>
+  </g>
+
+  <!-- 闪电效果（增加能量感） -->
+  <g opacity="0.3">
+    <path d="M 200 120 L 195 140 L 205 135 L 200 150"
+          fill="none" stroke="#B0BEC5" stroke-width="2"/>
+    <path d="M 310 130 L 315 145 L 305 142 L 310 160"
+          fill="none" stroke="#B0BEC5" stroke-width="2"/>
+    <path d="M 240 250 L 235 270 L 245 265 L 240 280"
+          fill="none" stroke="#CFD8DC" stroke-width="2"/>
+  </g>
+
+  <!-- 边缘高光（白背景下的对比） -->
+  <g fill="none" stroke="#263238" stroke-width="2" opacity="0.3" stroke-linecap="round">
+    <path d="M 120 80 Q 256 75 392 80"/>
+    <path d="M 180 240 Q 256 235 332 240"/>
+    <path d="M 238 400 Q 256 398 274 400"/>
+  </g>
+
+  <!-- 底部漩涡效果（吸入感） -->
+  <g opacity="0.4">
+    <ellipse cx="256" cy="460" rx="40" ry="12" fill="#37474F" filter="url(#glow_tornado)"/>
+    <ellipse cx="256" cy="455" rx="30" ry="8" fill="#455A64"/>
   </g>
 </svg>

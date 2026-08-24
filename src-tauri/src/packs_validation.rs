@@ -92,7 +92,10 @@ fn validate_sample(sample: &super::SoundSample) -> Result<(), String> {
         .and_then(|value| value.to_str())
         .unwrap_or_default()
         .to_ascii_lowercase();
-    if !matches!(extension.as_str(), "wav" | "mp3" | "m4a" | "aac" | "ogg" | "oga") {
+    if !matches!(
+        extension.as_str(),
+        "wav" | "mp3" | "m4a" | "aac" | "ogg" | "oga"
+    ) {
         return Err("sound.sample.file has an unsupported audio format".into());
     }
     if std::path::Path::new(&sample.file).is_absolute()

@@ -21,6 +21,7 @@ mod usage;
 use std::sync::Arc;
 
 use commands::AppState;
+use config::WindowPresence;
 use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
@@ -158,11 +159,33 @@ fn main() {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "settings" {
                     api.prevent_close();
-                    let _ = window.hide();
-                    #[cfg(target_os = "macos")]
-                    let _ = window
-                        .app_handle()
-                        .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                    let persistent =
+                        window
+                            .app_handle()
+                            .try_state::<AppState>()
+                            .and_then(|state| {
+                                state.config.lock().ok().map(|config| {
+                                    config.window_presence == WindowPresence::Persistent
+                                })
+                            })
+                            .unwrap_or(false);
+                    if persistent {
+                        #[cfg(target_os = "macos")]
+                        {
+                            let _ = window
+                                .app_handle()
+                                .set_activation_policy(tauri::ActivationPolicy::Regular);
+                            let _ = window.hide();
+                        }
+                        #[cfg(not(target_os = "macos"))]
+                        let _ = window.minimize();
+                    } else {
+                        let _ = window.hide();
+                        #[cfg(target_os = "macos")]
+                        let _ = window
+                            .app_handle()
+                            .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                    }
                 }
             }
         })
@@ -191,8 +214,10 @@ fn main() {
             app.manage(AppState {
                 config: Mutex::new(config),
                 sender: Mutex::new(sender),
+                macro_sequence: Mutex::new(()),
                 config_path,
                 cursor_tracking: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+                next_macro_attempt: std::sync::atomic::AtomicU64::new(0),
             });
 
             tray::setup_tray(app.handle())?;

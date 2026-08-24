@@ -7,7 +7,7 @@
 use aispur::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
 use aispur::shortcut::generate_alternatives;
 
-// ���───��� Macro / whip-crack chain ────���─────���──���───────���──���──���─���───���────────���──
+// ─── Macro / whip-crack chain ───────────────────────────────────────────────
 
 /// Mirrors the production handler called after a crack event fires.
 fn handle_whip_crack(sender: &dyn MacroSender, phrase: &str) -> Result<(), String> {
@@ -64,7 +64,7 @@ fn trigger_chain_interrupt_always_precedes_text() {
     assert!(matches!(calls[2], MacroCall::Enter));
 }
 
-// ───���─ Shortcut alternative-generation logic ───���──────���─���──────────���───���───���─
+// ─── Shortcut alternative-generation logic ──────────────────────────────────
 // Pure-function coverage of the shortcut handler path that runs when a hotkey
 // conflict is detected. The live AppHandle portions (register / unregister) are
 // covered by shortcut::tests in macro_sender.rs; here we verify the suggestion
@@ -96,7 +96,7 @@ fn shortcut_alternatives_for_fkey_are_valid_fkey_names() {
     assert_ne!(alts[0], alts[1]);
 }
 
-// ���──── Tray / shortcut backdoor commands (pure-logic stubs) ───���───���──────���──���
+// ─── Tray / shortcut backdoor commands (pure-logic stubs) ───────────────────
 // The __test_trigger_shortcut, __test_click_tray, and __test_send_macro commands
 // are tauri commands that require a live AppHandle and are therefore not unit-
 // testable here. Their logic — emitting spawn-whip and executing the macro

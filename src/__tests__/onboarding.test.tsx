@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
@@ -161,9 +161,9 @@ describe('OnboardingFlow', () => {
     render(<OnboardingFlow config={cfg()} onComplete={onComplete} onSkip={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'j', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
     await waitFor(() => expect(checkHotkeyConflict).toHaveBeenCalled());
 
     await goToLastStep(user);

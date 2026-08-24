@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- 凤凰身体渐变（金红色） -->
+    <linearGradient id="g_phoenix_body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.3" stop-color="#FF8C00"/>
+      <stop offset="0.6" stop-color="#FF4500"/>
+      <stop offset="1" stop-color="#DC143C"/>
+    </linearGradient>
+    <!-- 火焰羽毛渐变 -->
+    <linearGradient id="g_flame_feather" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFEB3B"/>
+      <stop offset="0.5" stop-color="#FF9800"/>
+      <stop offset="1" stop-color="#F44336"/>
+    </linearGradient>
+    <!-- 发光效果 -->
+    <filter id="glow_phoenix">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- 光芒 -->
+    <radialGradient id="g_aura" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#FFD700" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#FF8C00" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#FF4500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 背景光环 -->
+  <circle cx="256" cy="200" r="180" fill="url(#g_aura)" opacity="0.4"/>
+
+  <!-- 尾羽（飘带状，5根） -->
+  <g opacity="0.9">
+    <path d="M 256 280 Q 240 350 220 420 Q 215 440 210 460"
+          fill="none" stroke="url(#g_flame_feather)" stroke-width="16"
+          stroke-linecap="round" filter="url(#glow_phoenix)"/>
+    <path d="M 256 280 Q 245 360 235 440"
+          fill="none" stroke="url(#g_flame_feather)" stroke-width="14"
+          stroke-linecap="round" filter="url(#glow_phoenix)"/>
+    <path d="M 256 280 Q 256 370 256 460"
+          fill="none" stroke="url(#g_flame_feather)" stroke-width="18"
+          stroke-linecap="round" filter="url(#glow_phoenix)"/>
+    <path d="M 256 280 Q 267 360 277 440"
+          fill="none" stroke="url(#g_flame_feather)" stroke-width="14"
+          stroke-linecap="round" filter="url(#glow_phoenix)"/>
+    <path d="M 256 280 Q 272 350 292 420 Q 297 440 302 460"
+          fill="none" stroke="url(#g_flame_feather)" stroke-width="16"
+          stroke-linecap="round" filter="url(#glow_phoenix)"/>
+  </g>
+
+  <!-- 尾羽火焰纹理 -->
+  <g opacity="0.6">
+    <path d="M 220 400 Q 215 410 212 420" fill="none" stroke="#FFEB3B" stroke-width="4"/>
+    <path d="M 235 420 Q 232 430 230 440" fill="none" stroke="#FFEB3B" stroke-width="4"/>
+    <path d="M 256 440 Q 256 450 256 460" fill="none" stroke="#FFEB3B" stroke-width="5"/>
+    <path d="M 277 420 Q 280 430 282 440" fill="none" stroke="#FFEB3B" stroke-width="4"/>
+    <path d="M 292 400 Q 297 410 300 420" fill="none" stroke="#FFEB3B" stroke-width="4"/>
+  </g>
+
+  <!-- 身体主体 -->
+  <ellipse cx="256" cy="220" rx="45" ry="60"
+           fill="url(#g_phoenix_body)" stroke="#DC143C" stroke-width="4"
+           filter="url(#glow_phoenix)"/>
+
+  <!-- 翅膀（左翼） -->
+  <g>
+    <!-- 外层羽毛 -->
+    <path d="M 220 200 Q 160 180 120 200 Q 100 210 105 225 Q 110 235 130 230 Q 170 220 210 215"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 215 215 Q 170 210 130 220 Q 110 225 115 240 Q 120 250 140 245 Q 180 235 215 230"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 220 230 Q 180 230 140 245 Q 120 252 125 265 Q 130 275 150 268 Q 190 255 220 245"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+  </g>
+
+  <!-- 翅膀（右翼） -->
+  <g>
+    <path d="M 292 200 Q 352 180 392 200 Q 412 210 407 225 Q 402 235 382 230 Q 342 220 302 215"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 297 215 Q 342 210 382 220 Q 402 225 397 240 Q 392 250 372 245 Q 332 235 297 230"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 292 230 Q 332 230 372 245 Q 392 252 387 265 Q 382 275 362 268 Q 322 255 292 245"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="3"
+          filter="url(#glow_phoenix)"/>
+  </g>
+
+  <!-- 羽毛纹理细节 -->
+  <g opacity="0.5">
+    <path d="M 130 210 L 120 215" stroke="#FFEB3B" stroke-width="2"/>
+    <path d="M 140 225 L 130 230" stroke="#FFEB3B" stroke-width="2"/>
+    <path d="M 150 245 L 140 250" stroke="#FFEB3B" stroke-width="2"/>
+    <path d="M 382 210 L 392 215" stroke="#FFEB3B" stroke-width="2"/>
+    <path d="M 372 225 L 382 230" stroke="#FFEB3B" stroke-width="2"/>
+    <path d="M 362 245 L 372 250" stroke="#FFEB3B" stroke-width="2"/>
+  </g>
+
+  <!-- 头部 -->
+  <ellipse cx="256" cy="170" rx="28" ry="32"
+           fill="url(#g_phoenix_body)" stroke="#DC143C" stroke-width="3"
+           filter="url(#glow_phoenix)"/>
+
+  <!-- 头冠（火焰冠羽） -->
+  <g>
+    <path d="M 246 145 Q 240 120 238 100 Q 240 95 245 100 Q 248 120 250 145"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="2"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 256 140 Q 256 110 256 85 Q 258 78 262 85 Q 262 110 262 140"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="2"
+          filter="url(#glow_phoenix)"/>
+    <path d="M 266 145 Q 272 120 274 100 Q 272 95 267 100 Q 264 120 262 145"
+          fill="url(#g_flame_feather)" stroke="#F44336" stroke-width="2"
+          filter="url(#glow_phoenix)"/>
+  </g>
+
+  <!-- 眼睛 -->
+  <ellipse cx="248" cy="168" rx="6" ry="8" fill="#8B0000"/>
+  <circle cx="248" cy="166" r="2" fill="#FFFFFF"/>
+
+  <!-- 喙 -->
+  <path d="M 270 175 L 290 172 L 285 180 Z"
+        fill="#FFD700" stroke="#FF8C00" stroke-width="2"/>
+
+  <!-- 爪子（略微可见） -->
+  <g opacity="0.7">
+    <path d="M 240 270 L 235 285 M 240 270 L 240 285 M 240 270 L 245 285"
+          stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 272 270 L 267 285 M 272 270 L 272 285 M 272 270 L 277 285"
+          stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- 身体高光 -->
+  <ellipse cx="245" cy="200" rx="15" ry="20" fill="#FFEB3B" opacity="0.3"/>
+</svg>

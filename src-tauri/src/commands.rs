@@ -1,12 +1,16 @@
+#[cfg(target_os = "macos")]
+use crate::config::WindowPresence;
 use crate::config::{self, Config};
 use crate::cursor_tracker;
-use crate::macro_sender::{EnigoSender, MacroFailure, MacroFailureCode, MacroSender};
+use crate::macro_sender::{
+    EnigoSender, MacroFailure, MacroFailureCode, MacroSender, send_macro_sequence,
+};
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
 use crate::usage;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -15,6 +19,8 @@ pub struct AppState {
     /// Injected input backend. Real `EnigoSender` in production, `FakeMacroSender`
     /// in tests — this is how the trait gives us testability (R-ARCH-007).
     pub sender: Mutex<Arc<dyn MacroSender>>,
+    /// Serializes the complete Ctrl+C -> text -> Enter transaction.
+    pub macro_sequence: Mutex<()>,
     /// Absolute path of `config.json`, resolved once at startup from Tauri's
     /// `app_config_dir()`. Held here so the command layer never has to guess the
     /// location from a hardcoded bundle identifier (CLAUDE.md §4.3).
@@ -23,6 +29,7 @@ pub struct AppState {
     /// handler (show) and cleared by `stop_cursor_tracking` (overlay hide). One
     /// shared flag guarantees a single polling task (see `cursor_tracker`).
     pub cursor_tracking: Arc<AtomicBool>,
+    pub next_macro_attempt: AtomicU64,
 }
 
 fn emit_macro_failure(app: &AppHandle, failure: &MacroFailure) {
@@ -32,6 +39,28 @@ fn emit_macro_failure(app: &AppHandle, failure: &MacroFailure) {
     );
     if let Err(error) = app.emit("macro-failed", failure) {
         eprintln!("[macro] failed to notify overlay: {error}");
+    }
+}
+
+fn resolve_macro_attempt(state: &AppState, requested: Option<u64>) -> u64 {
+    if let Some(requested) = requested.filter(|value| *value > 0) {
+        let mut current = state.next_macro_attempt.load(Ordering::Relaxed);
+        loop {
+            if current >= requested {
+                return current;
+            }
+            match state.next_macro_attempt.compare_exchange_weak(
+                current,
+                requested,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            ) {
+                Ok(_) => return requested,
+                Err(observed) => current = observed,
+            }
+        }
+    } else {
+        state.next_macro_attempt.fetch_add(1, Ordering::Relaxed) + 1
     }
 }
 
@@ -100,6 +129,20 @@ pub async fn save_config(
             .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
         *current = config;
     }
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(
+        if state
+            .config
+            .lock()
+            .map(|config| config.window_presence == WindowPresence::Persistent)
+            .unwrap_or(false)
+        {
+            tauri::ActivationPolicy::Regular
+        } else {
+            tauri::ActivationPolicy::Accessory
+        },
+    )
+    .map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -153,11 +196,22 @@ pub async fn register_hotkey(
 pub async fn check_hotkey_conflict(
     hotkey: String,
     app: AppHandle,
+    state: State<'_, AppState>,
 ) -> Result<Option<ConflictInfo>, String> {
     if !shortcut::validate_hotkey(&hotkey) {
         return Err(format!("Invalid hotkey format: {hotkey}"));
     }
-    Ok(shortcut::check_conflict(&app, &hotkey))
+    let previous_hotkey = state
+        .config
+        .lock()
+        .map_err(|_| "Internal state error: config lock poisoned".to_string())?
+        .hotkey
+        .clone();
+    Ok(shortcut::check_conflict(
+        &app,
+        &hotkey,
+        Some(previous_hotkey),
+    ))
 }
 
 /// R-ARCH-005: Macro emission runs on the main thread because enigo's macOS
@@ -168,9 +222,11 @@ pub async fn check_hotkey_conflict(
 #[tauri::command]
 pub fn trigger_macro(
     phrase: Option<String>,
+    attempt_id: Option<u64>,
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
+    let attempt_id = resolve_macro_attempt(&state, attempt_id);
     // Safety gate: never inject into a window we can't confirm is a terminal.
     // Unknown frontmost app should not be spammed with Ctrl+C + text.
     //
@@ -204,7 +260,8 @@ pub fn trigger_macro(
                 MacroFailureCode::SafetyGate,
                 "当前前台应用不是终端，已跳过发送。请切换到受支持的终端后重试。",
                 false,
-            );
+            )
+            .with_attempt_id(attempt_id);
             emit_macro_failure(&app, &failure);
             return Err(failure.message);
         }
@@ -224,7 +281,8 @@ pub fn trigger_macro(
             {
                 Ok(config) => config,
                 Err(message) => {
-                    let failure = MacroFailure::new(MacroFailureCode::SendFailure, message, true);
+                    let failure = MacroFailure::new(MacroFailureCode::SendFailure, message, true)
+                        .with_attempt_id(attempt_id);
                     emit_macro_failure(&app, &failure);
                     return Err(failure.message);
                 }
@@ -236,7 +294,8 @@ pub fn trigger_macro(
                         MacroFailureCode::SendFailure,
                         "提示词列表为空，无法发送。请在设置中添加至少一条提示词。",
                         true,
-                    );
+                    )
+                    .with_attempt_id(attempt_id);
                     emit_macro_failure(&app, &failure);
                     return Err(failure.message);
                 }
@@ -245,8 +304,25 @@ pub fn trigger_macro(
     };
 
     // Run directly on current thread (main thread for sync commands). A
-    // permission failure triggers one native backend refresh so granting
-    // permission while the app is open does not require a restart.
+    // startup-only unavailable backend can be refreshed after permission is
+    // granted while the app is open; runtime failures are never replayed.
+    // The lock covers the entire non-idempotent transaction. A second crack
+    // waits until the first one has either completed or reported its failure;
+    // its keystrokes can never interleave with the first sequence.
+    let _sequence_guard = match state.macro_sequence.lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            let failure = MacroFailure::new(
+                MacroFailureCode::SendFailure,
+                "宏发送状态异常，请重试。",
+                true,
+            )
+            .with_attempt_id(attempt_id);
+            emit_macro_failure(&app, &failure);
+            return Err(failure.message);
+        }
+    };
+
     let result = {
         let sender = match state.sender.lock() {
             Ok(sender) => sender.clone(),
@@ -255,38 +331,41 @@ pub fn trigger_macro(
                     MacroFailureCode::SendFailure,
                     "输入后端状态异常，请重试。",
                     true,
-                );
+                )
+                .with_attempt_id(attempt_id);
                 emit_macro_failure(&app, &failure);
                 return Err(failure.message);
             }
         };
-        sender
-            .send_interrupt()
-            .and_then(|_| sender.type_text(&chosen))
-            .and_then(|_| sender.press_enter())
+        let backend_unavailable = sender.is_backend_unavailable();
+        let result = send_macro_sequence(sender.as_ref(), &chosen);
+        (result, backend_unavailable)
     };
 
     let result = match result {
-        Err(error) if error.failure_code() == MacroFailureCode::Permission => {
+        (Err(_error), true) => {
+            // Only the startup placeholder is safe to replace and retry. If a
+            // real sender failed after emitting any prefix, replaying the full
+            // macro could duplicate text in the target terminal.
             match EnigoSender::new() {
                 Ok(sender) => {
                     let sender: Arc<dyn MacroSender> = Arc::new(sender);
-                    if let Ok(mut current) = state.sender.lock() {
-                        *current = sender.clone();
+                    let retry = send_macro_sequence(sender.as_ref(), &chosen);
+                    if retry.is_ok() {
+                        if let Ok(mut current) = state.sender.lock() {
+                            *current = sender;
+                        }
                     }
-                    sender
-                        .send_interrupt()
-                        .and_then(|_| sender.type_text(&chosen))
-                        .and_then(|_| sender.press_enter())
+                    retry
                 }
                 Err(error) => Err(error),
             }
         }
-        other => other,
+        (result, _) => result,
     };
 
     if let Err(error) = result {
-        let failure = MacroFailure::from_error(&error);
+        let failure = MacroFailure::from_error(&error).with_attempt_id(attempt_id);
         eprintln!("[macro] send operation failed: {error}");
         emit_macro_failure(&app, &failure);
         return Err(failure.message);
@@ -330,11 +409,17 @@ pub fn open_input_permissions() -> Result<(), String> {
     }
     #[cfg(target_os = "windows")]
     {
+        // Windows has no per-app Accessibility grant equivalent to macOS.
+        // Open the real privacy diagnostics page and return guidance instead
+        // of implying that a keyboard accessibility toggle grants SendInput.
         std::process::Command::new("cmd")
-            .args(["/C", "start", "ms-settings:easeofaccess-keyboard"])
+            .args(["/C", "start", "", "ms-settings:privacy"])
             .spawn()
             .map_err(|e| e.to_string())?;
-        return Ok(());
+        return Err(
+            "Windows 不提供 macOS 式输入授权。已打开隐私设置；请确保 AISpur 与目标终端以相同权限级别运行，必要时以管理员身份启动 AISpur，并检查安全软件是否拦截键盘注入。"
+                .to_string(),
+        );
     }
     #[cfg(target_os = "linux")]
     {
@@ -455,14 +540,9 @@ pub async fn __test_click_tray(app: AppHandle) -> Result<(), String> {
 pub async fn __test_send_macro(phrase: String) -> Result<Vec<String>, String> {
     // Exercises the full macro sequence via FakeMacroSender so E2E tests can
     // assert the call list without requiring real keyboard event permissions.
-    use crate::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
+    use crate::macro_sender::{FakeMacroSender, MacroCall, send_macro_sequence};
     let fake = FakeMacroSender::new();
-    fake.send_interrupt()
-        .map_err(|e| format!("interrupt failed: {e}"))?;
-    fake.type_text(&phrase)
-        .map_err(|e| format!("type_text failed: {e}"))?;
-    fake.press_enter()
-        .map_err(|e| format!("press_enter failed: {e}"))?;
+    send_macro_sequence(&fake, &phrase).map_err(|e| format!("macro failed: {e}"))?;
     let calls: Vec<String> = fake
         .get_calls()
         .iter()
@@ -473,4 +553,29 @@ pub async fn __test_send_macro(phrase: String) -> Result<Vec<String>, String> {
         })
         .collect();
     Ok(calls)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::macro_sender::FakeMacroSender;
+
+    fn test_state() -> AppState {
+        AppState {
+            config: Mutex::new(Config::default()),
+            sender: Mutex::new(Arc::new(FakeMacroSender::new())),
+            macro_sequence: Mutex::new(()),
+            config_path: PathBuf::from("/tmp/aispur-test-config.json"),
+            cursor_tracking: Arc::new(AtomicBool::new(false)),
+            next_macro_attempt: AtomicU64::new(0),
+        }
+    }
+
+    #[test]
+    fn macro_attempt_ids_never_regress_when_requested_id_is_stale() {
+        let state = test_state();
+        assert_eq!(resolve_macro_attempt(&state, Some(7)), 7);
+        assert_eq!(resolve_macro_attempt(&state, Some(3)), 7);
+        assert_eq!(resolve_macro_attempt(&state, None), 8);
+    }
 }

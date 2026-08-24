@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- 金属渐变 -->
+    <linearGradient id="g_gun_metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9E9E9E"/>
+      <stop offset="0.3" stop-color="#757575"/>
+      <stop offset="0.5" stop-color="#616161"/>
+      <stop offset="0.7" stop-color="#424242"/>
+      <stop offset="1" stop-color="#212121"/>
+    </linearGradient>
+    <!-- 枪管金属 -->
+    <linearGradient id="g_barrel" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#424242"/>
+      <stop offset="0.5" stop-color="#757575"/>
+      <stop offset="1" stop-color="#424242"/>
+    </linearGradient>
+    <!-- 木质握把 -->
+    <linearGradient id="g_grip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B4513"/>
+      <stop offset="0.5" stop-color="#A0522D"/>
+      <stop offset="1" stop-color="#6B3410"/>
+    </linearGradient>
+    <!-- 高光 -->
+    <radialGradient id="g_shine" cx="0.3" cy="0.3">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 阴影 -->
+    <filter id="shadow_gun">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="2" dy="2"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 枪管主体 -->
+  <rect x="240" y="230" width="180" height="28" rx="6"
+        fill="url(#g_barrel)" stroke="#212121" stroke-width="3"
+        filter="url(#shadow_gun)"/>
+
+  <!-- 枪管细节线 -->
+  <line x1="360" y1="235" x2="360" y2="253" stroke="#9E9E9E" stroke-width="2"/>
+  <line x1="380" y1="235" x2="380" y2="253" stroke="#9E9E9E" stroke-width="2"/>
+
+  <!-- 枪管前端准星 -->
+  <rect x="415" y="240" width="8" height="8" fill="#FFD700"/>
+  <path d="M 419 236 L 419 226" stroke="#FFD700" stroke-width="2"/>
+
+  <!-- 枪口内膛：在缩小尺寸时仍保留明确的射击方向 -->
+  <ellipse cx="421" cy="244" rx="8" ry="11" fill="#111111" stroke="#9E9E9E" stroke-width="2"/>
+  <ellipse cx="422" cy="244" rx="4" ry="7" fill="#050505"/>
+  <path d="M 414 237 L 421 244 L 414 251" fill="none" stroke="#BDBDBD" stroke-width="1.5" opacity="0.75"/>
+
+  <!-- 弹巢（中心圆柱体） -->
+  <ellipse cx="260" cy="244" rx="32" ry="28"
+           fill="url(#g_gun_metal)" stroke="#212121" stroke-width="4"
+           filter="url(#shadow_gun)"/>
+
+  <!-- 弹巢室（6个弹孔） -->
+  <g>
+    <circle cx="260" cy="220" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+    <circle cx="276" cy="232" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+    <circle cx="276" cy="256" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+    <circle cx="260" cy="268" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+    <circle cx="244" cy="256" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+    <circle cx="244" cy="232" r="5" fill="#424242" stroke="#212121" stroke-width="1.5"/>
+  </g>
+  <!-- 弹巢凹槽：让六发弹室具备可读的旋转层次 -->
+  <path d="M260 211 L260 218 M281 226 L275 231 M281 262 L275 257 M260 277 L260 270 M239 262 L245 257 M239 226 L245 231"
+        fill="none" stroke="#BDBDBD" stroke-width="2" opacity="0.62"/>
+
+  <!-- 弹巢中心轴 -->
+  <circle cx="260" cy="244" r="8" fill="#757575" stroke="#424242" stroke-width="2"/>
+  <circle cx="260" cy="244" r="3" fill="#212121"/>
+
+  <!-- 机身框架 -->
+  <path d="M 240 235 L 180 235 L 180 253 L 240 253 Z"
+        fill="url(#g_gun_metal)" stroke="#212121" stroke-width="3"
+        filter="url(#shadow_gun)"/>
+
+  <!-- 扳机护圈 -->
+  <path d="M 200 253 Q 200 275 210 280 Q 220 283 225 275 Q 230 268 230 253"
+        fill="none" stroke="url(#g_gun_metal)" stroke-width="6"
+        filter="url(#shadow_gun)"/>
+
+  <!-- 扳机 -->
+  <path d="M 215 260 Q 215 270 220 272 L 222 260 Z"
+        fill="#FFD700" stroke="#FFA500" stroke-width="2"/>
+
+  <!-- 击锤 -->
+  <path d="M 185 235 L 180 220 L 185 218 L 195 230 Z"
+        fill="url(#g_gun_metal)" stroke="#212121" stroke-width="2"
+        filter="url(#shadow_gun)"/>
+
+  <!-- 握把 -->
+  <path d="M 180 253 Q 165 260 160 280 Q 158 295 162 310 Q 168 322 178 325 Q 188 325 193 318 Q 198 308 200 295 L 200 265 L 180 253"
+        fill="url(#g_grip)" stroke="#6B3410" stroke-width="3"
+        filter="url(#shadow_gun)"/>
+
+  <!-- 握把纹理 -->
+  <path d="M 168 270 L 188 270" stroke="#A0522D" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 166 280 L 190 280" stroke="#A0522D" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 165 290 L 192 290" stroke="#A0522D" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 166 300 L 191 300" stroke="#A0522D" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 168 310 L 188 310" stroke="#A0522D" stroke-width="1.5" opacity="0.5"/>
+  <!-- 交叉防滑刻纹，保留木柄材质而不与金属主体混淆 -->
+  <path d="M166 272 L188 286 M164 282 L190 298 M165 294 L187 311 M188 272 L166 286 M190 282 L164 298 M188 296 L168 312"
+        fill="none" stroke="#5D2D0C" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- 磨损纹理 -->
+  <path d="M 280 238 L 285 238" stroke="#616161" stroke-width="2" opacity="0.6"/>
+  <path d="M 320 242 L 325 242" stroke="#616161" stroke-width="2" opacity="0.6"/>
+  <path d="M 365 246 L 370 246" stroke="#616161" stroke-width="2" opacity="0.6"/>
+
+  <!-- 金属高光 -->
+  <ellipse cx="350" cy="240" rx="30" ry="12" fill="url(#g_shine)" opacity="0.5"/>
+  <ellipse cx="265" cy="235" rx="15" ry="10" fill="url(#g_shine)" opacity="0.4"/>
+</svg>

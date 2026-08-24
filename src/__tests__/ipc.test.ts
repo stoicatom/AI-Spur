@@ -4,6 +4,7 @@ import {
   saveConfig,
   incrementUsage,
   registerHotkey,
+  checkHotkeyConflict,
   listSkins,
   activateSkin,
   onSpawnWhip,
@@ -139,6 +140,26 @@ describe('IPC layer', () => {
     await expect(registerHotkey('bogus')).rejects.toBeDefined();
   });
 
+  it('checkHotkeyConflict parses the occupied scope and rollback target', async () => {
+    vi.mocked(invoke).mockResolvedValue({
+      hotkey: 'CommandOrControl+5',
+      suggestions: ['CommandOrControl+6', 'CommandOrControl+4'],
+      scope: 'shift-companion',
+      occupiedBy: '其他应用',
+      occupiedHotkey: 'CommandOrControl+Shift+5',
+      previousHotkey: 'CommandOrControl+W',
+    });
+
+    await expect(checkHotkeyConflict('CommandOrControl+5')).resolves.toMatchObject({
+      scope: 'shift-companion',
+      occupiedHotkey: 'CommandOrControl+Shift+5',
+      previousHotkey: 'CommandOrControl+W',
+    });
+    expect(invoke).toHaveBeenCalledWith('check_hotkey_conflict', {
+      hotkey: 'CommandOrControl+5',
+    });
+  });
+
   it('listSkins should invoke list_skins and parse each manifest', async () => {
     vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, id: 'fire' }]);
     const skins = await listSkins();
@@ -197,13 +218,14 @@ describe('IPC layer', () => {
     expect(listen).toHaveBeenCalledWith('macro-failed', expect.any(Function));
     const listenerFn = vi.mocked(listen).mock.calls[0][1];
     listenerFn({
-      payload: { code: 'Permission', message: '需要输入权限', retryable: true },
+      payload: { code: 'Permission', message: '需要输入权限', retryable: true, attemptId: 7 },
     } as any);
 
     expect(callback).toHaveBeenCalledWith({
       code: 'Permission',
       message: '需要输入权限',
       retryable: true,
+      attemptId: 7,
     });
   });
 

@@ -12,12 +12,17 @@ const MacroFailedPayloadSchema = z.object({
   code: z.enum(['SafetyGate', 'Permission', 'SendFailure']),
   message: z.string().min(1),
   retryable: z.boolean(),
+  attemptId: z.number().int().nonnegative(),
 });
 
 /** Mirrors `shortcut::ConflictInfo` on the Rust side. */
 export const ConflictInfoSchema = z.object({
   hotkey: z.string().min(1),
   suggestions: z.array(z.string().min(1)),
+  scope: z.enum(['primary', 'shift-companion']).optional(),
+  occupiedBy: z.string().min(1).optional(),
+  occupiedHotkey: z.string().min(1).optional(),
+  previousHotkey: z.string().min(1).nullable().optional(),
 });
 
 export type ConflictInfo = z.infer<typeof ConflictInfoSchema>;
@@ -56,8 +61,8 @@ export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo 
   return ConflictInfoSchema.parse(raw);
 }
 
-export async function triggerMacro(phrase?: string): Promise<void> {
-  return invoke('trigger_macro', { phrase });
+export async function triggerMacro(phrase?: string, attemptId?: number): Promise<void> {
+  return invoke('trigger_macro', { phrase, attemptId });
 }
 
 export async function openSettings(): Promise<void> {

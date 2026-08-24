@@ -11,7 +11,7 @@ pub mod usage;
 pub use config::Config;
 pub use macro_sender::{
     EnigoSender, FakeMacroSender, MacroError, MacroFailure, MacroFailureCode, MacroSender,
-    UnavailableMacroSender,
+    UnavailableMacroSender, send_macro_sequence,
 };
 pub use packs::{MaterialPack, PackManifest, SoundRecipe};
 pub use skins::{SkinManifest, SkinSounds, SkinVisuals};

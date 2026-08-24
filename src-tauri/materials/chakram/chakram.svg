@@ -1,20 +1,156 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g_chakram" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0" stop-color="#FFD700"/>
-      <stop offset="0.5" stop-color="#FFA500"/>
-      <stop offset="1" stop-color="#FF8C00"/>
+    <!-- 银色金属渐变 -->
+    <radialGradient id="g_silver" cx="0.4" cy="0.4">
+      <stop offset="0" stop-color="#F0F0F0"/>
+      <stop offset="0.3" stop-color="#C0C0C0"/>
+      <stop offset="0.6" stop-color="#A0A0A0"/>
+      <stop offset="1" stop-color="#808080"/>
+    </radialGradient>
+    <!-- 刃口渐变（锋利） -->
+    <linearGradient id="g_edge" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#808080"/>
+      <stop offset="0.4" stop-color="#D0D0D0"/>
+      <stop offset="0.5" stop-color="#FFFFFF"/>
+      <stop offset="0.6" stop-color="#D0D0D0"/>
+      <stop offset="1" stop-color="#808080"/>
     </linearGradient>
+    <!-- 旋转光晕 -->
+    <radialGradient id="g_glow" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#C0C0C0" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#808080" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 发光效果 -->
+    <filter id="glow_blade">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- 金属反光 -->
+    <filter id="shine">
+      <feGaussianBlur stdDeviation="1"/>
+    </filter>
   </defs>
-  <circle cx="256" cy="256" r="160" fill="none" stroke="url(#g_chakram)" stroke-width="24"/>
-  <circle cx="256" cy="256" r="100" fill="none" stroke="url(#g_chakram)" stroke-width="20"/>
-  <circle cx="256" cy="256" r="60" fill="url(#g_chakram)"/>
-  <line x1="256" y1="96" x2="256" y2="156" stroke="#FFD700" stroke-width="16"/>
-  <line x1="256" y1="356" x2="256" y2="416" stroke="#FFD700" stroke-width="16"/>
-  <line x1="416" y1="256" x2="356" y2="256" stroke="#FFD700" stroke-width="16"/>
-  <line x1="156" y1="256" x2="96" y2="256" stroke="#FFD700" stroke-width="16"/>
-  <path d="M335 177 L375 137" stroke="#FFD700" stroke-width="14"/>
-  <path d="M335 335 L375 375" stroke="#FFD700" stroke-width="14"/>
-  <path d="M177 335 L137 375" stroke="#FFD700" stroke-width="14"/>
-  <path d="M177 177 L137 137" stroke="#FFD700" stroke-width="14"/>
+
+  <!-- 外层旋转光晕 -->
+  <circle cx="256" cy="256" r="200" fill="url(#g_glow)" opacity="0.4"/>
+
+  <!-- 主环身（粗壮金属环） -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="url(#g_silver)" stroke-width="32"
+          filter="url(#glow_blade)"/>
+
+  <!-- 内环（加强结构感） -->
+  <circle cx="256" cy="256" r="124" fill="none" stroke="#606060" stroke-width="3"/>
+  <circle cx="256" cy="256" r="156" fill="none" stroke="#606060" stroke-width="3"/>
+
+  <!-- 外刃尖刺（12个不对称尖刺） -->
+  <g>
+    <!-- 顶部大刺 -->
+    <path d="M 256 76 L 246 106 L 256 110 L 266 106 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 右上 -->
+    <path d="M 366 130 L 350 150 L 356 156 L 372 142 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 右上2 -->
+    <path d="M 426 196 L 400 204 L 402 212 L 430 208 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 右侧大刺 -->
+    <path d="M 436 256 L 406 246 L 410 256 L 406 266 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 右下2 -->
+    <path d="M 426 316 L 402 300 L 400 308 L 430 304 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 右下 -->
+    <path d="M 366 382 L 356 356 L 350 362 L 372 370 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 底部大刺 -->
+    <path d="M 256 436 L 266 406 L 256 402 L 246 406 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 左下 -->
+    <path d="M 146 382 L 140 370 L 156 356 L 162 362 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 左下2 -->
+    <path d="M 86 316 L 82 304 L 110 300 L 112 308 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 左侧大刺 -->
+    <path d="M 76 256 L 106 266 L 102 256 L 106 246 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 左上2 -->
+    <path d="M 86 196 L 110 212 L 112 204 L 82 208 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+    <!-- 左上 -->
+    <path d="M 146 130 L 162 150 L 156 156 L 140 142 Z"
+          fill="url(#g_edge)" stroke="#606060" stroke-width="2"
+          filter="url(#glow_blade)"/>
+  </g>
+
+  <!-- 刃口高光（锋利感） -->
+  <g opacity="0.8" filter="url(#shine)">
+    <line x1="256" y1="80" x2="256" y2="95" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="363" y1="133" x2="355" y2="145" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="423" y1="199" x2="410" y2="208" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="432" y1="256" x2="417" y2="256" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="423" y1="313" x2="410" y2="304" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="363" y1="379" x2="355" y2="367" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="256" y1="432" x2="256" y2="417" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="149" y1="379" x2="157" y2="367" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="89" y1="313" x2="102" y2="304" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="80" y1="256" x2="95" y2="256" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="89" y1="199" x2="102" y2="208" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="149" y1="133" x2="157" y2="145" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- 连接辐条（8根，增加结构感） -->
+  <g opacity="0.6">
+    <!-- 主轴 -->
+    <line x1="256" y1="140" x2="256" y2="372" stroke="#A0A0A0" stroke-width="4"/>
+    <line x1="140" y1="256" x2="372" y2="256" stroke="#A0A0A0" stroke-width="4"/>
+    <!-- 对角 -->
+    <line x1="174" y1="174" x2="338" y2="338" stroke="#A0A0A0" stroke-width="3"/>
+    <line x1="338" y1="174" x2="174" y2="338" stroke="#A0A0A0" stroke-width="3"/>
+  </g>
+
+  <!-- 中心握持部（带宝石） -->
+  <circle cx="256" cy="256" r="45" fill="url(#g_silver)" stroke="#606060" stroke-width="4"
+          filter="url(#glow_blade)"/>
+
+  <!-- 中心装饰圈 -->
+  <circle cx="256" cy="256" r="38" fill="none" stroke="#808080" stroke-width="2"/>
+  <circle cx="256" cy="256" r="32" fill="none" stroke="#C0C0C0" stroke-width="1"/>
+
+  <!-- 中心宝石（蓝色） -->
+  <circle cx="256" cy="256" r="22" fill="#4169E1" opacity="0.8"/>
+  <circle cx="256" cy="256" r="18" fill="#5A7FD5"/>
+  <circle cx="250" cy="250" r="8" fill="#87CEEB"/>
+  <circle cx="248" cy="248" r="4" fill="#FFFFFF"/>
+
+  <!-- 战损纹理（3处） -->
+  <g opacity="0.6">
+    <path d="M 270 150 L 275 152 L 273 156" fill="none" stroke="#606060" stroke-width="2"/>
+    <path d="M 360 260 L 362 265 L 358 267" fill="none" stroke="#606060" stroke-width="2"/>
+    <path d="M 240 365 L 238 370 L 242 372" fill="none" stroke="#606060" stroke-width="2"/>
+  </g>
+
+  <!-- 旋转暗示弧线（动感） -->
+  <g opacity="0.4">
+    <path d="M 320 180 Q 340 200 340 230" fill="none" stroke="#D0D0D0" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 332 282 Q 340 310 320 332" fill="none" stroke="#D0D0D0" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- 金属反光高光（右上） -->
+  <ellipse cx="300" cy="210" rx="40" ry="25" fill="#FFFFFF" opacity="0.3" filter="url(#shine)"/>
 </svg>

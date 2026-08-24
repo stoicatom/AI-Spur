@@ -22,23 +22,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: TypeScript typecheck
-        run: npm run typecheck
+        run: pnpm typecheck
 
       - name: Run unit tests
-        run: npm run test
+        run: pnpm test
 
       - name: Build frontend bundles
-        run: npx vite build
+        run: pnpm exec vite build
 
   # --------------------------------------------------------------------------
   # Rust: clippy + tests + fmt
@@ -101,14 +106,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -125,7 +135,74 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Build Vite bundles
-        run: npx vite build
+        run: pnpm exec vite build
 
       - name: Build Tauri debug binary
-        run: npx tauri build --debug
+        run: pnpm exec tauri build --debug
+
+  # --------------------------------------------------------------------------
+  # Windows: native target, capability diagnostics, and desktop smoke path.
+  # A green macOS/Linux job cannot stand in for Windows foreground-process,
+  # taskbar, UIPI, and SendInput behavior, so this job reports each boundary.
+  # --------------------------------------------------------------------------
+  windows:
+    name: Windows (Rust + frontend + Tauri capability diagnostics)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Rust stable and Windows target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+          components: clippy, rustfmt
+
+      - name: Windows capability diagnostic
+        shell: pwsh
+        run: |
+          Write-Host "OS: $([System.Environment]::OSVersion.VersionString)"
+          Write-Host "Runner architecture: $env:PROCESSOR_ARCHITECTURE"
+          Write-Host "WebView2 runtime:"; Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\*' -ErrorAction SilentlyContinue | Select-Object pv
+          Write-Host "UIPI note: SendInput requires AISpur and the target terminal to run at compatible integrity levels."
+
+      - name: Frontend typecheck and tests
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+      - name: Rust format, clippy, tests, and Windows target check
+        working-directory: src-tauri
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-targets --all-features -- -D warnings
+          cargo test --all-targets --all-features
+          cargo check --target x86_64-pc-windows-msvc --all-targets --all-features
+
+      - name: Build Tauri debug binary for E2E
+        run: pnpm exec tauri build --debug --no-bundle
+
+      - name: Run Windows E2E when desktop binary is available
+        shell: pwsh
+        run: |
+          $binary = Join-Path $PWD 'src-tauri\target\debug\AISpur.exe'
+          if (Test-Path $binary) {
+            Write-Host "Tauri binary found: $binary"
+            pnpm test:e2e
+          } else {
+            Write-Warning "Tauri binary unavailable; E2E skipped. Native Rust/frontend checks above remain authoritative."
+          }

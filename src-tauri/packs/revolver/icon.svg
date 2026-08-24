@@ -50,6 +50,8 @@
   <path d="m20 15 2 4m5 1-4 2m-3 7v-4m-7-5 4 2" stroke="var(--pack-cylinder-edge,#A5B1B0)" stroke-width="1.5"/>
   <path d="M26 29c4 0 5 3 3 6h-5m-11-19-2-4h7l3 3m15-1 3-4 4 4" stroke="var(--pack-ink,#2D3A3C)" stroke-width="1.5"/>
   <path d="M28 17h14M16 31l7 9" stroke="var(--pack-metal-sheen,#E4E9E5)" stroke-width="1.5" opacity=".55"/>
+  <ellipse cx="43" cy="17.5" rx="2.25" ry="3.5" fill="var(--pack-ink,#1A2426)" stroke="var(--pack-metal-sheen,#E4E9E5)" stroke-width=".75"/>
+  <path d="m15 32 8 5m-9-1 8 5m-7-1 6 3m-6-9 8 5" stroke="var(--pack-wood-highlight,#C49A72)" stroke-width=".8" opacity=".72"/>
 
   </g>
 </svg>

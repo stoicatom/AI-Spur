@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
@@ -168,9 +168,10 @@ describe('PhrasesPanel', () => {
 });
 
 describe('SkinsPanel', () => {
-  it('shows a loading hint before skins arrive', () => {
+  it('shows a loading hint before skins arrive', async () => {
     vi.mocked(listSkins).mockReturnValue(new Promise(() => {}));
     render(<SkinsPanel config={cfg()} onPatch={vi.fn()} />);
+    await act(async () => {});
     expect(screen.getByText('正在读取皮肤列表…')).toBeInTheDocument();
   });
 
@@ -468,9 +469,9 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+E'));
   });
@@ -483,7 +484,7 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', {
         key: '5',
         code: 'Digit5',
@@ -491,7 +492,7 @@ describe('HotkeyRecorder', () => {
         shiftKey: true,
         bubbles: true,
       })
-    );
+    ));
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+5'));
   });
@@ -501,14 +502,14 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', {
         key: 'Unidentified',
         code: 'UnknownKey',
         ctrlKey: true,
         bubbles: true,
       })
-    );
+    ));
 
     expect(screen.getByText('按下你的快捷键组合…')).toBeInTheDocument();
     expect(checkHotkeyConflict).not.toHaveBeenCalled();
@@ -520,14 +521,18 @@ describe('HotkeyRecorder', () => {
     vi.mocked(checkHotkeyConflict).mockResolvedValue({
       hotkey: 'CommandOrControl+Shift+E',
       suggestions: ['CommandOrControl+Shift+F', 'CommandOrControl+Shift+D'],
+      scope: 'primary',
+      occupiedBy: '其他应用',
+      occupiedHotkey: 'CommandOrControl+Shift+E',
+      previousHotkey: 'CommandOrControl+Shift+W',
     });
 
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByText(/已被其他应用占用/)).toBeInTheDocument();
@@ -540,7 +545,7 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
 
     await waitFor(() =>
       expect(screen.queryByText('按下你的快捷键组合…')).not.toBeInTheDocument()
@@ -553,7 +558,7 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true }));
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true })));
 
     expect(screen.getByText('按下你的快捷键组合…')).toBeInTheDocument();
     expect(checkHotkeyConflict).not.toHaveBeenCalled();
@@ -566,9 +571,9 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByText('shortcut plugin unavailable')).toBeInTheDocument();

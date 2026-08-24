@@ -94,6 +94,12 @@ export const BUILTIN_MATERIAL_IDS = [
   'bamboo',
   'lotus',
   'dragonfly',
+  'dragon',
+  'sun',
+  'revolver',
+  'phoenix',
+  'blackhole',
+  'piano',
 ] as const;
 
 export type BuiltinMaterialId = (typeof BUILTIN_MATERIAL_IDS)[number];

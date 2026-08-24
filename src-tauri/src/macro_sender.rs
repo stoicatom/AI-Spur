@@ -38,6 +38,7 @@ pub struct MacroFailure {
     pub code: MacroFailureCode,
     pub message: String,
     pub retryable: bool,
+    pub attempt_id: u64,
 }
 
 impl MacroFailure {
@@ -46,7 +47,13 @@ impl MacroFailure {
             code,
             message: message.into(),
             retryable,
+            attempt_id: 0,
         }
+    }
+
+    pub fn with_attempt_id(mut self, attempt_id: u64) -> Self {
+        self.attempt_id = attempt_id;
+        self
     }
 
     pub fn from_error(error: &MacroError) -> Self {
@@ -87,9 +94,26 @@ impl MacroError {
 
 /// Trait for sending keyboard macros (interrupt + text + enter sequence)
 pub trait MacroSender: Send + Sync {
+    /// True only for the startup placeholder used when the native backend
+    /// could not be initialized. Runtime send failures must never trigger a
+    /// replay of the full non-idempotent macro.
+    fn is_backend_unavailable(&self) -> bool {
+        false
+    }
+
     fn send_interrupt(&self) -> Result<(), MacroError>;
     fn type_text(&self, text: &str) -> Result<(), MacroError>;
     fn press_enter(&self) -> Result<(), MacroError>;
+}
+
+/// Execute one complete macro transaction in its required order. The caller
+/// owns serialization; this helper deliberately stops at the first failure so
+/// a partial send is never silently completed by another stage.
+pub fn send_macro_sequence(sender: &dyn MacroSender, text: &str) -> Result<(), MacroError> {
+    sender
+        .send_interrupt()
+        .and_then(|_| sender.type_text(text))
+        .and_then(|_| sender.press_enter())
 }
 
 /// Production implementation using enigo 0.6
@@ -117,17 +141,22 @@ impl MacroSender for EnigoSender {
             .lock()
             .map_err(|_| MacroError::SendFailure("Enigo lock poisoned".to_string()))?;
 
-        enigo
+        let press_result = enigo
             .key(Key::Control, Direction::Press)
-            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl press: {:?}", e)))?;
-        enigo
-            .key(Key::Unicode('c'), Direction::Click)
-            .map_err(|e| MacroError::from_runtime_input(format!("C click: {:?}", e)))?;
-        enigo
+            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl press: {:?}", e)));
+        let click_result = match press_result {
+            Ok(()) => enigo
+                .key(Key::Unicode('c'), Direction::Click)
+                .map_err(|e| MacroError::from_runtime_input(format!("C click: {:?}", e))),
+            Err(error) => Err(error),
+        };
+        // Always attempt the compensating release, even if Ctrl press or the
+        // character event failed. Leaving Ctrl held would corrupt the user's
+        // next input when a backend reports an error after a partial event.
+        let release_result = enigo
             .key(Key::Control, Direction::Release)
-            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl release: {:?}", e)))?;
-
-        Ok(())
+            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl release: {:?}", e)));
+        click_result.and(release_result)
     }
 
     fn type_text(&self, text: &str) -> Result<(), MacroError> {
@@ -188,6 +217,10 @@ impl UnavailableMacroSender {
 }
 
 impl MacroSender for UnavailableMacroSender {
+    fn is_backend_unavailable(&self) -> bool {
+        true
+    }
+
     fn send_interrupt(&self) -> Result<(), MacroError> {
         Err(self.error())
     }
@@ -257,6 +290,14 @@ mod tests {
         let payload = MacroFailure::from_error(&error);
         assert_eq!(payload.code, MacroFailureCode::SendFailure);
         assert!(payload.retryable);
+    }
+
+    #[test]
+    fn macro_failure_serializes_attempt_id_for_stale_event_filtering() {
+        let payload = MacroFailure::new(MacroFailureCode::SendFailure, "send failed", true)
+            .with_attempt_id(42);
+        let json = serde_json::to_value(payload).unwrap();
+        assert_eq!(json["attemptId"], 42);
     }
 
     #[test]
@@ -332,15 +373,22 @@ mod tests {
     #[test]
     fn fake_sender_records_full_sequence() {
         let sender = FakeMacroSender::new();
-        sender.send_interrupt().unwrap();
-        sender.type_text("FASTER").unwrap();
-        sender.press_enter().unwrap();
+        send_macro_sequence(&sender, "FASTER").unwrap();
 
         let calls = sender.get_calls();
         assert_eq!(calls.len(), 3);
         assert_eq!(calls[0], MacroCall::Interrupt);
         assert_eq!(calls[1], MacroCall::TypeText("FASTER".to_string()));
         assert_eq!(calls[2], MacroCall::Enter);
+    }
+
+    #[test]
+    fn macro_sequence_stops_at_unavailable_backend() {
+        let sender = UnavailableMacroSender::new(MacroError::Permission(
+            "missing accessibility permission".to_string(),
+        ));
+        let error = send_macro_sequence(&sender, "FASTER").expect_err("backend must fail");
+        assert_eq!(error.failure_code(), MacroFailureCode::Permission);
     }
 
     #[test]

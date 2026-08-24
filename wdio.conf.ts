@@ -16,7 +16,7 @@ import * as path from 'path';
 // not the lowercase Cargo package name.
 const APP_BINARY = path.resolve(
   __dirname,
-  'src-tauri/target/debug/AISpur'
+  `src-tauri/target/debug/AISpur${process.platform === 'win32' ? '.exe' : ''}`
 );
 
 export const config: Options.Testrunner = {
@@ -33,6 +33,9 @@ export const config: Options.Testrunner = {
   exclude: [],
 
   maxInstances: 1,
+  // Tauri E2E journeys share the app's persisted config. Keep one desktop
+  // process at a time so onboarding and usage-counter scenarios are isolated.
+  maxInstancesPerCapability: 1,
 
   capabilities: [
     {
@@ -49,7 +52,7 @@ export const config: Options.Testrunner = {
   connectionRetryTimeout: 120_000,
   connectionRetryCount: 3,
 
-  services: ['@wdio/tauri-service'],
+  services: [['@wdio/tauri-service', { autoInstallTauriDriver: true }]],
 
   framework: 'mocha',
   reporters: ['spec'],

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -190,7 +190,7 @@ describe('settings App', () => {
 
     // Applying an update must not tear down the rendered panel.
     const handler = vi.mocked(onConfigUpdated).mock.calls[0][0];
-    handler({ usageCount: 21 });
+    await act(async () => handler({ usageCount: 21 }));
 
     await waitFor(() => expect(screen.getByRole('tabpanel')).toBeInTheDocument());
   });

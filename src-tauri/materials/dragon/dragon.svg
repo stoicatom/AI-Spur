@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- 龙身渐变（金红色） -->
+    <linearGradient id="g_dragon_body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#FF8C00"/>
+      <stop offset="1" stop-color="#DC143C"/>
+    </linearGradient>
+    <!-- 龙鳞纹理 -->
+    <pattern id="p_scales" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="7" fill="#FFA500" opacity="0.3"/>
+      <circle cx="10" cy="10" r="5" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.5"/>
+    </pattern>
+    <!-- 发光效果 -->
+    <filter id="glow_dragon">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- 龙珠光芒 -->
+    <radialGradient id="g_orb" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.3" stop-color="#FFD700"/>
+      <stop offset="0.7" stop-color="#FF8C00"/>
+      <stop offset="1" stop-color="#FF6347" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 龙身主体（流畅S型曲线） -->
+  <path d="M 60 400
+           Q 80 380 100 360
+           Q 130 330 160 310
+           Q 200 285 240 270
+           Q 280 255 320 250
+           Q 360 248 400 260
+           Q 430 268 450 285"
+        fill="none" stroke="url(#g_dragon_body)" stroke-width="90"
+        stroke-linecap="round" stroke-linejoin="round"
+        filter="url(#glow_dragon)"/>
+
+  <!-- 龙鳞纹理覆盖 -->
+  <path d="M 60 400
+           Q 80 380 100 360
+           Q 130 330 160 310
+           Q 200 285 240 270
+           Q 280 255 320 250
+           Q 360 248 400 260
+           Q 430 268 450 285"
+        fill="none" stroke="url(#p_scales)" stroke-width="85"
+        stroke-linecap="round" stroke-linejoin="round"
+        opacity="0.7"/>
+
+  <!-- 龙身描边（深色轮廓） -->
+  <path d="M 60 400
+           Q 80 380 100 360
+           Q 130 330 160 310
+           Q 200 285 240 270
+           Q 280 255 320 250
+           Q 360 248 400 260
+           Q 430 268 450 285"
+        fill="none" stroke="#8B0000" stroke-width="94"
+        stroke-linecap="round" stroke-linejoin="round"
+        opacity="0.5"/>
+
+  <!-- 龙尾（粗壮尖锐） -->
+  <path d="M 60 400 L 35 430 L 45 435 L 60 410 Z"
+        fill="url(#g_dragon_body)" stroke="#DC143C" stroke-width="3"
+        filter="url(#glow_dragon)"/>
+  <path d="M 50 415 L 28 445 L 38 448 L 52 422 Z"
+        fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  <path d="M 42 428 L 25 455 L 32 457 L 44 435 Z"
+        fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+
+  <!-- 后腿（粗壮有力） -->
+  <g transform="translate(140, 330)">
+    <ellipse cx="0" cy="0" rx="40" ry="32"
+             fill="url(#g_dragon_body)" stroke="#DC143C" stroke-width="4"
+             filter="url(#glow_dragon)"/>
+    <path d="M -22 12 L -38 42 L -32 45 L -18 18 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M -8 14 L -18 46 L -12 48 L -4 20 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M 8 14 L 4 46 L 10 48 L 12 20 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M 22 12 L 26 42 L 32 45 L 26 18 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <!-- 金色爪尖 -->
+    <circle cx="-35" cy="44" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="-15" cy="47" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="7" cy="47" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="29" cy="44" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+  </g>
+
+  <!-- 前腿（粗壮有力） -->
+  <g transform="translate(340, 260)">
+    <ellipse cx="0" cy="0" rx="42" ry="34"
+             fill="url(#g_dragon_body)" stroke="#DC143C" stroke-width="4"
+             filter="url(#glow_dragon)"/>
+    <path d="M -24 14 L -40 46 L -34 49 L -20 20 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M -10 16 L -20 50 L -14 52 L -6 22 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M 10 16 L 6 50 L 12 52 L 14 22 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <path d="M 24 14 L 28 46 L 34 49 L 28 20 Z"
+          fill="#FFA500" stroke="#DC143C" stroke-width="3"/>
+    <!-- 金色爪尖 -->
+    <circle cx="-37" cy="48" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="-17" cy="51" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="9" cy="51" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="31" cy="48" r="4" fill="#FFD700" stroke="#8B0000" stroke-width="1.5"/>
+  </g>
+
+  <!-- 龙头（威严霸气） -->
+  <g transform="translate(450, 270)">
+    <!-- 头部主体（流线型） -->
+    <ellipse cx="0" cy="0" rx="55" ry="42"
+             fill="url(#g_dragon_body)" stroke="#DC143C" stroke-width="5"
+             filter="url(#glow_dragon)"/>
+
+    <!-- 龙鼻突出 -->
+    <ellipse cx="45" cy="0" rx="28" ry="20"
+             fill="#FF8C00" stroke="#DC143C" stroke-width="4"
+             filter="url(#glow_dragon)"/>
+
+    <!-- 鼻孔（喷火预备） -->
+    <ellipse cx="60" cy="-6" rx="6" ry="5" fill="#8B0000"/>
+    <ellipse cx="60" cy="6" rx="6" ry="5" fill="#8B0000"/>
+    <!-- 鼻孔火光 -->
+    <circle cx="60" cy="-6" r="3" fill="#FF4500" opacity="0.6"/>
+    <circle cx="60" cy="6" r="3" fill="#FF4500" opacity="0.6"/>
+
+    <!-- 龙角（粗壮威猛） -->
+    <path d="M -30 -38 Q -38 -70 -28 -82 Q -22 -88 -14 -80 Q -10 -72 -20 -40"
+          fill="#FFD700" stroke="#DC143C" stroke-width="4"
+          filter="url(#glow_dragon)"/>
+    <path d="M 30 -38 Q 38 -70 28 -82 Q 22 -88 14 -80 Q 10 -72 20 -40"
+          fill="#FFD700" stroke="#DC143C" stroke-width="4"
+          filter="url(#glow_dragon)"/>
+    <!-- 角纹理 -->
+    <line x1="-26" y1="-55" x2="-20" y2="-65" stroke="#FFA500" stroke-width="2.5"/>
+    <line x1="-20" y1="-68" x2="-16" y2="-76" stroke="#FFA500" stroke-width="2.5"/>
+    <line x1="26" y1="-55" x2="20" y2="-65" stroke="#FFA500" stroke-width="2.5"/>
+    <line x1="20" y1="-68" x2="16" y2="-76" stroke="#FFA500" stroke-width="2.5"/>
+
+    <!-- 龙目（威严凛然） -->
+    <ellipse cx="-16" cy="-10" rx="16" ry="18"
+             fill="#FFD700" stroke="#DC143C" stroke-width="3"/>
+    <ellipse cx="-16" cy="-10" rx="12" ry="14" fill="#FFFFFF"/>
+    <circle cx="-16" cy="-10" r="10" fill="#8B0000"/>
+    <circle cx="-14" cy="-12" r="5" fill="#000000"/>
+    <circle cx="-13" cy="-13" r="3" fill="#FFFFFF"/>
+
+    <!-- 龙须（长而飘逸） -->
+    <path d="M 65 -12 Q 90 -18 102 -12 Q 106 -9 104 -5 Q 100 -2 94 -6 Q 82 -10 65 -8"
+          fill="none" stroke="#FFD700" stroke-width="4.5" stroke-linecap="round"
+          filter="url(#glow_dragon)"/>
+    <path d="M 65 12 Q 90 18 102 12 Q 106 9 104 5 Q 100 2 94 6 Q 82 10 65 8"
+          fill="none" stroke="#FFD700" stroke-width="4.5" stroke-linecap="round"
+          filter="url(#glow_dragon)"/>
+    <circle cx="100" cy="-12" r="5" fill="#DC143C"/>
+    <circle cx="100" cy="12" r="5" fill="#DC143C"/>
+
+    <!-- 龙鬃（火焰飘逸） -->
+    <path d="M -42 -28 Q -55 -35 -62 -25"
+          stroke="#DC143C" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M -45 -14 Q -58 -18 -64 -10"
+          stroke="#DC143C" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M -45 2 Q -58 6 -62 14"
+          stroke="#DC143C" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M -42 18 Q -55 25 -58 33"
+          stroke="#DC143C" stroke-width="6" fill="none" stroke-linecap="round"/>
+
+    <!-- 龙牙 -->
+    <path d="M 35 14 L 38 22 L 41 14 Z" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1"/>
+    <path d="M 45 16 L 48 24 L 51 16 Z" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1"/>
+    <path d="M 54 16 L 57 24 L 60 16 Z" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1"/>
+  </g>
+
+  <!-- 龙珠（追随龙头） -->
+  <circle cx="420" cy="180" r="38" fill="url(#g_orb)" filter="url(#glow_dragon)"/>
+  <circle cx="420" cy="180" r="28" fill="#FFD700" opacity="0.7"/>
+  <circle cx="420" cy="180" r="20" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="414" cy="174" r="12" fill="#FFFFFF"/>
+
+  <!-- 背脊刺（增加威严感） -->
+  <g opacity="0.85">
+    <path d="M 100 340 L 95 320 L 108 335 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 130 320 L 128 300 L 140 315 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 170 295 L 170 275 L 182 290 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 210 278 L 213 258 L 224 273 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 250 268 L 256 248 L 266 263 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 290 260 L 298 240 L 306 255 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 330 258 L 340 238 L 346 253 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+    <path d="M 370 262 L 382 244 L 386 259 Z" fill="#DC143C" stroke="#8B0000" stroke-width="2"/>
+  </g>
+
+  <!-- 龙鳞细节（点缀） -->
+  <g opacity="0.6">
+    <circle cx="110" cy="355" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="145" cy="325" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="185" cy="300" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="225" cy="280" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="270" cy="265" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="310" cy="258" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="350" cy="260" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+    <circle cx="390" cy="268" r="8" fill="none" stroke="#FFD700" stroke-width="2"/>
+  </g>
+
+  <!-- 云纹尾迹：贴合龙身下方，避免变成无关的背景光 -->
+  <g fill="none" stroke="#FFD700" stroke-width="3" opacity="0.42" stroke-linecap="round">
+    <path d="M72 426 Q92 408 111 426 Q129 442 147 425"/>
+    <path d="M195 336 Q214 319 232 337 Q249 352 266 335"/>
+    <path d="M302 292 Q320 275 338 292 Q355 307 373 290"/>
+  </g>
+
+  <!-- 龙鳞高光脊线，强调蜿蜒轮廓与皮肤纹理 -->
+  <path d="M92 370 Q145 318 218 287 Q308 248 394 271" fill="none" stroke="#FFF3B0" stroke-width="4" opacity="0.48" stroke-linecap="round"/>
+</svg>

@@ -86,7 +86,10 @@ pub async fn read_local_sound_data(path: String) -> Result<String, String> {
         return Err("音频文件不能超过 25 MB".into());
     }
     let mime = audio_mime(&ext).ok_or_else(|| "未知音频格式".to_string())?;
-    Ok(format!("data:{mime};base64,{}", crate::sounds::base64_encode(&bytes)))
+    Ok(format!(
+        "data:{mime};base64,{}",
+        crate::sounds::base64_encode(&bytes)
+    ))
 }
 
 #[tauri::command]

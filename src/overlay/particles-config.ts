@@ -18,6 +18,12 @@ export const MATERIAL_HUE: Record<string, number> = {
   boxing: 0, fireworks: 350, crystal: 270, bamboo: 110, lotus: 310,
   dragonfly: 140,
   archery: 350,
+  dragon: 45, // 金色神龙
+  sun: 40, // 金黄烈日
+  revolver: 0, // 金属灰
+  phoenix: 20, // 火红凤凰
+  blackhole: 280, // 深紫黑洞
+  piano: 0, // 黑白钢琴
 };
 
 /** 冲击增强全局参数。 */

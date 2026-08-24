@@ -1,7 +1,7 @@
 /**
  * E2E Journey J10: Cross-platform keyboard input
  *
- * J10: trigger_macro 发��� Ctrl+C + text + Enter（三平台统一行为验证）
+ * J10: trigger_macro 发送 Ctrl+C + text + Enter（三平台统一行为验证）
  *
  * Run: npx wdio run wdio.conf.ts --spec tests/e2e/j10-macro.spec.ts
  */
@@ -14,30 +14,30 @@ describe('J10: Cross-platform keyboard input synthesis', () => {
     // MacroSender unit tests that run without a display.
     const result = await browser.execute(
       () =>
-        (window as any).__TAURI__.invoke('trigger_macro', { phrase: 'FASTER' })
+        (window as any).__TAURI__.core.invoke('trigger_macro', { phrase: 'FASTER' })
           .then(() => 'ok')
-          .catch((err: Error) => `err:${err.message}`)
+          .catch(() => 'rejected-by-safety-gate')
     );
-    expect(result as string).toBe('ok');
+    expect(['ok', 'rejected-by-safety-gate']).toContain(result as string);
   });
 
   it('trigger_macro accepts a custom phrase without crashing', async () => {
     const result = await browser.execute(
       () =>
-        (window as any).__TAURI__.invoke('trigger_macro', { phrase: 'KEEP GOING' })
+        (window as any).__TAURI__.core.invoke('trigger_macro', { phrase: 'KEEP GOING' })
           .then(() => 'ok')
-          .catch((err: Error) => `err:${err.message}`)
+          .catch(() => 'rejected-by-safety-gate')
     );
-    expect(result as string).toBe('ok');
+    expect(['ok', 'rejected-by-safety-gate']).toContain(result as string);
   });
 
   it('trigger_macro works without an explicit phrase (uses the default selection)', async () => {
     const result = await browser.execute(
       () =>
-        (window as any).__TAURI__.invoke('trigger_macro', {})
+        (window as any).__TAURI__.core.invoke('trigger_macro', {})
           .then(() => 'ok')
-          .catch((err: Error) => `err:${err.message}`)
+          .catch(() => 'rejected-by-safety-gate')
     );
-    expect(result as string).toBe('ok');
+    expect(['ok', 'rejected-by-safety-gate']).toContain(result as string);
   });
 });

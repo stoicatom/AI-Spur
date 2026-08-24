@@ -1,6 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
   <title>手里剑</title>
-  <defs><linearGradient id="a" x1="10" y1="8" x2="37" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#EEF4F5)"/><stop offset=".45" stop-color="var(--pack-steel,#9CAAB2)"/><stop offset="1" stop-color="var(--pack-shadow,#46515B)"/></linearGradient>  <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+  <defs>
+    <linearGradient id="star-steel" x1="12" y1="10" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-light,#E4E4F0)"/>
+      <stop offset=".5" stop-color="var(--pack-steel,#9A9AAC)"/>
+      <stop offset="1" stop-color="var(--pack-shadow,#4A4A58)"/>
+    </linearGradient>
+    <linearGradient id="star-face" x1="24" y1="8" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-facet-light,#C6C6D6)"/>
+      <stop offset="1" stop-color="var(--pack-facet,#6E6E80)"/>
+    </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
       <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
       <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
@@ -14,7 +24,6 @@
       <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
       <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
       <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
-
       <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
         <feDistantLight azimuth="224" elevation="58"/>
       </feDiffuseLighting>
@@ -33,11 +42,11 @@
   </defs>
   <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
   <g filter="url(#studio-light)">
-  <path d="m23 21 1-18 10 10-7 10 18 1-10 10-10-7-1 18-10-10 7-10-18-1 10-10Z" fill="url(#a)" stroke="var(--pack-ink,#303941)" stroke-width="1.5"/>
-  <path d="m24 3 1 21 9-11m11 11-21 1 11 9m-11 11-1-21-9 11M3 24l21-1-11-9" stroke="var(--pack-facet,#66747D)" stroke-width="1.5"/>
-  <circle cx="24" cy="24" r="5" fill="var(--pack-hub,#C6D0D4)" stroke="var(--pack-ink,#303941)" stroke-width="1.5"/>
-  <circle cx="24" cy="24" r="2" fill="var(--pack-hole,#303941)"/>
-  <path d="M20 19c2-1 4-1 6 0" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".8"/>
-
+  <path d="M24 5.5 28.5 19 42 23.5 28.5 28 24 41.5 19.5 28 6 23.5 19.5 19Z" fill="url(#star-steel)" stroke="var(--pack-ink,#2A2A36)" stroke-width="1.5"/>
+  <path d="M24 5.5 28.5 19 24 23.5 19.5 19Zm0 36L19.5 28 24 23.5 28.5 28ZM6 23.5 19.5 19l4.5 4.5-4.5 4.5Zm36 0L28.5 28 24 23.5l4.5-4.5Z" fill="url(#star-face)" opacity=".55"/>
+  <path d="M24 6.5 27.6 19m2 2.2L40.5 23.5m-11 2.3L27.6 28m-3.6 1.8v10.7M20.4 28l-1.9-2.2M7.5 23.5 18.5 21.2" stroke="var(--pack-edge,#F0F0F8)" stroke-width="1.5" opacity=".72"/>
+  <circle cx="24" cy="23.5" r="4.6" fill="var(--pack-hub,#8890A4)" stroke="var(--pack-ink,#2A2A36)" stroke-width="1.5"/>
+  <circle cx="24" cy="23.5" r="1.7" fill="var(--pack-hole,#232430)"/>
+  <path d="M21 21c2-1 4-1 6 0" stroke="var(--pack-highlight,#FFFFFF)" stroke-width="1.5" opacity=".8"/>
   </g>
 </svg>

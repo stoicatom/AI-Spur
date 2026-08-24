@@ -20,10 +20,26 @@ fn real_bundled_packs_all_parse() {
     for p in &packs {
         assert!(!p.data_uri.is_empty(), "{} has no data URI", p.id);
         assert!(p.builtin, "{} should be builtin", p.id);
-        assert!(p.sound.sample.is_some() || !p.sound.layers.is_empty(), "{} has no sound source", p.id);
+        assert!(
+            p.sound.sample.is_some() || !p.sound.layers.is_empty(),
+            "{} has no sound source",
+            p.id
+        );
         if let Some(sample) = &p.sound.sample {
-            assert!(sample.data_uri.as_deref().unwrap_or_default().starts_with("data:audio/"), "{} has no audio data URI", p.id);
-            assert!(!sample.source_title.is_empty(), "{} has no source title", p.id);
+            assert!(
+                sample
+                    .data_uri
+                    .as_deref()
+                    .unwrap_or_default()
+                    .starts_with("data:audio/"),
+                "{} has no audio data URI",
+                p.id
+            );
+            assert!(
+                !sample.source_title.is_empty(),
+                "{} has no source title",
+                p.id
+            );
         }
         assert!(
             p.palette.particle_hue >= 0 && p.palette.particle_hue <= 359,
@@ -62,7 +78,10 @@ fn builtin_packs_prefer_the_redesigned_material_icons() {
             aispur::sounds::base64_encode(&icon)
         );
 
-        assert_eq!(pack.data_uri, expected, "{pack_id} did not use {material_id}");
+        assert_eq!(
+            pack.data_uri, expected,
+            "{pack_id} did not use {material_id}"
+        );
     }
 }
 
@@ -111,7 +130,11 @@ fn every_builtin_pack_has_a_unique_complete_sound_recipe() {
 fn every_builtin_pack_has_a_valid_sound_source() {
     let packs = packs::scan_packs_in(&bundled_packs_dir(), true);
     for pack in &packs {
-        assert!(pack.sound.sample.is_some() || !pack.sound.layers.is_empty(), "{} has no sound source", pack.id);
+        assert!(
+            pack.sound.sample.is_some() || !pack.sound.layers.is_empty(),
+            "{} has no sound source",
+            pack.id
+        );
     }
 }
 
@@ -127,11 +150,27 @@ fn every_builtin_material_uses_the_sound_declared_in_its_own_manifest() {
         let manifest: packs::PackManifest = serde_json::from_str(&manifest_json)
             .unwrap_or_else(|error| panic!("failed to parse {}: {error}", manifest_path.display()));
 
-        assert_eq!(pack.sound.layers, manifest.sound.layers, "{} changed its legacy layers", pack.id);
-        assert_eq!(pack.sound.master_gain, manifest.sound.master_gain, "{} changed its master gain", pack.id);
+        assert_eq!(
+            pack.sound.layers, manifest.sound.layers,
+            "{} changed its legacy layers",
+            pack.id
+        );
+        assert_eq!(
+            pack.sound.master_gain, manifest.sound.master_gain,
+            "{} changed its master gain",
+            pack.id
+        );
         let scanned = pack.sound.sample.as_ref().expect("sample after scanning");
         let declared = manifest.sound.sample.as_ref().expect("sample in manifest");
-        assert_eq!(scanned.file, declared.file, "{} changed its sample file", pack.id);
-        assert!(scanned.data_uri.is_some(), "{} sample was not inlined", pack.id);
+        assert_eq!(
+            scanned.file, declared.file,
+            "{} changed its sample file",
+            pack.id
+        );
+        assert!(
+            scanned.data_uri.is_some(),
+            "{} sample was not inlined",
+            pack.id
+        );
     }
 }

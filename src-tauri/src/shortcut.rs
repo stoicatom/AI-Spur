@@ -4,9 +4,23 @@ use tauri::AppHandle;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ConflictInfo {
     pub hotkey: String,
     pub suggestions: Vec<String>,
+    pub scope: ConflictScope,
+    /// The global shortcut backend does not expose the owning process name;
+    /// keep the ownership source explicit instead of pretending to know it.
+    pub occupied_by: String,
+    pub occupied_hotkey: String,
+    pub previous_hotkey: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConflictScope {
+    Primary,
+    ShiftCompanion,
 }
 
 /// Generate 2 alternative hotkey strings by substituting the final key
@@ -273,10 +287,14 @@ pub fn is_egg_variant(primary: &str, candidate: &str) -> bool {
 /// attempting to register; if that succeeds the key is free (unregister
 /// immediately and return `None`); if it fails the key is held by another app
 /// and we return `Some(ConflictInfo)` with two suggested alternatives.
-pub fn check_conflict(app: &AppHandle, hotkey: &str) -> Option<ConflictInfo> {
+pub fn check_conflict(
+    app: &AppHandle,
+    hotkey: &str,
+    previous_hotkey: Option<String>,
+) -> Option<ConflictInfo> {
     let registry = AppShortcutRegistry { app };
     let mut probed: Vec<String> = Vec::new();
-    for candidate in registered_set(hotkey) {
+    for (index, candidate) in registered_set(hotkey).into_iter().enumerate() {
         if registry.is_registered(&candidate) {
             continue;
         }
@@ -287,6 +305,14 @@ pub fn check_conflict(app: &AppHandle, hotkey: &str) -> Option<ConflictInfo> {
             return Some(ConflictInfo {
                 hotkey: hotkey.to_string(),
                 suggestions: unique_suggestions(hotkey),
+                scope: if index == 0 {
+                    ConflictScope::Primary
+                } else {
+                    ConflictScope::ShiftCompanion
+                },
+                occupied_by: "其他应用".to_string(),
+                occupied_hotkey: candidate,
+                previous_hotkey,
             });
         }
         probed.push(candidate);
@@ -427,6 +453,8 @@ mod tests {
     #[test]
     fn validate_accepts_valid_combos() {
         assert!(validate_hotkey("CommandOrControl+Shift+W"));
+        assert!(validate_hotkey("CommandOrControl+Shift+5"));
+        assert!(validate_hotkey("CommandOrControl+5"));
         assert!(validate_hotkey("Alt+F4"));
         assert!(validate_hotkey("CommandOrControl+F5"));
         assert!(validate_hotkey("CommandOrControl+W"));

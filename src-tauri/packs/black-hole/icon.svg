@@ -1,14 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
   <title>吞噬黑洞</title>
   <defs>
-    <linearGradient id="a" x1="5" y1="18" x2="44" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="var(--pack-light,#EEF8FF)"/><stop offset=".34" stop-color="var(--pack-disk,#F4C35A)"/><stop offset=".7" stop-color="var(--pack-hot,#DB663B)"/><stop offset="1" stop-color="var(--pack-shadow,#713A69)"/></linearGradient>
-    <radialGradient id="b" cx="0" cy="0" r="1" gradientTransform="translate(20 19) rotate(45) scale(17)"><stop stop-color="var(--pack-horizon-edge,#343447)"/><stop offset=".68" stop-color="var(--pack-horizon,#11121A)"/><stop offset="1" stop-color="var(--pack-void,#050609)"/></radialGradient>
+    <linearGradient id="bh-disk" x1="4" y1="22" x2="44" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-disk-cool,#4FB4BE)"/>
+      <stop offset=".38" stop-color="var(--pack-disk-mid,#8C5FD3)"/>
+      <stop offset=".62" stop-color="var(--pack-disk-hot,#B9A2E0)"/>
+      <stop offset="1" stop-color="var(--pack-disk-cool,#4FB4BE)"/>
+    </linearGradient>
+    <linearGradient id="bh-under" x1="8" y1="30" x2="40" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-under,#1C6F86)"/>
+      <stop offset=".5" stop-color="var(--pack-under-mid,#5A3E9A)"/>
+      <stop offset="1" stop-color="var(--pack-under,#1C6F86)"/>
+    </linearGradient>
+    <radialGradient id="bh-core" cx="24" cy="24" r="8.5">
+      <stop offset=".58" stop-color="var(--pack-void,#0A0813)"/>
+      <stop offset=".88" stop-color="var(--pack-rim,#3A2A6A)"/>
+      <stop offset="1" stop-color="var(--pack-rim-hot,#B79CFF)"/>
+    </radialGradient>
     <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
       <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
       <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
       <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
       <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
-      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="14" result="grain"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="40" result="grain"/>
       <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
       <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
       <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
@@ -17,7 +31,6 @@
       <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
       <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
       <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
-
       <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
         <feDistantLight azimuth="224" elevation="58"/>
       </feDiffuseLighting>
@@ -36,10 +49,12 @@
   </defs>
   <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
   <g filter="url(#studio-light)">
-  <ellipse cx="24" cy="24" rx="21" ry="8" fill="url(#a)" stroke="var(--pack-ink,#181722)" stroke-width="1.5" transform="rotate(-12 24 24)"/>
-  <circle cx="24" cy="24" r="9" fill="url(#b)" stroke="var(--pack-ink,#181722)" stroke-width="1.5"/>
-  <path d="M4 27c8 4 30 7 40-4-4 7-12 11-22 11-8 0-14-3-18-7Z" fill="url(#a)" stroke="var(--pack-ink,#181722)" stroke-width="1.5"/>
-  <path d="M9 19c8-5 21-7 31-2" stroke="var(--pack-light,#EEF8FF)" stroke-width="1.5" opacity=".8"/>
-
+  <path d="M24 12c-3 0-5 5-5 12s2 12 5 12 5-5 5-12-2-12-5-12Z" fill="url(#bh-disk)" stroke="var(--pack-ink,#1B1830)" stroke-width="1.5" opacity=".9"/>
+  <path d="M6 30c5 4 11 6 18 6s13-2 18-6c-4 6-10 9-18 9S10 36 6 30Z" fill="url(#bh-under)" stroke="var(--pack-ink,#1B1830)" stroke-width="1.5"/>
+  <ellipse cx="24" cy="24" rx="19.5" ry="7.5" fill="url(#bh-disk)" stroke="var(--pack-ink,#1B1830)" stroke-width="1.5" transform="rotate(-26 24 24)"/>
+  <circle cx="24" cy="24" r="8.5" fill="url(#bh-core)" stroke="var(--pack-ink,#1B1830)" stroke-width="1.5"/>
+  <path d="M9.5 19.5c8-4.5 21-6 29.5-1.5" stroke="var(--pack-glint,#DFF7FF)" stroke-width="1.5" opacity=".8"/>
+  <path d="M24 15.5V5m0 38v-10.5" stroke="var(--pack-jet,#C9A6FF)" stroke-width="2" opacity=".55"/>
+  <path d="M17 21c1.5-2.5 4-4 7-4" stroke="var(--pack-lens,#8C5FD3)" stroke-width="1.5" opacity=".7"/>
   </g>
 </svg>

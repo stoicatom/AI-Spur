@@ -14,7 +14,7 @@ const FIELD_FRAGMENT = `precision highp float;
 varying vec2 vUv;
 uniform vec2 uResolution,uOrigin,uDirection;
 uniform vec3 uColor,uAccent;
-uniform float uTime,uProgress,uFade,uFlash,uMode,uReach,uPhase;
+uniform float uTime,uProgress,uFade,uFlash,uMode,uReach,uPhase,uLocalRadius;
 float hash21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 void main(){
   vec2 delta=(vUv-uOrigin)*uResolution;
@@ -34,7 +34,8 @@ void main(){
   else{pattern=max(rays*.72,.5+.5*sin(angle*8.+radius*.035-uTime*7.));}
   float center=exp(-radius/max(30.,unit*.3))*uFlash;
   float veil=(.012+.026*pattern)*smoothstep(0.,.12,uProgress);
-  float alpha=(center*.38+wave*.16+pattern*.055+veil)*uFade;
+  float localMask=uLocalRadius>0. ? 1.-smoothstep(uLocalRadius*.72,uLocalRadius,radius) : 1.;
+  float alpha=(center*.38+wave*.16+pattern*.055+veil)*uFade*localMask;
   if(alpha<.002)discard;
   vec3 tint=mix(uColor,uAccent,clamp(pattern*.7+wave*.25,0.,1.));
   gl_FragColor=vec4(tint*(.72+center*2.8+wave*1.5),alpha);
@@ -87,11 +88,13 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
   private height: number;
   private reach: number;
   private readonly physics: NonNullable<FamilyContext['physics']>;
+  private readonly localized: boolean;
 
   constructor(private readonly ctx: FamilyContext) {
     this.physics = ctx.physics ?? resolveMaterialPhysics(ctx.profile, ctx.params, 1);
+    this.localized = ctx.packId === 'dragon' || ctx.packId === 'revolver';
     this.width = ctx.width; this.height = ctx.height;
-    this.reach = farthestViewportCorner(ctx.origin, ctx.width, ctx.height) * 1.035;
+    this.reach = this.localized ? Math.min(360, farthestViewportCorner(ctx.origin, ctx.width, ctx.height)) : farthestViewportCorner(ctx.origin, ctx.width, ctx.height) * 1.035;
     ctx.root.add(this.group);
     const accent = ctx.color.clone().offsetHSL(
       this.physics.surface === 'fire' ? .06 : -.035, -0.08, 0.2,
@@ -103,6 +106,7 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
         uColor: { value: ctx.color }, uAccent: { value: accent }, uTime: { value: 0 },
         uProgress: { value: 0 }, uFade: { value: 0 }, uFlash: { value: 0 },
         uMode: { value: forceMode(this.physics.force) }, uReach: { value: this.reach },
+        uLocalRadius: { value: this.localized ? 330 : 0 },
         uPhase: { value: this.physics.identityPhase },
       },
       vertexShader: FIELD_VERTEX, fragmentShader: FIELD_FRAGMENT,
@@ -129,7 +133,7 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
 
   resize(width: number, height: number): void {
     this.width = Math.max(1, width); this.height = Math.max(1, height);
-    this.reach = farthestViewportCorner(this.ctx.origin, this.width, this.height) * 1.035;
+    this.reach = this.localized ? Math.min(360, farthestViewportCorner(this.ctx.origin, this.width, this.height)) : farthestViewportCorner(this.ctx.origin, this.width, this.height) * 1.035;
     this.field.scale.set(this.width, this.height, 1);
     this.fieldMaterial.uniforms.uResolution.value.set(this.width, this.height);
     this.fieldMaterial.uniforms.uOrigin.value.set(
@@ -143,8 +147,8 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
     const progress = 1 - Math.pow(1 - Math.min(1, t / 0.76), 3);
     this.fieldMaterial.uniforms.uTime.value = now * 0.001;
     this.fieldMaterial.uniforms.uProgress.value = progress;
-    this.fieldMaterial.uniforms.uFade.value = fade;
-    this.fieldMaterial.uniforms.uFlash.value = Math.exp(-t * 13) * (0.8 + this.ctx.energy * 0.22);
+    this.fieldMaterial.uniforms.uFade.value = this.localized ? fade * 0.08 : fade;
+    this.fieldMaterial.uniforms.uFlash.value = this.localized ? 0 : Math.exp(-t * 13) * (0.8 + this.ctx.energy * 0.22);
     this.updateRings(t, fade);
     this.updateEnergy(t, now, fade);
   }
@@ -172,7 +176,7 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
       const local = Math.max(0, Math.min(1, (t - i * .045) / (.58 + this.physics.mass * .025 + i * .045)));
       const progress = 1 - Math.pow(1 - local, 3);
       this.rings[i].scale.setScalar(Math.max(0.001, this.reach * progress));
-      setOpacity(this.rings[i], fade * Math.sin(Math.PI * local) * (force - i * 0.055));
+      setOpacity(this.rings[i], fade * Math.sin(Math.PI * local) * (force - i * 0.055) * (this.localized ? 0.12 : 1));
     }
   }
 
@@ -201,6 +205,6 @@ export class FullFieldSpectacleLayer implements FamilyLayer {
       this.matrix.compose(this.position, this.quaternion, this.scale); this.energy.setMatrixAt(i, this.matrix);
     }
     this.energy.instanceMatrix.needsUpdate = true;
-    setOpacity(this.energy, fade * (0.62 + this.ctx.energy * 0.08));
+    setOpacity(this.energy, fade * (this.localized ? 0.16 : 0.62 + this.ctx.energy * 0.08));
   }
 }

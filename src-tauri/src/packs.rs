@@ -310,14 +310,24 @@ fn parse_pack(dir: &Path, builtin: bool) -> Option<MaterialPack> {
 
 fn safe_asset_path(dir: &Path, relative: &str) -> Option<std::path::PathBuf> {
     let path = Path::new(relative);
-    if relative.is_empty() || path.is_absolute() || path.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
+    if relative.is_empty()
+        || path.is_absolute()
+        || path
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
         return None;
     }
     Some(dir.join(path))
 }
 
 fn audio_mime(path: &Path) -> Option<&'static str> {
-    match path.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()).as_deref() {
+    match path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_ascii_lowercase())
+        .as_deref()
+    {
         Some("wav") => Some("audio/wav"),
         Some("mp3") => Some("audio/mpeg"),
         Some("m4a") | Some("aac") => Some("audio/mp4"),

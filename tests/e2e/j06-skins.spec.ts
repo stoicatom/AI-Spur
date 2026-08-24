@@ -1,41 +1,41 @@
 /**
- * E2E Journey J06: ���肤切���
+ * E2E Journey J06: 皮肤切换
  *
- * J06: 切���皮��� → ���次 spawn-whip ���用新皮���颜色（skin-changed 事件被���射���
+ * J06: 切换素材包 → overlay 收到 pack-changed 事件
  *
  * Run: npx wdio run wdio.conf.ts --spec tests/e2e/j06-skins.spec.ts
  */
 
 describe('J06: Skin switching', () => {
-  it('activating a skin emits skin-changed with the correct id', async () => {
-    // Record skin-changed events in the overlay window.
+  it('activating a material pack emits pack-changed with the correct id', async () => {
+    // Record pack-changed events in the overlay window.
     await browser.execute(() => {
       (window as any).__skinChangedTo = null;
       void (window as any).__TAURI__.event.listen(
-        'skin-changed',
-        (event: { payload: { skinId: string } }) => {
-          (window as any).__skinChangedTo = event.payload.skinId;
+        'pack-changed',
+        (event: { payload: { packId: string } }) => {
+          (window as any).__skinChangedTo = event.payload.packId;
         }
       );
     });
 
-    // Get the list of available skins and pick one other than the current.
+    // Get the list of available v3 material packs and pick one other than the current.
     const skins = await browser.execute(() =>
-      (window as any).__TAURI__.invoke('list_skins')
+      (window as any).__TAURI__.core.invoke('list_packs')
     ) as Array<{ id: string }>;
 
     const config = await browser.execute(() =>
-      (window as any).__TAURI__.invoke('get_config')
-    ) as { activeSkin: string };
+      (window as any).__TAURI__.core.invoke('get_config')
+    ) as { activePackId: string };
 
-    const target = skins.find((s) => s.id !== config.activeSkin);
+    const target = skins.find((s) => s.id !== config.activePackId);
     if (!target) {
       // Only one skin available; the test is vacuously satisfied.
       return;
     }
 
     await browser.execute(
-      ([skinId]: [string]) => (window as any).__TAURI__.invoke('activate_skin', { skinId }),
+      ([id]: [string]) => (window as any).__TAURI__.core.invoke('set_active_pack', { id }),
       [target.id]
     );
 
@@ -49,8 +49,8 @@ describe('J06: Skin switching', () => {
 
     // Restore original skin.
     await browser.execute(
-      ([skinId]: [string]) => (window as any).__TAURI__.invoke('activate_skin', { skinId }),
-      [config.activeSkin]
+      ([id]: [string]) => (window as any).__TAURI__.core.invoke('set_active_pack', { id }),
+      [config.activePackId]
     );
   });
 });

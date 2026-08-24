@@ -43,6 +43,25 @@ describe('3D 武器专属舞台', () => {
     expect(named<THREE.Mesh>(high.root, 'revolver-casing-2').rotation.x).toBeGreaterThan(named<THREE.Mesh>(low.root, 'revolver-casing-2').rotation.x);
   });
 
+  it('左轮枪按枪口、子弹飞行、弹壳和远端命中分段推进', () => {
+    const ctx = context('gunshot', { muzzleEnergy: 2, recoilKick: 1.2, smokeCurl: 1, casingSpin: 2 });
+    const stage = new RevolverWeaponStage(ctx);
+    const muzzle = named<THREE.Mesh>(ctx.root, 'revolver-muzzle');
+    const bullet = named<THREE.Mesh>(ctx.root, 'revolver-bullet');
+    const impact = named<THREE.Mesh>(ctx.root, 'revolver-impact-ring');
+
+    stage.update(0.04, 40);
+    expect(muzzle.scale.x).toBeGreaterThan(0.8);
+    stage.update(0.32, 320);
+    const flightX = bullet.position.x;
+    expect(flightX).toBeGreaterThan(160);
+    stage.update(0.68, 680);
+    expect((bullet.material as THREE.MeshPhysicalMaterial).opacity).toBeLessThan(0.5);
+    expect(impact.scale.x).toBeGreaterThan(0.1);
+    stage.update(0.94, 940);
+    expect((impact.material as THREE.MeshPhysicalMaterial).opacity).toBeLessThan(0.5);
+  });
+
   it('碎屏把半径、延迟、折射、碎片速度和自旋分配到裂纹与碎片时间线', () => {
     const low = context('glass-break', { impactRadius: 0.7, shardVelocity: 0.6, shardSpin: 0.5, refraction: 0.4, fractureDelay: 0.3 });
     const high = context('glass-break', { impactRadius: 2.1, shardVelocity: 2.5, shardSpin: 2.8, refraction: 2.2, fractureDelay: 0.02 });

@@ -1,7 +1,7 @@
 /**
- * E2E Journey J03: ���捷键触发
+ * E2E Journey J03: 快捷键触发
  *
- * J03: 按 Ctrl+Shift+W → overlay 窗口内 spawn-whip 事件被���发（< 150ms）
+ * J03: 按 Ctrl+Shift+W → overlay 窗口内 spawn-whip 事件被触发（< 150ms）
  *
  * Run: npx wdio run wdio.conf.ts --spec tests/e2e/j03-shortcut.spec.ts
  */
@@ -25,7 +25,7 @@ describe('J03: Global shortcut trigger', () => {
 
     // Use the debug backdoor to fire the shortcut without a real keypress.
     await browser.execute(
-      () => (window as any).__TAURI__.invoke('__test_trigger_shortcut')
+      () => (window as any).__TAURI__.core.invoke('__test_trigger_shortcut')
     );
 
     await browser.waitUntil(
