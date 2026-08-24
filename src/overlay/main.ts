@@ -6,11 +6,14 @@ import {
   onPackChanged,
   onMaterialChanged,
   triggerMacro,
+  openSettings,
   incrementUsage,
   stopCursorTracking,
   listPacks,
   listMaterials,
   getConfig,
+  onMacroFailed,
+  type MacroFailedPayload,
 } from '../shared/ipc';
 import {
   ImageMaterial,
@@ -60,6 +63,60 @@ let packSelectionRevision = 0;
 let mouseX = width / 2;
 let mouseY = height / 2;
 let active = false; // 覆盖层是否处于活跃状态
+let macroFailureVisible = false;
+
+const macroStatus = document.getElementById('macro-status') as HTMLElement | null;
+const macroStatusMessage = document.getElementById('macro-status__message') as HTMLElement | null;
+const macroRetry = document.getElementById('macro-status__retry') as HTMLButtonElement | null;
+const macroSettings = document.getElementById('macro-status__settings') as HTMLButtonElement | null;
+const macroClose = document.getElementById('macro-status__close') as HTMLButtonElement | null;
+
+function hideMacroFailure(): void {
+  macroFailureVisible = false;
+  if (macroStatus) macroStatus.hidden = true;
+}
+
+function showMacroFailure(failure: MacroFailedPayload): void {
+  if (!macroStatus || !macroStatusMessage) return;
+  macroFailureVisible = true;
+  macroStatus.dataset.code = failure.code;
+  macroStatusMessage.textContent = failure.message;
+  if (macroRetry) macroRetry.hidden = !failure.retryable;
+  if (macroSettings) macroSettings.hidden = failure.code !== 'Permission';
+  macroStatus.hidden = false;
+  // The crack animation can finish before the event arrives. Bring the
+  // non-activating overlay back so the recovery action remains visible.
+  void import('@tauri-apps/api/window')
+    .then(({ getCurrentWindow }) => getCurrentWindow().show())
+    .catch(() => {});
+}
+
+async function retryMacro(): Promise<void> {
+  hideMacroFailure();
+  try {
+    await triggerMacro();
+    await dismiss();
+  } catch (error) {
+    console.error('[overlay] macro retry failed:', error);
+    showMacroFailure({
+      code: 'SendFailure',
+      message: '宏重试失败，请确认终端仍处于可输入状态后重试。',
+      retryable: true,
+    });
+  }
+}
+
+macroRetry?.addEventListener('click', () => void retryMacro());
+macroSettings?.addEventListener('click', () => {
+  hideMacroFailure();
+  openSettings()
+    .then(() => dismiss())
+    .catch((error) => console.error('[overlay] open settings failed:', error));
+});
+macroClose?.addEventListener('click', () => {
+  hideMacroFailure();
+  void dismiss();
+});
 
 async function applyActivePack(packId?: string) {
   const revision = ++packSelectionRevision;
@@ -121,8 +178,16 @@ function playEffectSound(x: number, vel: WhipVel) {
 }
 function triggerCrack(x: number, y: number, vel: WhipVel) {
   if (material.crackAlive || !active) return;
+  hideMacroFailure();
   // 判定瞬间即发键：终端保持焦点，Ctrl+C 早发早生效。
-  triggerMacro().catch((err) => console.error('[overlay] macro failed:', err));
+  triggerMacro().catch((err) => {
+    console.error('[overlay] macro failed:', err);
+    showMacroFailure({
+      code: 'SendFailure',
+      message: '宏发送失败，请确认终端仍处于可输入状态后重试。',
+      retryable: true,
+    });
+  });
   active = false;
   playEffectSound(x, vel);
   material.startCrack(x, y, vel);
@@ -186,10 +251,12 @@ async function dismiss() {
   try {
     await stopCursorTracking();
   } catch {}
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window');
-    await getCurrentWindow().hide();
-  } catch {}
+  if (!macroFailureVisible) {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().hide();
+    } catch {}
+  }
 }
 
 const subscriptions = new UnlistenRegistry();
@@ -223,7 +290,12 @@ subscriptions.track(onCursorPos((pos) => {
   }
 }), 'cursor-pos');
 
-subscriptions.track(onDropWhip(() => void dismiss()), 'drop-whip');
+subscriptions.track(onDropWhip(() => {
+  hideMacroFailure();
+  void dismiss();
+}), 'drop-whip');
+
+subscriptions.track(onMacroFailed(showMacroFailure), 'macro-failed');
 
 // 素材包切换：仅在包 id 变化时重新加载
 subscriptions.track(onPackChanged((id) => void applyActivePack(id)), 'pack-changed');

@@ -52,8 +52,10 @@ fn main() {
     let sender: Arc<dyn macro_sender::MacroSender> = match macro_sender::EnigoSender::new() {
         Ok(s) => Arc::new(s),
         Err(e) => {
-            eprintln!("[macro] enigo init failed, using stub sender: {e}");
-            Arc::new(macro_sender::FakeMacroSender::new())
+            eprintln!(
+                "[macro] enigo init failed; macro input disabled until permission is granted: {e}"
+            );
+            Arc::new(macro_sender::UnavailableMacroSender::new(e.to_string()))
         }
     };
 

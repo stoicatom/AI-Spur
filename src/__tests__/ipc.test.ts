@@ -9,6 +9,7 @@ import {
   onSpawnWhip,
   onConfigUpdated,
   onSkinChanged,
+  onMacroFailed,
 } from '../shared/ipc';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -183,5 +184,25 @@ describe('IPC layer', () => {
     }).toThrow();
 
     expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('onMacroFailed should parse a structured failure and preserve retry metadata', async () => {
+    const mockUnlisten = vi.fn();
+    vi.mocked(listen).mockResolvedValue(mockUnlisten);
+    const callback = vi.fn();
+
+    await onMacroFailed(callback);
+
+    expect(listen).toHaveBeenCalledWith('macro-failed', expect.any(Function));
+    const listenerFn = vi.mocked(listen).mock.calls[0][1];
+    listenerFn({
+      payload: { code: 'Permission', message: '需要输入权限', retryable: true },
+    } as any);
+
+    expect(callback).toHaveBeenCalledWith({
+      code: 'Permission',
+      message: '需要输入权限',
+      retryable: true,
+    });
   });
 });

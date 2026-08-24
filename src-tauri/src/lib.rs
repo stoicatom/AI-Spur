@@ -9,6 +9,9 @@ pub mod usage;
 
 // Re-export commonly used types for integration tests
 pub use config::Config;
-pub use macro_sender::{EnigoSender, FakeMacroSender, MacroSender};
+pub use macro_sender::{
+    EnigoSender, FakeMacroSender, MacroError, MacroFailure, MacroFailureCode, MacroSender,
+    UnavailableMacroSender,
+};
 pub use packs::{MaterialPack, PackManifest, SoundRecipe};
 pub use skins::{SkinManifest, SkinSounds, SkinVisuals};

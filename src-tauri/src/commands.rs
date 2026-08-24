@@ -1,6 +1,6 @@
 use crate::config::{self, Config};
 use crate::cursor_tracker;
-use crate::macro_sender::MacroSender;
+use crate::macro_sender::{MacroFailure, MacroFailureCode, MacroSender};
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
@@ -23,6 +23,16 @@ pub struct AppState {
     /// handler (show) and cleared by `stop_cursor_tracking` (overlay hide). One
     /// shared flag guarantees a single polling task (see `cursor_tracker`).
     pub cursor_tracking: Arc<AtomicBool>,
+}
+
+fn emit_macro_failure(app: &AppHandle, failure: &MacroFailure) {
+    eprintln!(
+        "[macro] {:?}: {} (retryable={})",
+        failure.code, failure.message, failure.retryable
+    );
+    if let Err(error) = app.emit("macro-failed", failure) {
+        eprintln!("[macro] failed to notify overlay: {error}");
+    }
 }
 
 /// Present the existing settings window from any native entry point.
@@ -190,7 +200,13 @@ pub fn trigger_macro(
             .unwrap_or(false);
 
         if !ready {
-            return Err("当前前台应用不是终端，已跳过发送".to_string());
+            let failure = MacroFailure::new(
+                MacroFailureCode::SafetyGate,
+                "当前前台应用不是终端，已跳过发送。请切换到受支持的终端后重试。",
+                false,
+            );
+            emit_macro_failure(&app, &failure);
+            return Err(failure.message);
         }
         // Give AppKit a tick to settle focus before synthesizing keystrokes.
         std::thread::sleep(std::time::Duration::from_millis(90));
@@ -205,20 +221,32 @@ pub fn trigger_macro(
                 .config
                 .lock()
                 .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-            usage::pick_phrase(&cfg.phrases)
-                .ok_or_else(|| "提示词列表为空，无法发送".to_string())?
+            usage::pick_phrase(&cfg.phrases).ok_or_else(|| {
+                let failure = MacroFailure::new(
+                    MacroFailureCode::SendFailure,
+                    "提示词列表为空，无法发送。请在设置中添加至少一条提示词。",
+                    true,
+                );
+                emit_macro_failure(&app, &failure);
+                failure.message
+            })?
         }
     };
 
     let sender = state.sender.clone();
     // Run directly on current thread (main thread for sync commands).
-    sender
+    let result = sender
         .send_interrupt()
         .and_then(|_| sender.type_text(&chosen))
-        .and_then(|_| sender.press_enter())
-        .map_err(|e| format!("宏发送失败: {e}"))?;
+        .and_then(|_| sender.press_enter());
 
-    let _ = app; // AppHandle kept for future notifications; not needed yet.
+    if let Err(error) = result {
+        let failure = MacroFailure::from_error(&error);
+        eprintln!("[macro] send operation failed: {error}");
+        emit_macro_failure(&app, &failure);
+        return Err(failure.message);
+    }
+
     Ok(())
 }
 

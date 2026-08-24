@@ -8,6 +8,11 @@ import { MaterialPack, MaterialPackSchema } from './material-packs';
 
 const PartialConfigSchema = ConfigSchema.partial();
 const SkinChangedPayloadSchema = z.object({ skinId: z.string().min(1) });
+const MacroFailedPayloadSchema = z.object({
+  code: z.enum(['SafetyGate', 'Permission', 'SendFailure']),
+  message: z.string().min(1),
+  retryable: z.boolean(),
+});
 
 /** Mirrors `shortcut::ConflictInfo` on the Rust side. */
 export const ConflictInfoSchema = z.object({
@@ -16,6 +21,7 @@ export const ConflictInfoSchema = z.object({
 });
 
 export type ConflictInfo = z.infer<typeof ConflictInfoSchema>;
+export type MacroFailedPayload = z.infer<typeof MacroFailedPayloadSchema>;
 
 // ============ Commands (TS → Rust) ============
 
@@ -52,6 +58,10 @@ export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo 
 
 export async function triggerMacro(phrase?: string): Promise<void> {
   return invoke('trigger_macro', { phrase });
+}
+
+export async function openSettings(): Promise<void> {
+  return invoke('open_settings');
 }
 
 export async function incrementUsage(): Promise<number> {
@@ -182,6 +192,7 @@ export const Events = {
   SKIN_CHANGED: 'skin-changed',
   MATERIAL_CHANGED: 'material-changed',
   PACK_CHANGED: 'pack-changed',
+  MACRO_FAILED: 'macro-failed',
 } as const;
 
 /**
@@ -264,5 +275,13 @@ export function onPackChanged(fn: (packId: string) => void): Promise<UnlistenFn>
   return listen<unknown>(Events.PACK_CHANGED, (event) => {
     const { packId } = PackChangedPayloadSchema.parse(event.payload);
     fn(packId);
+  });
+}
+
+/** Structured macro failure notification used by the overlay recovery UI. */
+export function onMacroFailed(fn: (failure: MacroFailedPayload) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.MACRO_FAILED, (event) => {
+    const parsed = MacroFailedPayloadSchema.safeParse(event.payload);
+    if (parsed.success) fn(parsed.data);
   });
 }

@@ -33,11 +33,51 @@
 
       #whip-webgl { z-index: 1; }
       #whip-canvas { z-index: 2; }
+
+      #macro-status {
+        position: fixed;
+        left: 50%;
+        bottom: 48px;
+        z-index: 4;
+        transform: translateX(-50%);
+        min-width: 280px;
+        max-width: min(560px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 194, 99, 0.7);
+        border-radius: 8px;
+        background: rgba(24, 19, 12, 0.94);
+        color: #fff4dc;
+        font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+        pointer-events: auto;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35);
+      }
+
+      #macro-status[hidden] { display: none; }
+      #macro-status__message { margin-bottom: 9px; }
+      #macro-status__actions { display: flex; gap: 8px; justify-content: flex-end; }
+      #macro-status button {
+        border: 1px solid rgba(255,255,255,.35);
+        border-radius: 5px;
+        padding: 5px 9px;
+        background: rgba(255,255,255,.1);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      #macro-status button:hover { background: rgba(255,255,255,.2); }
     </style>
   </head>
   <body>
     <canvas id="whip-webgl" aria-hidden="true"></canvas>
     <canvas id="whip-canvas"></canvas>
+    <div id="macro-status" role="alert" hidden>
+      <div id="macro-status__message"></div>
+      <div id="macro-status__actions">
+        <button id="macro-status__settings" type="button" hidden>打开设置</button>
+        <button id="macro-status__retry" type="button" hidden>重试</button>
+        <button id="macro-status__close" type="button">关闭</button>
+      </div>
+    </div>
     <script type="module" src="/src/overlay/main.ts"></script>
   </body>
 </html>
