@@ -1,3 +1,4 @@
+#[cfg(target_os = "macos")]
 use std::process::Command;
 
 /// Apps that are safe to inject Ctrl+C + text into.
@@ -10,6 +11,7 @@ use std::process::Command;
 ///
 /// This list covers terminal emulators and IDEs that host AI CLI tools
 /// (Claude Code, Codex, Aider, Cursor, etc.).
+#[cfg(any(target_os = "macos", target_os = "windows", test))]
 const TERMINAL_APPS: &[&str] = &[
     // macOS terminals
     "Terminal",
@@ -70,6 +72,7 @@ const TERMINAL_APPS: &[&str] = &[
 
 /// Case-insensitive substring match against the safe list. Extracted so both
 /// the frontmost-app check and the cursor-hit check share one definition.
+#[cfg(any(target_os = "macos", target_os = "windows", test))]
 fn is_safe_app(name: &str) -> bool {
     let lowered = name.to_lowercase();
     TERMINAL_APPS
