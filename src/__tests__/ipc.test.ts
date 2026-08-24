@@ -10,6 +10,7 @@ import {
   onConfigUpdated,
   onSkinChanged,
   onMacroFailed,
+  openInputPermissions,
 } from '../shared/ipc';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -204,5 +205,11 @@ describe('IPC layer', () => {
       message: '需要输入权限',
       retryable: true,
     });
+  });
+
+  it('openInputPermissions should invoke the native permission guide command', async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await openInputPermissions();
+    expect(invoke).toHaveBeenCalledWith('open_input_permissions');
   });
 });

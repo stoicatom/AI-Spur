@@ -5,13 +5,13 @@ use thiserror::Error;
 
 // Note: EnigoSender is not wired into commands.rs yet (macro trigger wiring
 // consumes this module, matching the pattern used in config.rs.
+#[derive(Error, Debug, Clone)]
 #[allow(dead_code)]
-#[derive(Error, Debug)]
 pub enum MacroError {
     #[error("Input permission unavailable: {0}")]
     Permission(String),
     /// Backwards-compatible name retained for callers compiled against the
-    /// original sender API; initialization failures are permission failures.
+    /// original sender API.
     #[error("Failed to initialize input backend: {0}")]
     InitError(String),
     #[error("Failed to send keyboard event: {0}")]
@@ -63,6 +63,20 @@ impl MacroFailure {
 }
 
 impl MacroError {
+    pub fn from_runtime_input(detail: impl Into<String>) -> Self {
+        let detail = detail.into();
+        let normalized = detail.to_ascii_lowercase();
+        if normalized.contains("permission")
+            || normalized.contains("accessibility")
+            || normalized.contains("not permitted")
+            || normalized.contains("assistive")
+        {
+            Self::Permission(detail)
+        } else {
+            Self::SendFailure(detail)
+        }
+    }
+
     pub fn failure_code(&self) -> MacroFailureCode {
         match self {
             Self::Permission(_) | Self::InitError(_) => MacroFailureCode::Permission,
@@ -88,8 +102,8 @@ impl EnigoSender {
         let settings = Settings::default();
         // On macOS, default Settings has independent_of_keyboard_state = true,
         // which ensures Shift+hotkey彩蛋 doesn't pollute Ctrl+C
-        let enigo =
-            Enigo::new(&settings).map_err(|e| MacroError::Permission(format!("{:?}", e)))?;
+        let enigo = Enigo::new(&settings)
+            .map_err(|e| MacroError::from_runtime_input(format!("{:?}", e)))?;
         Ok(Self {
             enigo: Mutex::new(enigo),
         })
@@ -105,13 +119,13 @@ impl MacroSender for EnigoSender {
 
         enigo
             .key(Key::Control, Direction::Press)
-            .map_err(|e| MacroError::SendFailure(format!("Ctrl press: {:?}", e)))?;
+            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl press: {:?}", e)))?;
         enigo
             .key(Key::Unicode('c'), Direction::Click)
-            .map_err(|e| MacroError::SendFailure(format!("C click: {:?}", e)))?;
+            .map_err(|e| MacroError::from_runtime_input(format!("C click: {:?}", e)))?;
         enigo
             .key(Key::Control, Direction::Release)
-            .map_err(|e| MacroError::SendFailure(format!("Ctrl release: {:?}", e)))?;
+            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl release: {:?}", e)))?;
 
         Ok(())
     }
@@ -124,7 +138,7 @@ impl MacroSender for EnigoSender {
 
         enigo
             .text(text)
-            .map_err(|e| MacroError::SendFailure(format!("Text input: {:?}", e)))?;
+            .map_err(|e| MacroError::from_runtime_input(format!("Text input: {:?}", e)))?;
 
         Ok(())
     }
@@ -137,7 +151,7 @@ impl MacroSender for EnigoSender {
 
         enigo
             .key(Key::Return, Direction::Click)
-            .map_err(|e| MacroError::SendFailure(format!("Enter click: {:?}", e)))?;
+            .map_err(|e| MacroError::from_runtime_input(format!("Enter click: {:?}", e)))?;
 
         Ok(())
     }
@@ -160,18 +174,16 @@ pub struct FakeMacroSender {
 /// while making every attempted macro surface a permission failure instead of
 /// pretending that input was sent successfully.
 pub struct UnavailableMacroSender {
-    reason: String,
+    error: MacroError,
 }
 
 impl UnavailableMacroSender {
-    pub fn new(reason: impl Into<String>) -> Self {
-        Self {
-            reason: reason.into(),
-        }
+    pub fn new(error: MacroError) -> Self {
+        Self { error }
     }
 
     fn error(&self) -> MacroError {
-        MacroError::Permission(self.reason.clone())
+        self.error.clone()
     }
 }
 
@@ -258,11 +270,36 @@ mod tests {
 
     #[test]
     fn unavailable_sender_never_reports_success() {
-        let sender = UnavailableMacroSender::new("missing accessibility permission");
+        let sender = UnavailableMacroSender::new(MacroError::Permission(
+            "missing accessibility permission".to_string(),
+        ));
         let error = sender
             .send_interrupt()
             .expect_err("permission must be surfaced");
         assert_eq!(error.failure_code(), MacroFailureCode::Permission);
+    }
+
+    #[test]
+    fn unavailable_sender_preserves_non_permission_failure() {
+        let sender = UnavailableMacroSender::new(MacroError::SendFailure(
+            "platform input backend unavailable".to_string(),
+        ));
+        let error = sender
+            .send_interrupt()
+            .expect_err("unavailable backend must fail");
+        assert_eq!(error.failure_code(), MacroFailureCode::SendFailure);
+    }
+
+    #[test]
+    fn runtime_permission_error_is_classified_as_permission() {
+        let error = MacroError::from_runtime_input("Accessibility permission denied");
+        assert_eq!(error.failure_code(), MacroFailureCode::Permission);
+    }
+
+    #[test]
+    fn ordinary_runtime_input_error_remains_send_failure() {
+        let error = MacroError::from_runtime_input("keyboard event failed");
+        assert_eq!(error.failure_code(), MacroFailureCode::SendFailure);
     }
 
     #[test]

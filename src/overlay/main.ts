@@ -6,7 +6,7 @@ import {
   onPackChanged,
   onMaterialChanged,
   triggerMacro,
-  openSettings,
+  openInputPermissions,
   incrementUsage,
   stopCursorTracking,
   listPacks,
@@ -98,18 +98,16 @@ async function retryMacro(): Promise<void> {
     await dismiss();
   } catch (error) {
     console.error('[overlay] macro retry failed:', error);
-    showMacroFailure({
-      code: 'SendFailure',
-      message: '宏重试失败，请确认终端仍处于可输入状态后重试。',
-      retryable: true,
-    });
+    // Rust emits the authoritative structured event for command failures.
+    // Keep the previous classification intact when invoke rejection and the
+    // event are delivered in either order.
   }
 }
 
 macroRetry?.addEventListener('click', () => void retryMacro());
 macroSettings?.addEventListener('click', () => {
   hideMacroFailure();
-  openSettings()
+  openInputPermissions()
     .then(() => dismiss())
     .catch((error) => console.error('[overlay] open settings failed:', error));
 });
@@ -182,11 +180,8 @@ function triggerCrack(x: number, y: number, vel: WhipVel) {
   // 判定瞬间即发键：终端保持焦点，Ctrl+C 早发早生效。
   triggerMacro().catch((err) => {
     console.error('[overlay] macro failed:', err);
-    showMacroFailure({
-      code: 'SendFailure',
-      message: '宏发送失败，请确认终端仍处于可输入状态后重试。',
-      retryable: true,
-    });
+    // Rust emits the authoritative structured macro-failed event. This
+    // rejection is logged only so it cannot overwrite its classification.
   });
   active = false;
   playEffectSound(x, vel);

@@ -64,6 +64,10 @@ export async function openSettings(): Promise<void> {
   return invoke('open_settings');
 }
 
+export async function openInputPermissions(): Promise<void> {
+  return invoke('open_input_permissions');
+}
+
 export async function incrementUsage(): Promise<number> {
   return invoke<number>('increment_usage');
 }

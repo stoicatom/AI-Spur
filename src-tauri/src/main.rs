@@ -55,7 +55,7 @@ fn main() {
             eprintln!(
                 "[macro] enigo init failed; macro input disabled until permission is granted: {e}"
             );
-            Arc::new(macro_sender::UnavailableMacroSender::new(e.to_string()))
+            Arc::new(macro_sender::UnavailableMacroSender::new(e))
         }
     };
 
@@ -125,6 +125,7 @@ fn main() {
             commands::list_skins,
             commands::activate_skin,
             commands::open_settings,
+            commands::open_input_permissions,
             custom_skins::list_custom_skins,
             custom_skins::import_custom_skin,
             custom_skins::delete_custom_skin,
@@ -189,7 +190,7 @@ fn main() {
 
             app.manage(AppState {
                 config: Mutex::new(config),
-                sender,
+                sender: Mutex::new(sender),
                 config_path,
                 cursor_tracking: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
             });

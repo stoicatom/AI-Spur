@@ -1,6 +1,6 @@
 use crate::config::{self, Config};
 use crate::cursor_tracker;
-use crate::macro_sender::{MacroFailure, MacroFailureCode, MacroSender};
+use crate::macro_sender::{EnigoSender, MacroFailure, MacroFailureCode, MacroSender};
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
@@ -14,7 +14,7 @@ pub struct AppState {
     pub config: Mutex<Config>,
     /// Injected input backend. Real `EnigoSender` in production, `FakeMacroSender`
     /// in tests — this is how the trait gives us testability (R-ARCH-007).
-    pub sender: Arc<dyn MacroSender>,
+    pub sender: Mutex<Arc<dyn MacroSender>>,
     /// Absolute path of `config.json`, resolved once at startup from Tauri's
     /// `app_config_dir()`. Held here so the command layer never has to guess the
     /// location from a hardcoded bundle identifier (CLAUDE.md §4.3).
@@ -217,28 +217,73 @@ pub fn trigger_macro(
     let chosen = match phrase {
         Some(p) if !p.is_empty() => p,
         _ => {
-            let cfg = state
+            let cfg = match state
                 .config
                 .lock()
-                .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-            usage::pick_phrase(&cfg.phrases).ok_or_else(|| {
-                let failure = MacroFailure::new(
-                    MacroFailureCode::SendFailure,
-                    "提示词列表为空，无法发送。请在设置中添加至少一条提示词。",
-                    true,
-                );
-                emit_macro_failure(&app, &failure);
-                failure.message
-            })?
+                .map_err(|_| "Internal state error: config lock poisoned".to_string())
+            {
+                Ok(config) => config,
+                Err(message) => {
+                    let failure = MacroFailure::new(MacroFailureCode::SendFailure, message, true);
+                    emit_macro_failure(&app, &failure);
+                    return Err(failure.message);
+                }
+            };
+            match usage::pick_phrase(&cfg.phrases) {
+                Some(phrase) => phrase,
+                None => {
+                    let failure = MacroFailure::new(
+                        MacroFailureCode::SendFailure,
+                        "提示词列表为空，无法发送。请在设置中添加至少一条提示词。",
+                        true,
+                    );
+                    emit_macro_failure(&app, &failure);
+                    return Err(failure.message);
+                }
+            }
         }
     };
 
-    let sender = state.sender.clone();
-    // Run directly on current thread (main thread for sync commands).
-    let result = sender
-        .send_interrupt()
-        .and_then(|_| sender.type_text(&chosen))
-        .and_then(|_| sender.press_enter());
+    // Run directly on current thread (main thread for sync commands). A
+    // permission failure triggers one native backend refresh so granting
+    // permission while the app is open does not require a restart.
+    let result = {
+        let sender = match state.sender.lock() {
+            Ok(sender) => sender.clone(),
+            Err(_) => {
+                let failure = MacroFailure::new(
+                    MacroFailureCode::SendFailure,
+                    "输入后端状态异常，请重试。",
+                    true,
+                );
+                emit_macro_failure(&app, &failure);
+                return Err(failure.message);
+            }
+        };
+        sender
+            .send_interrupt()
+            .and_then(|_| sender.type_text(&chosen))
+            .and_then(|_| sender.press_enter())
+    };
+
+    let result = match result {
+        Err(error) if error.failure_code() == MacroFailureCode::Permission => {
+            match EnigoSender::new() {
+                Ok(sender) => {
+                    let sender: Arc<dyn MacroSender> = Arc::new(sender);
+                    if let Ok(mut current) = state.sender.lock() {
+                        *current = sender.clone();
+                    }
+                    sender
+                        .send_interrupt()
+                        .and_then(|_| sender.type_text(&chosen))
+                        .and_then(|_| sender.press_enter())
+                }
+                Err(error) => Err(error),
+            }
+        }
+        other => other,
+    };
 
     if let Err(error) = result {
         let failure = MacroFailure::from_error(&error);
@@ -269,6 +314,38 @@ pub fn stop_cursor_tracking(state: State<'_, AppState>) -> Result<(), String> {
 #[tauri::command]
 pub async fn open_settings(app: AppHandle) -> Result<(), String> {
     present_settings_window(&app)
+}
+
+/// Open the operating system's input/accessibility permission page. This is
+/// intentionally distinct from AISpur's settings window.
+#[tauri::command]
+pub fn open_input_permissions() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .args(["x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "ms-settings:easeofaccess-keyboard"])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg("settings://")
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+    #[allow(unreachable_code)]
+    Err("当前平台没有可用的输入权限设置入口".to_string())
 }
 
 // ── Skins ───────────────────────────────────────────────────────────────────
