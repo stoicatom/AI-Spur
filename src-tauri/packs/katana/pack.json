@@ -1,0 +1,32 @@
+{
+  "id": "katana",
+  "name": "武士刀",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "dash",
+    "params": {
+      "dashLength": 1.8,
+      "afterimage": 2,
+      "shear": 1.4
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.094059,
+      "sourceTitle": "Samurai sword impact",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2789/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#e8e8f5",
+      "#8a8aa0"
+    ],
+    "particleHue": 240
+  }
+}

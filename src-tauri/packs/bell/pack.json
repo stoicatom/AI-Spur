@@ -1,0 +1,32 @@
+{
+  "id": "bell",
+  "name": "铃铛",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "echo",
+    "params": {
+      "echoes": 3,
+      "ring": 1.8,
+      "decay": 1.6
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.587823,
+      "sourceTitle": "Cooking bell ding",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1791/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffd94d",
+      "#b88400"
+    ],
+    "particleHue": 47
+  }
+}

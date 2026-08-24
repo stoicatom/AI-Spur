@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_earth" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#8D6E63"/>
+      <stop offset="0.5" stop-color="#6D4C41"/>
+      <stop offset="1" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#g_earth)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 240 L120 180 L160 260 L220 140 L280 300 L340 200 L400 240" stroke-width="24"/>
+    <path d="M70 250 L110 210 L150 270 L210 170 L270 310 L330 220 L390 250"
+          stroke="#A1887F" stroke-width="8" opacity="0.5"/>
+    <line x1="60" y1="340" x2="452" y2="340" stroke-width="12" opacity="0.6"/>
+    <line x1="80" y1="370" x2="432" y2="370" stroke-width="10" opacity="0.4"/>
+    <line x1="100" y1="400" x2="412" y2="400" stroke-width="8" opacity="0.3"/>
+    <circle cx="140" cy="240" r="8" fill="#BCAAA4" opacity="0.6"/>
+    <circle cx="240" cy="200" r="10" fill="#BCAAA4" opacity="0.6"/>
+    <circle cx="320" cy="260" r="8" fill="#BCAAA4" opacity="0.6"/>
+    <path d="M180 280 L200 300 L180 320" stroke="#5D4037" stroke-width="6" opacity="0.4"/>
+    <path d="M300 220 L320 240 L300 260" stroke="#5D4037" stroke-width="6" opacity="0.4"/>
+  </g>
+</svg>

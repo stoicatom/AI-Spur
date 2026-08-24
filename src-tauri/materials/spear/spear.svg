@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_spear_tip" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#E8E8E8"/>
+      <stop offset="0.5" stop-color="#C0C0C0"/>
+      <stop offset="1" stop-color="#A0A0A0"/>
+    </linearGradient>
+  </defs>
+  <line x1="256" y1="380" x2="256" y2="480" stroke="#8B4513" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 60 L212 260 L244 300 L268 300 L300 260 Z" fill="url(#g_spear_tip)" stroke="#909090" stroke-width="10"/>
+  <line x1="256" y1="80" x2="256" y2="280" stroke="#E0E0E0" stroke-width="6" opacity="0.4"/>
+  <rect x="232" y="300" width="48" height="80" rx="8" fill="#A0522D" stroke="#654321" stroke-width="8"/>
+  <rect x="238" y="305" width="36" height="70" rx="6" fill="#8B4513"/>
+  <line x1="240" y1="320" x2="272" y2="320" stroke="#654321" stroke-width="3"/>
+  <line x1="240" y1="350" x2="272" y2="350" stroke="#654321" stroke-width="3"/>
+  <ellipse cx="256" cy="465" rx="18" ry="12" fill="#654321"/>
+</svg>

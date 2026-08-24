@@ -49,7 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: '外观',
     items: [
-      { id: 'skins', label: '皮肤', icon: 'skins' },
+      { id: 'skins', label: '素材包', icon: 'skins' },
       { id: 'animation', label: '动画', icon: 'animation' },
       { id: 'sounds', label: '音效', icon: 'sounds' },
       { id: 'theme', label: '主题', icon: 'theme' },

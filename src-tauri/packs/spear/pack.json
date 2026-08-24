@@ -1,0 +1,32 @@
+{
+  "id": "spear",
+  "name": "长矛",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "dash",
+    "params": {
+      "thrust": 1.6,
+      "pierce": 1.4,
+      "speed": 1.9
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.188027,
+      "sourceTitle": "Metal arrow hit",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2769/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#e8e8c8",
+      "#9a9a5a"
+    ],
+    "particleHue": 60
+  }
+}

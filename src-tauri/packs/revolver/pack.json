@@ -1,0 +1,35 @@
+{
+  "id": "revolver",
+  "name": "左轮枪击",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "gunshot",
+    "params": {
+      "muzzleEnergy": 2.5,
+      "recoilKick": 1.45,
+      "tracerSpeed": 3.1,
+      "smokeCurl": 0.85,
+      "casingSpin": 2.2,
+      "flashCone": 1.35
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.81458,
+      "sourceTitle": "Game gun shot",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1662/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#F0A43A",
+      "#3A4656"
+    ],
+    "particleHue": 38
+  }
+}

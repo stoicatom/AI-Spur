@@ -1,0 +1,32 @@
+{
+  "id": "lightning",
+  "name": "闪电",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "bolt",
+    "params": {
+      "branches": 3,
+      "jaggedness": 1.8,
+      "flicker": 2.2
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 6.825329,
+      "sourceTitle": "Electricity lightning blast",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2601/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffd93d",
+      "#c49000"
+    ],
+    "particleHue": 48
+  }
+}

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_crown_gold" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#FFA500"/>
+      <stop offset="1" stop-color="#FF8C00"/>
+    </linearGradient>
+    <linearGradient id="g_crown_band" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFE55C"/>
+      <stop offset="0.5" stop-color="#FFD700"/>
+      <stop offset="1" stop-color="#DAA520"/>
+    </linearGradient>
+    <radialGradient id="g_gem_ruby" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#FF6B9D"/>
+      <stop offset="0.6" stop-color="#C2185B"/>
+      <stop offset="1" stop-color="#880E4F"/>
+    </radialGradient>
+    <radialGradient id="g_gem_emerald" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#66FF99"/>
+      <stop offset="0.6" stop-color="#00C853"/>
+      <stop offset="1" stop-color="#00695C"/>
+    </radialGradient>
+    <radialGradient id="g_gem_sapphire" cx="0.4" cy="0.3">
+      <stop offset="0" stop-color="#64B5F6"/>
+      <stop offset="0.6" stop-color="#1976D2"/>
+      <stop offset="1" stop-color="#0D47A1"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 底座阴影 -->
+  <path d="M98 322 L418 322 L418 402 C418 422 402 442 382 442 L134 442 C114 442 98 422 98 402 Z"
+        fill="#000" opacity="0.2"/>
+
+  <!-- 底座 -->
+  <path d="M96 320 L416 320 L416 400 C416 420 400 440 380 440 L132 440 C112 440 96 420 96 400 Z"
+        fill="url(#g_crown_band)" stroke="#B8860B" stroke-width="8"/>
+
+  <!-- 底座装饰条纹 -->
+  <line x1="100" y1="350" x2="412" y2="350" stroke="#DAA520" stroke-width="3" opacity="0.6"/>
+  <line x1="100" y1="370" x2="412" y2="370" stroke="#FFE55C" stroke-width="2" opacity="0.8"/>
+  <line x1="100" y1="390" x2="412" y2="390" stroke="#DAA520" stroke-width="3" opacity="0.6"/>
+
+  <!-- 底座宝石镶嵌 -->
+  <circle cx="160" cy="370" r="10" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="2"/>
+  <circle cx="256" cy="370" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="2"/>
+  <circle cx="352" cy="370" r="10" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="2"/>
+
+  <!-- 尖峰主体 -->
+  <path d="M96 320 L120 160 L180 240 L256 120 L332 240 L392 160 L416 320"
+        fill="url(#g_crown_gold)" stroke="#B8860B" stroke-width="10" stroke-linejoin="round"/>
+
+  <!-- 尖峰内部高光 -->
+  <path d="M100 318 L122 170 L175 235 L256 130 L337 235 L390 170 L412 318"
+        fill="none" stroke="#FFE55C" stroke-width="3" opacity="0.6"/>
+
+  <!-- 顶部宝石 - 左侧红宝石 -->
+  <circle cx="120" cy="160" r="22" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="4"/>
+  <path d="M110 150 L130 150 L120 165 Z" fill="#FF6B9D" opacity="0.5"/>
+  <circle cx="115" cy="155" r="6" fill="#FFB3D9" opacity="0.6"/>
+
+  <!-- 中央蓝宝石（最大） -->
+  <circle cx="256" cy="120" r="28" fill="url(#g_gem_sapphire)" stroke="#0D47A1" stroke-width="5"/>
+  <path d="M242 108 L270 108 L256 128 Z" fill="#64B5F6" opacity="0.5"/>
+  <circle cx="250" cy="113" r="8" fill="#90CAF9" opacity="0.7"/>
+
+  <!-- 右侧红宝石 -->
+  <circle cx="392" cy="160" r="22" fill="url(#g_gem_ruby)" stroke="#880E4F" stroke-width="4"/>
+  <path d="M382 150 L402 150 L392 165 Z" fill="#FF6B9D" opacity="0.5"/>
+  <circle cx="387" cy="155" r="6" fill="#FFB3D9" opacity="0.6"/>
+
+  <!-- 次级宝石点缀 -->
+  <circle cx="180" cy="240" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="3"/>
+  <circle cx="332" cy="240" r="12" fill="url(#g_gem_emerald)" stroke="#00695C" stroke-width="3"/>
+</svg>

@@ -4,7 +4,13 @@ import { accelFromEvent, formatAccel } from '../settings/hotkey';
 /** Build a keyboard-event-shaped object for the pure parser. */
 function ev(
   key: string,
-  mods: Partial<{ ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean }> = {}
+  mods: Partial<{
+    ctrlKey: boolean;
+    metaKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+    code: string;
+  }> = {}
 ) {
   return {
     key,
@@ -12,6 +18,7 @@ function ev(
     metaKey: false,
     shiftKey: false,
     altKey: false,
+    code: '',
     ...mods,
   };
 }
@@ -46,6 +53,29 @@ describe('accelFromEvent', () => {
   it('preserves F-keys', () => {
     expect(accelFromEvent(ev('F5', { ctrlKey: true }))).toBe('CommandOrControl+F5');
     expect(accelFromEvent(ev('F12', { altKey: true }))).toBe('Alt+F12');
+  });
+
+  it('captures Cmd/Ctrl+Shift+Digit5 from event.code', () => {
+    expect(
+      accelFromEvent(ev('5', { ctrlKey: true, shiftKey: true, code: 'Digit5' }))
+    ).toBe('CommandOrControl+Shift+5');
+  });
+
+  it('normalizes numpad digits to their numeric accelerator token', () => {
+    expect(accelFromEvent(ev('5', { metaKey: true, code: 'Numpad5' }))).toBe(
+      'CommandOrControl+5'
+    );
+  });
+
+  it('captures modified navigation keys using event.code', () => {
+    expect(accelFromEvent(ev('ArrowUp', { altKey: true, code: 'ArrowUp' }))).toBe('Alt+ArrowUp');
+    expect(accelFromEvent(ev('Enter', { ctrlKey: true, code: 'Enter' }))).toBe(
+      'CommandOrControl+Enter'
+    );
+  });
+
+  it('keeps recording for an unsupported key code', () => {
+    expect(accelFromEvent(ev('Unidentified', { ctrlKey: true, code: 'UnknownKey' }))).toBeNull();
   });
 
   it('normalizes the space key to Space', () => {

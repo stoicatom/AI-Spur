@@ -1,0 +1,32 @@
+{
+  "id": "skull",
+  "name": "骷髅",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "burst",
+    "params": {
+      "count": 1.5,
+      "ghostly": 2,
+      "drift": 1.2
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 3.760998,
+      "sourceTitle": "Ghostly whoosh passing",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2623/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#d0d0d8",
+      "#70707c"
+    ],
+    "particleHue": 240
+  }
+}

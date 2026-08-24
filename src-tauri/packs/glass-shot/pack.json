@@ -1,0 +1,35 @@
+{
+  "id": "glass-shot",
+  "name": "弹孔碎屏",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "glass-break",
+    "params": {
+      "crackBranches": 8,
+      "impactRadius": 1.35,
+      "shardVelocity": 2.45,
+      "shardSpin": 2.8,
+      "refraction": 1.6,
+      "fractureDelay": 0.12
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.439819,
+      "sourceTitle": "Glass break with hammer thud",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/759/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#A8F0F4",
+      "#497EA5"
+    ],
+    "particleHue": 191
+  }
+}

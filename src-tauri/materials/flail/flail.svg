@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_flail_ball" x1="0.3" y1="0.3" x2="0.7" y2="0.7">
+      <stop offset="0" stop-color="#78909C"/>
+      <stop offset="0.5" stop-color="#607D8B"/>
+      <stop offset="1" stop-color="#455A64"/>
+    </linearGradient>
+  </defs>
+  <line x1="140" y1="60" x2="140" y2="300" stroke="#8B4513" stroke-width="26" stroke-linecap="round"/>
+  <path d="M145 65 L145 295" stroke="#A0522D" stroke-width="8" opacity="0.3"/>
+  <path d="M165 270 Q200 300 280 360 Q320 380 350 380" stroke="#546E7A" stroke-width="12" fill="none"/>
+  <circle cx="360" cy="390" r="60" fill="url(#g_flail_ball)" stroke="#37474F" stroke-width="12"/>
+  <circle cx="338" cy="368" r="20" fill="#90A4AE" opacity="0.5"/>
+  <circle cx="340" cy="370" r="16" fill="#263238"/>
+  <circle cx="365" cy="400" r="16" fill="#263238"/>
+  <circle cx="380" cy="375" r="14" fill="#263238"/>
+  <circle cx="355" cy="415" r="14" fill="#263238"/>
+</svg>

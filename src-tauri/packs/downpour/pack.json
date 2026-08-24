@@ -1,0 +1,35 @@
+{
+  "id": "downpour",
+  "name": "倾盆暴雨",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "downpour",
+    "params": {
+      "dropDensity": 2.8,
+      "fallSpeed": 2.15,
+      "windSkew": 0.72,
+      "splashEnergy": 1.55,
+      "curtainWidth": 2.4,
+      "sheetDepth": 0.9
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 12,
+      "sourceTitle": "Heavy rain drops",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2399/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#42B8E6",
+      "#24506D"
+    ],
+    "particleHue": 204
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "tornado",
+  "name": "龙卷风暴",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "tornado",
+    "params": {
+      "funnelTurns": 5.2,
+      "debrisOrbit": 1.65,
+      "suction": 2.25,
+      "lateralDrift": 0.55,
+      "funnelWidth": 1.15,
+      "stormScale": 1.8
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 4.124989,
+      "sourceTitle": "Storm coming whoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2408/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#55D6D0",
+      "#3A3F8F"
+    ],
+    "particleHue": 187
+  }
+}

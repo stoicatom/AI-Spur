@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_crystal_main" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#64B5F6"/>
+      <stop offset="0.3" stop-color="#42A5F5"/>
+      <stop offset="0.7" stop-color="#9C27B0"/>
+      <stop offset="1" stop-color="#673AB7"/>
+    </linearGradient>
+    <radialGradient id="g_crystal_shine" cx="0.3" cy="0.3">
+      <stop offset="0" stop-color="#E1F5FE" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#64B5F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M256 60 L376 200 L336 420 L176 420 L136 200 Z" fill="url(#g_crystal_main)"
+        stroke="#4A148C" stroke-width="12" stroke-linejoin="round"/>
+  <line x1="256" y1="60" x2="376" y2="200" stroke="#7E57C2" stroke-width="8"/>
+  <line x1="256" y1="60" x2="136" y2="200" stroke="#7E57C2" stroke-width="8"/>
+  <line x1="376" y1="200" x2="336" y2="420" stroke="#7E57C2" stroke-width="8"/>
+  <line x1="136" y1="200" x2="176" y2="420" stroke="#7E57C2" stroke-width="8"/>
+  <line x1="176" y1="420" x2="336" y2="420" stroke="#4A148C" stroke-width="10"/>
+  <line x1="136" y1="200" x2="376" y2="200" stroke="#7E57C2" stroke-width="8"/>
+  <line x1="256" y1="60" x2="256" y2="420" stroke="#9575CD" stroke-width="6"/>
+  <ellipse cx="220" cy="180" rx="50" ry="70" fill="url(#g_crystal_shine)"/>
+</svg>

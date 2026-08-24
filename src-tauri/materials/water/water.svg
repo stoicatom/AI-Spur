@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_water_main" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#64B5F6"/>
+      <stop offset="0.5" stop-color="#2196F3"/>
+      <stop offset="1" stop-color="#1976D2"/>
+    </linearGradient>
+    <radialGradient id="g_water_shine" cx="0.3" cy="0.3">
+      <stop offset="0" stop-color="#E3F2FD" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#64B5F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M256 64 C256 64 144 176 144 288 C144 356 194 416 256 416 C318 416 368 356 368 288 C368 176 256 64 256 64 Z"
+        fill="url(#g_water_main)" stroke="#1565C0" stroke-width="10" stroke-linejoin="round"/>
+  <ellipse cx="200" cy="240" rx="32" ry="48" fill="url(#g_water_shine)"/>
+  <ellipse cx="220" cy="280" rx="20" ry="28" fill="#BBDEFB" opacity="0.4"/>
+  <path d="M180 320 C200 340 220 350 240 350" stroke="#0D47A1" stroke-width="4" opacity="0.2" fill="none" stroke-linecap="round"/>
+  <path d="M280 340 C300 350 320 350 330 345" stroke="#0D47A1" stroke-width="4" opacity="0.2" fill="none" stroke-linecap="round"/>
+</svg>

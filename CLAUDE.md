@@ -1,4 +1,4 @@
-# OpenWhip v2 — AI 工程宪法
+# AISpur v2 — AI 工程宪法
 
 > **这是 AI 编码会话的最高约束文档。所有规则文件、设计规格、ADR 均从属于此文档。
 > 遇到矛盾时，以本文件为准。**
@@ -7,7 +7,7 @@
 
 ## 一、项目概述
 
-OpenWhip 是一个跨平台（macOS / Windows / Linux）桌面托盘应用，用于向 Claude Code CLI 发送"催促"信号。
+AISpur 是一个跨平台（macOS / Windows / Linux）桌面托盘应用，用于向 Claude Code CLI 发送"催促"信号。
 
 **核心循环：**
 1. 用户按全局快捷键 → 触发鞭子动画（全屏透明覆盖层）
@@ -47,7 +47,7 @@ OpenWhip 是一个跨平台（macOS / Windows / Linux）桌面托盘应用，用
 ## 三、目录结构规范
 
 ```
-openwhip/
+aispur/
 ├── src-tauri/              # Rust 后端（标准 Tauri 目录）
 │   ├── src/
 │   │   ├── main.rs         # app 入口，插件注册

@@ -1,4 +1,4 @@
-use openwhip::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
+use aispur::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
 
 /// Simulates the complete whip crack handler logic:
 /// 1. Send interrupt (Ctrl+C)

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_chain" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#B0B0B0"/>
+      <stop offset="1" stop-color="#707070"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="136" cy="136" rx="64" ry="36" transform="rotate(-45 136 136)"
+           fill="none" stroke="url(#g_chain)" stroke-width="14"/>
+  <ellipse cx="216" cy="216" rx="64" ry="36" transform="rotate(45 216 216)"
+           fill="none" stroke="url(#g_chain)" stroke-width="14"/>
+  <ellipse cx="296" cy="296" rx="64" ry="36" transform="rotate(-45 296 296)"
+           fill="none" stroke="url(#g_chain)" stroke-width="14"/>
+  <ellipse cx="376" cy="376" rx="64" ry="36" transform="rotate(45 376 376)"
+           fill="none" stroke="url(#g_chain)" stroke-width="14"/>
+  <ellipse cx="140" cy="132" rx="50" ry="28" transform="rotate(-45 140 132)"
+           fill="#C0C0C0" opacity="0.3"/>
+  <ellipse cx="220" cy="212" rx="50" ry="28" transform="rotate(45 220 212)"
+           fill="#C0C0C0" opacity="0.3"/>
+</svg>

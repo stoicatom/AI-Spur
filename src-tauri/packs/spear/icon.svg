@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
+  <title>木杆长矛</title>
+  <defs>
+    <linearGradient id="spear-head" x1="34" y1="5" x2="43" y2="19" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-steel-light,#E7ECE8)"/>
+      <stop offset=".5" stop-color="var(--pack-steel,#A0ADB0)"/>
+      <stop offset="1" stop-color="var(--pack-steel-shadow,#56686D)"/>
+    </linearGradient>
+    <linearGradient id="spear-wood" x1="9" y1="43" x2="31" y2="21" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-wood-shadow,#4C332A)"/>
+      <stop offset="1" stop-color="var(--pack-wood,#98704F)"/>
+    </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="43" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+
+      <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feDiffuseLighting>
+      <feComposite in="diffuse" in2="SourceAlpha" operator="in" result="diffuse-mask"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".28" result="edge-expanded"/>
+      <feComposite in="edge-expanded" in2="SourceAlpha" operator="out" result="edge-mask"/>
+      <feFlood flood-color="#FFFFFF" flood-opacity=".22" result="edge-color"/>
+      <feComposite in="edge-color" in2="edge-mask" operator="in" result="edge-light"/>
+      <feBlend in="lit" in2="diffuse-mask" mode="screen" result="diffuse-lit"/>
+      <feBlend in="diffuse-lit" in2="edge-light" mode="screen" result="studio-lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="studio-lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
+  <path d="m8 43 28-28" stroke="url(#spear-wood)" stroke-width="2.5"/>
+  <path d="m35 16 1-10 8-3-3 10-6 7Z" fill="url(#spear-head)" stroke="var(--pack-ink,#35444A)" stroke-width="1.5"/>
+  <path d="m37 15 6-10" stroke="var(--pack-edge,#F2F5EF)" stroke-width="1.5" opacity=".75"/>
+  <path d="m12 34 6 6m-3-9 6 6" stroke="var(--pack-binding,#B79161)" stroke-width="1.5"/>
+  <path d="M6 43l4-7 5 5Z" fill="var(--pack-butt,#594238)" stroke="var(--pack-ink,#35444A)" stroke-width="1.5"/>
+  <path d="M13 38 30 21" stroke="var(--pack-wood-grain,#C19A70)" stroke-width="1.5" opacity=".55"/>
+
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+{
+  "id": "saxophone",
+  "name": "霓虹萨克斯",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "note-dance",
+    "params": {
+      "noteSpiral": 1.85,
+      "brassGlow": 1.4,
+      "breathFlow": 0.95,
+      "vibrato": 1.65,
+      "phraseLength": 2.1,
+      "bellBurst": 1.35
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 3.255215,
+      "sourceTitle": "Lick Tenor Sax — The lick in C minor played on tenor saxophone",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lick_Tenor_Sax.wav",
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#F2B134",
+      "#0E8F87"
+    ],
+    "particleHue": 164
+  }
+}

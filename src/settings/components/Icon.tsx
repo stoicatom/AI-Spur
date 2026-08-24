@@ -1,12 +1,29 @@
 /**
- * Geometric icon system for AI-Spur settings.
+ * Geometric icon system for AISpur settings.
  *
  * Replaces emoji glyphs with sharp, industrial SVG icons that match the
  * forged-metal aesthetic. All icons are 20×20px with 1.5px stroke, optimized
  * for sidebar nav at 16px rendered size.
  */
 
-export type IconName = 'trigger' | 'phrases' | 'skins' | 'animation' | 'sounds' | 'theme' | 'stats';
+export type IconName =
+  | 'trigger'
+  | 'phrases'
+  | 'skins'
+  | 'animation'
+  | 'sounds'
+  | 'theme'
+  | 'stats'
+  | 'plus'
+  | 'search'
+  | 'close'
+  | 'trash'
+  | 'check'
+  | 'upload'
+  | 'play'
+  | 'pause'
+  | 'chevron-left'
+  | 'chevron-right';
 
 export interface IconProps {
   name: IconName;
@@ -21,8 +38,6 @@ export function Icon({ name, className = '' }: IconProps) {
   return (
     <svg
       className={`icon ${className}`}
-      width="20"
-      height="20"
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -57,26 +72,15 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
     </>
   ),
 
-  // Skins: Layers (visual customization, stacked options)
+  // Skins: T-shirt (wearable appearance / skin customization)
   skins: (
-    <>
-      <rect
-        x="4"
-        y="4"
-        width="12"
-        height="12"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M7 4V2M13 4V2M16 7H18M16 13H18"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </>
+    <path
+      d="M7 3.5L3.5 5.25L2.5 8.75L5.4 10L6.2 8.5V16.5H13.8V8.5L14.6 10L17.5 8.75L16.5 5.25L13 3.5C12.5 4.6 11.4 5.25 10 5.25C8.6 5.25 7.5 4.6 7 3.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   ),
 
   // Animation: Sine wave (motion, physics, dynamic behavior)
@@ -133,4 +137,49 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
       />
     </>
   ),
+
+  plus: (
+    <path d="M10 3.5V16.5M3.5 10H16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  ),
+
+  search: (
+    <>
+      <circle cx="8.5" cy="8.5" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12.25 12.25L16.5 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </>
+  ),
+
+  close: (
+    <path d="M4.5 4.5L15.5 15.5M15.5 4.5L4.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  ),
+
+  trash: (
+    <>
+      <path d="M4 6H16M7.5 3.5H12.5L13.5 6M6 6L6.75 16.5H13.25L14 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.5 9V13.5M11.5 9V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </>
+  ),
+
+  check: (
+    <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  ),
+
+  upload: (
+    <>
+      <path d="M10 14V4M6.5 7.5L10 4L13.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12.5V16H16V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  ),
+
+  play: <path d="M7 4.8L17 10L7 15.2V4.8Z" fill="currentColor" />,
+
+  pause: (
+    <>
+      <path d="M6.5 5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M13.5 5V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </>
+  ),
+
+  'chevron-left': <path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  'chevron-right': <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
 };

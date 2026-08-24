@@ -1,0 +1,35 @@
+{
+  "id": "piano",
+  "name": "跃动钢琴",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "note-dance",
+    "params": {
+      "keyCount": 7,
+      "keyBounce": 1.25,
+      "chordSpread": 1.8,
+      "noteRise": 1.15,
+      "sustainTrails": 1.6,
+      "octaveArc": 0.72
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 8.345986,
+      "sourceTitle": "Piano key strike",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/691/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#F6F1E8",
+      "#29283D"
+    ],
+    "particleHue": 278
+  }
+}

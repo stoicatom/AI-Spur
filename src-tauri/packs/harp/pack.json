@@ -1,0 +1,32 @@
+{
+  "id": "harp",
+  "name": "竖琴",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "petal",
+    "params": {
+      "arpeggio": 1.9,
+      "scatter": 1.5,
+      "grace": 1.4
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 2.982608,
+      "sourceTitle": "Choir harp bless",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/657/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffc48a",
+      "#b8703a"
+    ],
+    "particleHue": 30
+  }
+}

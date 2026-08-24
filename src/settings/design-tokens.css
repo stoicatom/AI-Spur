@@ -1,5 +1,5 @@
 /*
- * OpenWhip v2 — Design Tokens
+ * AISpur — Design Tokens
  *
  * 设计方向：锻造美学（Forged Metal × Kinetic Energy）
  * 品牌定位：极味效率工具，不是 SaaS 仪表板。
@@ -288,7 +288,7 @@
 
 /* ─���─ Motion & Easing ───���───────���─���────────���───���──���─���──────────���──���───���──── */
 :root {
-  /* The signature OpenWhip easing ��� whip-snap with overshoot */
+  /* The signature AISpur easing ��� whip-snap with overshoot */
   --ease-whip:        cubic-bezier(0.22, 1.2, 0.36, 1);
   /* Smooth deceleration for panels sliding in */
   --ease-out-expo:    cubic-bezier(0.16, 1, 0.30, 1);

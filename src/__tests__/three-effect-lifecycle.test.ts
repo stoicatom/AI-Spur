@@ -1,0 +1,200 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ThreeEffectSpec } from '../overlay/three-effects';
+
+const state = vi.hoisted(() => ({
+  renderers: [] as Array<Record<string, ReturnType<typeof vi.fn>>>,
+  loads: [] as Array<{
+    texture: { dispose: ReturnType<typeof vi.fn> };
+    onLoad: (texture: never) => void;
+    onError?: () => void;
+  }>,
+}));
+
+vi.mock('three', async () => {
+  const actual = await vi.importActual<typeof import('three')>('three');
+  class MockWebGLRenderer {
+    outputColorSpace: unknown;
+    toneMapping: unknown;
+    setClearColor = vi.fn();
+    setClearAlpha = vi.fn();
+    getClearAlpha = vi.fn(() => 0);
+    getClearColor = vi.fn((target: { set: (value: number) => void }) => { target.set(0); return target; });
+    getPixelRatio = vi.fn(() => 1);
+    getSize = vi.fn((target: { set: (width: number, height: number) => void }) => { target.set(1, 1); return target; });
+    getRenderTarget = vi.fn(() => null);
+    setRenderTarget = vi.fn();
+    setPixelRatio = vi.fn();
+    setSize = vi.fn();
+    render = vi.fn();
+    clear = vi.fn();
+    clearDepth = vi.fn();
+    autoClear = true;
+    autoClearColor = true;
+    autoClearDepth = true;
+    autoClearStencil = true;
+    dispose = vi.fn();
+    setAnimationLoop = vi.fn();
+    renderLists = { dispose: vi.fn() };
+
+    constructor() { state.renderers.push(this as unknown as Record<string, ReturnType<typeof vi.fn>>); }
+  }
+  class MockTextureLoader {
+    load(_url: string, onLoad: (texture: never) => void, _progress?: unknown, onError?: () => void) {
+      const texture = new actual.Texture();
+      vi.spyOn(texture, 'dispose');
+      state.loads.push({ texture: texture as unknown as { dispose: ReturnType<typeof vi.fn> }, onLoad, onError });
+      return texture;
+    }
+  }
+  return { ...actual, WebGLRenderer: MockWebGLRenderer, TextureLoader: MockTextureLoader };
+});
+
+import * as THREE from 'three';
+import { resolveEffect } from '../overlay/effects';
+import {
+  MATERIAL_ANIMATION_AREA_SCALE,
+  MATERIAL_SOURCE_SPRITE_LINEAR_SCALE,
+} from '../overlay/material-animation-constants';
+import { profileFor } from '../overlay/three-effect-profiles';
+import { ThreeEffectRenderer } from '../overlay/three-effects';
+
+const spec = (url = 'asset://sprite'): ThreeEffectSpec => ({
+  packId: 'custom-spiral', url, preset: 'spiral', hue: 24, x: 160, y: 90,
+  vel: { vx: 3, vy: -2, speed: 4, dir: -0.59 }, params: {},
+});
+
+describe('ThreeEffectRenderer GPU 生命周期', () => {
+  beforeEach(() => { state.renderers.length = 0; state.loads.length = 0; vi.restoreAllMocks(); });
+
+  it('取消后的迟到纹理回调只释放自身资源，不会重建旧精灵', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.start(spec(), 0);
+    const pending = state.loads[0];
+    effect.cancel();
+    expect(pending.texture.dispose).toHaveBeenCalledTimes(1);
+
+    pending.onLoad(pending.texture as never);
+    expect(pending.texture.dispose).toHaveBeenCalledTimes(1);
+    expect(effect.isAlive).toBe(false);
+    expect((effect as unknown as { root: THREE.Group }).root.children).toHaveLength(0);
+    effect.dispose();
+  });
+
+  it('共享几何体、材质和纹理在一次清场中只释放一次', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    const root = (effect as unknown as { root: THREE.Group }).root;
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const texture = new THREE.Texture();
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const geometryDispose = vi.spyOn(geometry, 'dispose');
+    const textureDispose = vi.spyOn(texture, 'dispose');
+    const materialDispose = vi.spyOn(material, 'dispose');
+    root.add(new THREE.Mesh(geometry, material), new THREE.Mesh(geometry, material));
+
+    effect.cancel();
+    expect(geometryDispose).toHaveBeenCalledTimes(1);
+    expect(materialDispose).toHaveBeenCalledTimes(1);
+    expect(textureDispose).toHaveBeenCalledTimes(1);
+    effect.dispose();
+  });
+
+  it('新运行会废弃旧纹理请求，dispose 是幂等的且停止内部动画循环', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.start(spec('asset://first'), 0);
+    const first = state.loads[0];
+    effect.start(spec('asset://second'), 1);
+    const second = state.loads[1];
+    expect(first.texture.dispose).toHaveBeenCalledTimes(1);
+
+    first.onLoad(first.texture as never);
+    second.onLoad(second.texture as never);
+    expect(first.texture.dispose).toHaveBeenCalledTimes(1);
+    effect.dispose();
+    effect.dispose();
+
+    expect(second.texture.dispose).toHaveBeenCalledTimes(1);
+    expect(state.renderers[0].setAnimationLoop).toHaveBeenCalledWith(null);
+    expect(state.renderers[0].dispose).toHaveBeenCalledTimes(1);
+    expect(effect.update(2)).toBe(false);
+    expect(() => effect.start(spec(), 2)).toThrow('disposed');
+  });
+
+  it('专属场景保留素材身份纹理，慢帧仍保留全部固定物理步长', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.start({ ...spec('asset://storm'), preset: 'downpour', params: { dropDensity: 2.8 } }, 0);
+    expect(state.loads).toHaveLength(1);
+
+    effect.start(spec(''), 0);
+    expect((effect as unknown as { root: THREE.Group }).root
+      .getObjectByName('full-field-custom-spiral-energy')).toBeTruthy();
+    effect.update(100);
+    const states = (effect as unknown as { states: Array<{ age: number }> }).states;
+    expect(states[0]?.age).toBeCloseTo(.1, 5);
+    effect.dispose();
+  });
+
+  it('纹理回调挂载素材精灵，并逐帧应用当前预设的 SpriteFrame', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.resize(800, 600);
+    const current = {
+      ...spec('asset://spiral'),
+      x: 260,
+      y: 180,
+      params: { turns: 3.4, radius: 1.35 },
+    };
+    effect.start(current, 0);
+    const pending = state.loads[0];
+    pending.onLoad(pending.texture as never);
+
+    const root = (effect as unknown as { root: THREE.Group }).root;
+    expect(root.getObjectByName('image-hero-energy')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-echo-near')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-echo-far')).toBeTruthy();
+    expect(root.getObjectByName('image-hero-pulse')).toBeTruthy();
+    const sprite = root.children.find((child): child is THREE.Mesh => {
+      if (!(child instanceof THREE.Mesh)) return false;
+      const material = child.material;
+      return !Array.isArray(material)
+        && material instanceof THREE.MeshBasicMaterial
+        && material.map === pending.texture as unknown as THREE.Texture;
+    });
+    expect(sprite).toBeDefined();
+
+    const progress = 0.5;
+    effect.update(profileFor(current.preset).duration * progress);
+    const frame = resolveEffect(current.preset).sprite(progress, current.vel, current.params);
+    expect(sprite?.position.x).toBeCloseTo(
+      current.x - 400 + frame.dx * MATERIAL_ANIMATION_AREA_SCALE,
+      8,
+    );
+    expect(sprite?.position.y).toBeCloseTo(
+      300 - current.y - frame.dy * MATERIAL_ANIMATION_AREA_SCALE,
+      8,
+    );
+    expect(sprite?.rotation.z).toBeCloseTo(-frame.rot, 8);
+    expect(sprite?.scale.x).toBeCloseTo(
+      frame.scale * MATERIAL_SOURCE_SPRITE_LINEAR_SCALE,
+      8,
+    );
+    expect((sprite?.material as THREE.MeshBasicMaterial).opacity).toBeCloseTo(frame.alpha, 8);
+    effect.dispose();
+  });
+
+  it('取消素材动画时释放 Hero 层几何体与材质', () => {
+    const effect = new ThreeEffectRenderer(document.createElement('canvas'));
+    effect.start(spec('asset://hero'), 0);
+    const pending = state.loads[0];
+    pending.onLoad(pending.texture as never);
+
+    const root = (effect as unknown as { root: THREE.Group }).root;
+    const energy = root.getObjectByName('image-hero-energy') as THREE.Mesh;
+    const geometryDispose = vi.spyOn(energy.geometry, 'dispose');
+    const materialDispose = vi.spyOn(energy.material as THREE.Material, 'dispose');
+
+    effect.cancel();
+
+    expect(geometryDispose).toHaveBeenCalledTimes(1);
+    expect(materialDispose).toHaveBeenCalledTimes(1);
+    effect.dispose();
+  });
+});

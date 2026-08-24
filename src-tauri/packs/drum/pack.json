@@ -1,0 +1,32 @@
+{
+  "id": "drum",
+  "name": "战鼓",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "drum-beat",
+    "params": {
+      "rings": 2,
+      "intensity": 2,
+      "bass": 2.4
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 5.5,
+      "sourceTitle": "Drum deep impact",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/563/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff7a4d",
+      "#a82a00"
+    ],
+    "particleHue": 15
+  }
+}

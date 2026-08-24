@@ -1,10 +1,12 @@
 use crate::config::{self, Config};
+use crate::cursor_tracker;
 use crate::macro_sender::MacroSender;
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
 use crate::usage;
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -17,6 +19,29 @@ pub struct AppState {
     /// `app_config_dir()`. Held here so the command layer never has to guess the
     /// location from a hardcoded bundle identifier (CLAUDE.md §4.3).
     pub config_path: PathBuf,
+    /// Whether the overlay cursor-tracking loop is running. Set by the shortcut
+    /// handler (show) and cleared by `stop_cursor_tracking` (overlay hide). One
+    /// shared flag guarantees a single polling task (see `cursor_tracker`).
+    pub cursor_tracking: Arc<AtomicBool>,
+}
+
+/// Present the existing settings window from any native entry point.
+///
+/// The app is normally an accessory/tray process on macOS, so it must become
+/// regular before AppKit will bring the hidden window to the foreground.
+pub(crate) fn present_settings_window(app: &AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("settings")
+        .ok_or_else(|| "settings window not found".to_string())?;
+
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(tauri::ActivationPolicy::Regular)
+        .map_err(|e| e.to_string())?;
+
+    window.show().map_err(|e| e.to_string())?;
+    window.unminimize().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -34,27 +59,36 @@ pub async fn save_config(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
-    config::save_config(&state.config_path, &config).map_err(|e| e.to_string())?;
-
     let previous_hotkey = {
-        let mut current = state
+        let current = state
             .config
             .lock()
             .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-        let previous = current.hotkey.clone();
-        *current = config.clone();
-        previous
+        current.hotkey.clone()
     };
 
     // Keep the OS registration in step with the persisted config — without
     // this a hotkey edit would only take effect after a restart.
     //
-    // The config stays saved even if rebinding fails: that is the user's
-    // stated intent, and the error surfaces in the UI so they can pick
-    // another combination.
+    // The config is persisted only after the complete new shortcut set is
+    // registered; a failed rebind leaves both disk and the active shortcut
+    // unchanged so the user can pick another combination.
     if previous_hotkey != config.hotkey {
-        shortcut::unregister_all(&app).map_err(|e| e.to_string())?;
-        shortcut::register(&app, &config.hotkey).map_err(|e| e.to_string())?;
+        let config_to_persist = config.clone();
+        let config_path = state.config_path.clone();
+        shortcut::rebind(&app, &previous_hotkey, &config.hotkey, move || {
+            config::save_config(&config_path, &config_to_persist).map_err(|e| e.to_string())
+        })?;
+    } else {
+        config::save_config(&state.config_path, &config).map_err(|e| e.to_string())?;
+    }
+
+    {
+        let mut current = state
+            .config
+            .lock()
+            .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
+        *current = config;
     }
     Ok(())
 }
@@ -82,14 +116,27 @@ pub async fn increment_usage(app: AppHandle, state: State<'_, AppState>) -> Resu
 }
 
 #[tauri::command]
-pub async fn register_hotkey(hotkey: String, app: AppHandle) -> Result<(), String> {
+pub async fn register_hotkey(
+    hotkey: String,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     if !shortcut::validate_hotkey(&hotkey) {
         return Err(format!("Invalid hotkey format: {hotkey}"));
     }
-    shortcut::unregister_all(&app).map_err(|e| e.to_string())?;
-    // The returned RegisteredShortcuts carries the primary + Easter-egg pair;
-    // the command only needs to know registration succeeded.
-    shortcut::register(&app, &hotkey).map_err(|e| e.to_string())
+    let current = state
+        .config
+        .lock()
+        .map_err(|_| "Internal state error: config lock poisoned".to_string())?
+        .hotkey
+        .clone();
+    shortcut::rebind(&app, &current, &hotkey, || Ok(()))?;
+    let mut config = state
+        .config
+        .lock()
+        .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
+    config.hotkey = hotkey;
+    Ok(())
 }
 
 #[tauri::command]
@@ -116,8 +163,37 @@ pub fn trigger_macro(
 ) -> Result<(), String> {
     // Safety gate: never inject into a window we can't confirm is a terminal.
     // Unknown frontmost app should not be spammed with Ctrl+C + text.
+    //
+    // When the frontmost app is not a known terminal, we still try once at the
+    // pointer's location: if the cursor is over a safe terminal window, bring
+    // that app to the front so the macro lands in the right input box (the
+    // "鼠标下面是终端 → 聚焦并处理" strategy). Only if no safe window is under
+    // the cursor do we refuse.
     if !target_window::active_app_is_safe() {
-        return Err("当前前台应用不是终端，已跳过发送".to_string());
+        let ready = app
+            .get_webview_window("overlay")
+            .and_then(|w| w.cursor_position().ok())
+            .map(|pos| {
+                target_window::app_under_cursor(pos.x, pos.y)
+                    .map(|hit| {
+                        let ok = target_window::activate_app(hit.pid);
+                        if ok {
+                            eprintln!(
+                                "[macro] 光标下命中安全终端，已激活: {} (pid {})",
+                                hit.name, hit.pid
+                            );
+                        }
+                        ok
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap_or(false);
+
+        if !ready {
+            return Err("当前前台应用不是终端，已跳过发送".to_string());
+        }
+        // Give AppKit a tick to settle focus before synthesizing keystrokes.
+        std::thread::sleep(std::time::Duration::from_millis(90));
     }
 
     // Server-side phrase choice (random from config) unless the caller passed
@@ -146,6 +222,17 @@ pub fn trigger_macro(
     Ok(())
 }
 
+/// Stop the overlay cursor-tracking loop.
+///
+/// Called by the overlay when it hides — after a crack's exit choreography, on
+/// `Esc`, or any other dismissal. Idempotent: clearing an already-clear flag is
+/// harmless, so the overlay can call it defensively without tracking state.
+#[tauri::command]
+pub fn stop_cursor_tracking(state: State<'_, AppState>) -> Result<(), String> {
+    cursor_tracker::stop(&state.cursor_tracking);
+    Ok(())
+}
+
 /// Show and focus the settings window.
 ///
 /// The window is defined in tauri.conf.json with `visible: false`, so it
@@ -153,13 +240,7 @@ pub fn trigger_macro(
 /// it lazily would cost a WebView boot on every open.
 #[tauri::command]
 pub async fn open_settings(app: AppHandle) -> Result<(), String> {
-    let window = app
-        .get_webview_window("settings")
-        .ok_or_else(|| "settings window not found".to_string())?;
-    window.show().map_err(|e| e.to_string())?;
-    window.unminimize().ok();
-    window.set_focus().map_err(|e| e.to_string())?;
-    Ok(())
+    present_settings_window(&app)
 }
 
 // ── Skins ───────────────────────────────────────────────────────────────────
@@ -170,13 +251,23 @@ pub async fn open_settings(app: AppHandle) -> Result<(), String> {
 /// that directory does not carry them, so fall back to the crate's own
 /// `skins/` folder.
 fn builtin_skins_dir(app: &AppHandle) -> PathBuf {
+    let source = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("skins");
+
+    // Dev: the source tree is authoritative (target/debug accumulates stale
+    // resource copies that are never pruned). Packaged builds use the bundled
+    // resource dir when it scans to at least one skin.
+    #[cfg(not(debug_assertions))]
     if let Ok(resource_dir) = app.path().resource_dir() {
         let bundled = resource_dir.join("skins");
-        if bundled.is_dir() {
+        if bundled.is_dir() && !skins::list_skins_in(&bundled).is_empty() {
             return bundled;
         }
     }
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("skins")
+
+    #[cfg(debug_assertions)]
+    let _ = app;
+
+    source
 }
 
 /// Directory holding user-installed skins: `app_data_dir()/skins/`.
@@ -212,7 +303,7 @@ pub async fn activate_skin(
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
     let mut updated = guard.clone();
-    updated.active_skin = skin_id.clone();
+    updated.active_pack_id = skin_id.clone();
     config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
     *guard = updated.clone();
     drop(guard);
@@ -227,7 +318,7 @@ pub async fn activate_skin(
     Ok(())
 }
 
-// ���─ Debug-only commands for E2E testing (Phase 5) ���─���──���──���───────���──���─���───���
+// ── Debug-only commands for E2E testing (Phase 5) ────────────────────────────
 // Compiled and registered only in debug builds (cfg(debug_assertions)).
 // They invoke the same internal handler paths as real system events so that
 // E2E tests can exercise the full trigger chain without a running window system.
@@ -250,12 +341,8 @@ pub async fn __test_trigger_shortcut(
 #[cfg(debug_assertions)]
 #[tauri::command]
 pub async fn __test_click_tray(app: AppHandle) -> Result<(), String> {
-    // Simulates a left-click on the tray icon (same path as tray.rs handler)
-    if let Some(w) = app.get_webview_window("overlay") {
-        w.emit("spawn-whip", serde_json::json!({ "forceFull": false }))
-            .map_err(|e| e.to_string())?;
-    }
-    Ok(())
+    // Simulates a left-click on the tray icon → opens settings panel.
+    present_settings_window(&app)
 }
 
 #[cfg(debug_assertions)]

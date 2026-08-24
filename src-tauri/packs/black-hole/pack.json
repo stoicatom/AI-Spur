@@ -1,0 +1,35 @@
+{
+  "id": "black-hole",
+  "name": "吞噬黑洞",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "singularity",
+    "params": {
+      "accretionSpin": 2.65,
+      "lensingStrength": 1.75,
+      "gravityPull": 2.4,
+      "eventHorizon": 1.28,
+      "jetPower": 1.45,
+      "timeDilation": 0.68
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 4,
+      "sourceTitle": "Cinematic whoosh deep impact",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1143/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#8C5FD3",
+      "#25C7C9"
+    ],
+    "particleHue": 268
+  }
+}

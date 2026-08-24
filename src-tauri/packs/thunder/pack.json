@@ -1,0 +1,32 @@
+{
+  "id": "thunder",
+  "name": "雷鼓",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shock-ring",
+    "params": {
+      "rings": 3,
+      "intensity": 2.2,
+      "expansion": 1.8
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 12,
+      "sourceTitle": "Thunder rumble",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2390/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffe04d",
+      "#a87800"
+    ],
+    "particleHue": 50
+  }
+}

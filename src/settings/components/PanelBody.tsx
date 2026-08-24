@@ -2,7 +2,7 @@ import type { Config } from '../../shared/config';
 import type { PanelId } from '../panels';
 import { AnimationPanel } from './AnimationPanel';
 import { PhrasesPanel } from './PhrasesPanel';
-import { SkinsPanel } from './SkinsPanel';
+import { MaterialPacksPanel } from './MaterialPacksPanel';
 import { SoundsPanel } from './SoundsPanel';
 import { StatsPanel } from './StatsPanel';
 import { ThemePanel } from './ThemePanel';
@@ -28,7 +28,8 @@ export function PanelBody({ panel, config, onPatch }: PanelBodyProps) {
     case 'phrases':
       return <PhrasesPanel {...props} />;
     case 'skins':
-      return <SkinsPanel {...props} />;
+      // v3: SkinsPanel 已升级为素材包面板（三轴合一）
+      return <MaterialPacksPanel {...props} />;
     case 'animation':
       return <AnimationPanel {...props} />;
     case 'sounds':

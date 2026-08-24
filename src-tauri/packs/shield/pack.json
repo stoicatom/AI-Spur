@@ -1,0 +1,32 @@
+{
+  "id": "shield",
+  "name": "坚盾",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "impact",
+    "params": {
+      "block": 1.7,
+      "resonance": 1.5,
+      "deflection": 1.2
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.7,
+      "sourceTitle": "Sci-fi metallic reveal",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/887/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#6aa8ff",
+      "#1a5ad8"
+    ],
+    "particleHue": 215
+  }
+}

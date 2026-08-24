@@ -1,0 +1,35 @@
+{
+  "id": "fireworks",
+  "name": "绚烂烟花",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "fireworks",
+    "params": {
+      "shellRise": 2.4,
+      "burstRadius": 2.15,
+      "starCount": 3,
+      "colorTrails": 1.85,
+      "gravityArc": 0.72,
+      "afterglow": 1.55
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 2.281655,
+      "sourceTitle": "Clear firework explosions",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2994/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#F05AA6",
+      "#F6C85F"
+    ],
+    "particleHue": 318
+  }
+}
