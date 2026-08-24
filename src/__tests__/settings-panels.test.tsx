@@ -475,6 +475,45 @@ describe('HotkeyRecorder', () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+E'));
   });
 
+  it('commits Cmd/Ctrl+Shift+5 captured from the physical key code', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    vi.mocked(checkHotkeyConflict).mockResolvedValue(null);
+
+    render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
+
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: '5',
+        code: 'Digit5',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      })
+    );
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+5'));
+  });
+
+  it('keeps recording when the browser reports an unsupported key code', async () => {
+    const user = userEvent.setup();
+    render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
+
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Unidentified',
+        code: 'UnknownKey',
+        ctrlKey: true,
+        bubbles: true,
+      })
+    );
+
+    expect(screen.getByText('按下你的快捷键组合…')).toBeInTheDocument();
+    expect(checkHotkeyConflict).not.toHaveBeenCalled();
+  });
+
   it('shows suggestions when the combination is taken', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

@@ -8,6 +8,48 @@
 /** Keys that only ever act as modifiers and can never stand alone. */
 const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'CapsLock']);
 
+/** KeyboardEvent.code values whose accelerator spelling is stable cross-platform. */
+const STABLE_CODES = new Map<string, string>([
+  ['Backquote', 'Backquote'],
+  ['Backslash', 'Backslash'],
+  ['BracketLeft', 'BracketLeft'],
+  ['BracketRight', 'BracketRight'],
+  ['Comma', 'Comma'],
+  ['Equal', 'Equal'],
+  ['Minus', 'Minus'],
+  ['Period', 'Period'],
+  ['Quote', 'Quote'],
+  ['Semicolon', 'Semicolon'],
+  ['Slash', 'Slash'],
+  ['Backspace', 'Backspace'],
+  ['CapsLock', 'CapsLock'],
+  ['Delete', 'Delete'],
+  ['End', 'End'],
+  ['Enter', 'Enter'],
+  ['Escape', 'Escape'],
+  ['Home', 'Home'],
+  ['Insert', 'Insert'],
+  ['PageDown', 'PageDown'],
+  ['PageUp', 'PageUp'],
+  ['Pause', 'Pause'],
+  ['PrintScreen', 'PrintScreen'],
+  ['ScrollLock', 'ScrollLock'],
+  ['Space', 'Space'],
+  ['Tab', 'Tab'],
+  ['ArrowDown', 'ArrowDown'],
+  ['ArrowLeft', 'ArrowLeft'],
+  ['ArrowRight', 'ArrowRight'],
+  ['ArrowUp', 'ArrowUp'],
+  ['NumLock', 'NumLock'],
+  ['NumpadAdd', 'NumpadAdd'],
+  ['NumpadDecimal', 'NumpadDecimal'],
+  ['NumpadDivide', 'NumpadDivide'],
+  ['NumpadEnter', 'NumpadEnter'],
+  ['NumpadEqual', 'NumpadEqual'],
+  ['NumpadMultiply', 'NumpadMultiply'],
+  ['NumpadSubtract', 'NumpadSubtract'],
+]);
+
 /**
  * Build a Tauri accelerator string from a keyboard event.
  *
@@ -19,6 +61,7 @@ const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'C
  */
 export function accelFromEvent(event: {
   key: string;
+  code?: string;
   ctrlKey: boolean;
   metaKey: boolean;
   shiftKey: boolean;
@@ -31,13 +74,23 @@ export function accelFromEvent(event: {
   if (event.altKey) parts.push('Alt');
   if (event.shiftKey) parts.push('Shift');
 
-  const key = normalizeKey(event.key);
+  const key = normalizeCode(event.code, event.key);
   if (!key) return null;
   parts.push(key);
 
   // A bare key with no modifier would hijack normal typing globally.
   if (parts.length < 2) return null;
   return parts.join('+');
+}
+
+/** Prefer physical code so the same key produces one accelerator on every layout. */
+function normalizeCode(code: string | undefined, key: string): string | null {
+  if (!code) return normalizeKey(key);
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+  if (/^Numpad[0-9]$/.test(code)) return code.slice(6);
+  if (/^F([1-9]|1[0-9]|2[0-4])$/.test(code)) return code;
+  return STABLE_CODES.get(code) ?? null;
 }
 
 /** Normalize an event key into the spelling Tauri's parser expects. */
@@ -50,8 +103,8 @@ function normalizeKey(key: string): string | null {
     return key.toUpperCase();
   }
   // F1–F24, Tab, Enter, arrows, etc. already arrive capitalized.
-  if (/^F\d{1,2}$/.test(key)) return key;
-  if (/^[A-Z][A-Za-z]+$/.test(key)) return key;
+  if (/^F([1-9]|1[0-9]|2[0-4])$/.test(key)) return key;
+  if (STABLE_CODES.has(key)) return STABLE_CODES.get(key) ?? null;
   return null;
 }
 
