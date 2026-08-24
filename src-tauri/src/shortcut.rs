@@ -257,7 +257,13 @@ pub fn shifted_variant(hotkey: &str) -> Option<String> {
 /// True when `candidate` is the Easter-egg (Shift-augmented) companion of
 /// `primary`.
 pub fn is_egg_variant(primary: &str, candidate: &str) -> bool {
-    shifted_variant(primary).as_deref() == Some(candidate)
+    let Some(shifted) = shifted_variant(primary) else {
+        return false;
+    };
+    match (shifted.parse::<Shortcut>(), candidate.parse::<Shortcut>()) {
+        (Ok(expected), Ok(actual)) => expected == actual,
+        _ => false,
+    }
 }
 
 /// Check whether `hotkey` is already taken by another application.
@@ -329,10 +335,7 @@ mod tests {
             if self.fail_on.as_deref() == Some(hotkey) {
                 return Err("occupied".to_string());
             }
-            self.registered
-                .lock()
-                .unwrap()
-                .insert(hotkey.to_string());
+            self.registered.lock().unwrap().insert(hotkey.to_string());
             Ok(())
         }
 
@@ -386,6 +389,16 @@ mod tests {
         let shifted = shifted_variant(primary).unwrap();
         assert!(is_egg_variant(primary, &shifted));
         assert!(!is_egg_variant(primary, primary));
+    }
+
+    #[test]
+    fn egg_variant_accepts_plugin_normalized_spelling() {
+        let candidate = if cfg!(target_os = "macos") {
+            "super+alt+shift+KeyW"
+        } else {
+            "control+alt+shift+KeyW"
+        };
+        assert!(is_egg_variant("CommandOrControl+Alt+W", candidate));
     }
 
     // --- validate_hotkey ---
@@ -500,13 +513,8 @@ mod tests {
 
     #[test]
     fn rebind_registers_new_set_before_removing_old_set() {
-        let registry = FakeRegistry::with(
-            &[
-                "CommandOrControl+W",
-                "CommandOrControl+Shift+W",
-            ],
-            None,
-        );
+        let registry =
+            FakeRegistry::with(&["CommandOrControl+W", "CommandOrControl+Shift+W"], None);
         let persisted = Arc::new(Mutex::new(false));
         let persisted_for_callback = Arc::clone(&persisted);
 
@@ -531,10 +539,7 @@ mod tests {
     #[test]
     fn rebind_rolls_back_when_companion_registration_fails() {
         let registry = FakeRegistry::with(
-            &[
-                "CommandOrControl+W",
-                "CommandOrControl+Shift+W",
-            ],
+            &["CommandOrControl+W", "CommandOrControl+Shift+W"],
             Some("CommandOrControl+Shift+E"),
         );
         let result = rebind_with_registry(
@@ -552,13 +557,8 @@ mod tests {
 
     #[test]
     fn rebind_rolls_back_when_persistence_fails() {
-        let registry = FakeRegistry::with(
-            &[
-                "CommandOrControl+W",
-                "CommandOrControl+Shift+W",
-            ],
-            None,
-        );
+        let registry =
+            FakeRegistry::with(&["CommandOrControl+W", "CommandOrControl+Shift+W"], None);
         let result = rebind_with_registry(
             &registry,
             "CommandOrControl+W",

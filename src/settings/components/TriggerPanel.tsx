@@ -15,7 +15,7 @@ export function TriggerPanel({ config, onPatch }: PanelProps) {
       <section className="field">
         <h2 className="field__label">托盘图标</h2>
         <p className="field__desc">
-          左键点击菜单栏图标打开本设置窗口；右键弹出菜单，可直达各设置面板。触发催促请使用全局快捷键。
+          从托盘、Dock 或任务栏打开本设置窗口；托盘右键可直达各设置面板。触发催促请使用全局快捷键。
         </p>
       </section>
     </div>
