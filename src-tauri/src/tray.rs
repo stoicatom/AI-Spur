@@ -5,6 +5,8 @@ use tauri::{
     tray::{TrayIconBuilder, TrayIconEvent},
 };
 
+use crate::commands::present_settings_window;
+
 /// The menu-bar template icon: a pure-black + alpha silhouette. macOS recolours
 /// a template icon to match the menu bar (light/dark, active/inactive), so it
 /// must NOT be the colourful app icon — that is the root cause of the blurry
@@ -46,12 +48,9 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .on_menu_event(|app, event| match event.id.as_ref() {
             id if id.starts_with("settings:") => {
                 let tab = id.strip_prefix("settings:").unwrap_or("trigger");
-                if let Some(window) = app.get_webview_window("settings") {
-                    #[cfg(target_os = "macos")]
-                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
+                if let Err(error) = present_settings_window(app) {
+                    eprintln!("[settings] failed to present from tray menu: {error}");
+                } else if let Some(window) = app.get_webview_window("settings") {
                     let _ = window.emit("switch-tab", tab);
                 }
             }
@@ -68,12 +67,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             } = event
             {
                 let app = tray.app_handle();
-                #[cfg(target_os = "macos")]
-                let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
-                if let Some(window) = app.get_webview_window("settings") {
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
+                if let Err(error) = present_settings_window(&app) {
+                    eprintln!("[settings] failed to present from tray click: {error}");
                 }
             }
         })

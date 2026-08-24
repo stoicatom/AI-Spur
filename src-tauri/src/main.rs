@@ -110,7 +110,7 @@ fn main() {
                 })
                 .build(),
         )
-        // Embedded WebDriver server for @wdio/tauri-service ��� compiled and
+        // Embedded WebDriver server for @wdio/tauri-service — compiled and
         // registered in debug builds only (Cargo.toml gates the crate).
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
@@ -219,7 +219,19 @@ fn main() {
     #[cfg(debug_assertions)]
     let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
 
-    builder
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    let app = builder
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|handle, event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { .. } = event {
+            if let Err(error) = commands::present_settings_window(handle) {
+                eprintln!("[settings] failed to present from Dock reopen: {error}");
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        let _ = (handle, event);
+    });
 }
