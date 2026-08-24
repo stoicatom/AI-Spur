@@ -23,7 +23,7 @@ export function StepHotkey({ hotkey, onHotkeyChange }: StepHotkeyProps) {
   return (
     <div className="onboard-step">
       <h2 className="onboard-step__title font-display">设置全局快捷键</h2>
-      <p className="onboard-step__lead">有时候 Claude Code 实在太慢了。催它一下。</p>
+      <p className="onboard-step__lead">有时候终端 AI 实在太慢了。催它一下。</p>
       <HotkeyRecorder value={hotkey} onChange={onHotkeyChange} />
       <p className="field-hint">
         推荐 <span className="font-mono">{formatAccel('CommandOrControl+Shift+W')}</span>

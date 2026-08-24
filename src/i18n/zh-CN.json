@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "AISpur",
-    "description": "AI 终端加速器"
+    "description": "AI 终端加速器，兼容 Claude Code、Codex 等终端 AI 工具"
   },
   "settings": {
     "title": "设置",
@@ -24,7 +24,7 @@
   },
   "prompts": {
     "title": "提示词管理",
-    "description": "随机选择一条发送到 Claude Code",
+    "description": "随机选择一条发送到终端 AI",
     "add": "添加提示词",
     "placeholder": "输入提示词内容...",
     "empty": "至少需要一条提示词",

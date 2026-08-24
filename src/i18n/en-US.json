@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "AISpur",
-    "description": "AI Terminal Accelerator"
+    "description": "Terminal AI accelerator for Claude Code, Codex, and more"
   },
   "settings": {
     "title": "Settings",
@@ -24,7 +24,7 @@
   },
   "prompts": {
     "title": "Prompt Management",
-    "description": "Randomly select one to send to Claude Code",
+    "description": "Randomly select one to send to a terminal AI",
     "add": "Add Prompt",
     "placeholder": "Enter prompt content...",
     "empty": "At least one prompt required",
