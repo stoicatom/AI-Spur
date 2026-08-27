@@ -116,6 +116,40 @@ pub fn active_app_is_safe() -> bool {
     true
 }
 
+/// True when any of this app's own windows currently holds keyboard focus.
+///
+/// The global shortcut handler uses this to yield to the app's own UI: while
+/// the settings window is focused (e.g. the user is recording a new hotkey),
+/// the registered accelerator must not fire the whip — the captured keystroke
+/// belongs to the recorder instead.
+///
+/// Focus, not on-screen presence, is the right question. AISpur is a tray app
+/// that keeps its windows alive and merely hidden, so "do we own an on-screen
+/// window" is true almost always and would swallow the hotkey permanently.
+/// The overlay is non-activating and never takes focus, so the whip being on
+/// screen never trips this guard.
+pub fn any_window_focused<'a, I>(windows: I) -> bool
+where
+    I: IntoIterator<Item = &'a tauri::WebviewWindow>,
+{
+    windows
+        .into_iter()
+        .any(|window| decide_focus(window.is_focused(), window.is_visible()))
+}
+
+/// Focus decision for one window, split out so the truth table is testable
+/// without a live window server.
+///
+/// A window that is not visible cannot hold focus regardless of what the
+/// backend reports; an errored query is treated as "not focused" so a failing
+/// probe can never permanently swallow the hotkey.
+pub fn decide_focus(
+    focused: Result<bool, tauri::Error>,
+    visible: Result<bool, tauri::Error>,
+) -> bool {
+    matches!((focused, visible), (Ok(true), Ok(true)))
+}
+
 #[cfg(target_os = "windows")]
 pub fn active_app_is_safe() -> bool {
     use windows_sys::Win32::Foundation::CloseHandle;
@@ -461,6 +495,34 @@ mod tests {
         // but the core-graphics path must not panic on a live machine.
         let _ = app_under_cursor(-99999.0, -99999.0);
         let _ = activate_app(i32::MAX); // nonexistent pid → false
+    }
+
+    #[test]
+    fn focused_and_visible_window_holds_focus() {
+        assert!(decide_focus(Ok(true), Ok(true)));
+    }
+
+    #[test]
+    fn unfocused_window_does_not_hold_focus() {
+        // The regression this guards: AISpur is a tray app whose windows stay
+        // alive and merely hidden, so an on-screen-presence check was true
+        // almost always and swallowed the hotkey permanently.
+        assert!(!decide_focus(Ok(false), Ok(true)));
+    }
+
+    #[test]
+    fn hidden_window_never_holds_focus() {
+        // Even if the backend claims focus, an invisible window must not
+        // suppress the shortcut.
+        assert!(!decide_focus(Ok(true), Ok(false)));
+        assert!(!decide_focus(Ok(false), Ok(false)));
+    }
+
+    #[test]
+    fn failed_probe_is_treated_as_unfocused() {
+        // A failing query must never permanently swallow the hotkey.
+        assert!(!decide_focus(Err(tauri::Error::WebviewNotFound), Ok(true)));
+        assert!(!decide_focus(Ok(true), Err(tauri::Error::WebviewNotFound)));
     }
 
     #[cfg(target_os = "macos")]

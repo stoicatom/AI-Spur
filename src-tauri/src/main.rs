@@ -85,6 +85,19 @@ fn main() {
                         return;
                     }
 
+                    // Yield while one of our own windows holds keyboard focus
+                    // (typically the settings window recording a hotkey). The
+                    // OS-level hotkey still fires, but the keystroke belongs to the
+                    // recorder in the WebView — spawning the whip here would
+                    // interrupt hotkey capture. Focus is the right test: this is a
+                    // tray app whose windows stay alive and merely hidden, so an
+                    // on-screen-presence check would swallow the hotkey forever.
+                    if let Some(settings) = app.get_webview_window("settings") {
+                        if target_window::any_window_focused([&settings]) {
+                            return;
+                        }
+                    }
+
                     // Show it before emitting or the animation runs on an
                     // invisible window. Intentionally no set_focus / activation
                     // policy change — the overlay stays non-activating so the
