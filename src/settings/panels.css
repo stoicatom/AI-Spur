@@ -482,6 +482,24 @@
   gap: var(--gap-sm);
 }
 
+/* The two window policies are peers, so let them scan side by side on the
+ * settings canvas while keeping the shared radio-row treatment intact. */
+.window-presence-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.window-presence-options .radio-row__body {
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .window-presence-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 .radio-row,
 .toggle-row {
   display: flex;

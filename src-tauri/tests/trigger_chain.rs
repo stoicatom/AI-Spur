@@ -12,8 +12,8 @@ use aispur::shortcut::generate_alternatives;
 /// Mirrors the production handler called after a crack event fires.
 fn handle_whip_crack(sender: &dyn MacroSender, phrase: &str) -> Result<(), String> {
     sender
-        .send_interrupt()
-        .map_err(|e| format!("interrupt failed: {e}"))?;
+        .send_escape()
+        .map_err(|e| format!("escape failed: {e}"))?;
     sender
         .type_text(phrase)
         .map_err(|e| format!("type_text failed: {e}"))?;
@@ -30,7 +30,7 @@ fn trigger_chain_complete_sequence() {
 
     let calls = fake.get_calls();
     assert_eq!(calls.len(), 3);
-    assert_eq!(calls[0], MacroCall::Interrupt);
+    assert_eq!(calls[0], MacroCall::Escape);
     assert_eq!(calls[1], MacroCall::TypeText("FASTER".to_string()));
     assert_eq!(calls[2], MacroCall::Enter);
 }
@@ -44,22 +44,22 @@ fn trigger_chain_preserves_order_across_multiple_cracks() {
     let calls = fake.get_calls();
     assert_eq!(calls.len(), 6);
     // First crack
-    assert_eq!(calls[0], MacroCall::Interrupt);
+    assert_eq!(calls[0], MacroCall::Escape);
     assert_eq!(calls[1], MacroCall::TypeText("FIRST".to_string()));
     assert_eq!(calls[2], MacroCall::Enter);
     // Second crack
-    assert_eq!(calls[3], MacroCall::Interrupt);
+    assert_eq!(calls[3], MacroCall::Escape);
     assert_eq!(calls[4], MacroCall::TypeText("SECOND".to_string()));
     assert_eq!(calls[5], MacroCall::Enter);
 }
 
 #[test]
-fn trigger_chain_interrupt_always_precedes_text() {
+fn trigger_chain_escape_always_precedes_text() {
     let fake = FakeMacroSender::new();
     handle_whip_crack(&fake, "KEEP GOING").unwrap();
 
     let calls = fake.get_calls();
-    assert!(matches!(calls[0], MacroCall::Interrupt));
+    assert!(matches!(calls[0], MacroCall::Escape));
     assert!(matches!(calls[1], MacroCall::TypeText(_)));
     assert!(matches!(calls[2], MacroCall::Enter));
 }

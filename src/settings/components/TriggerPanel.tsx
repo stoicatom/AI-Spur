@@ -24,19 +24,38 @@ export function TriggerPanel({ config, onPatch }: PanelProps) {
         <p className="field__desc">
           选择关闭设置窗口后的恢复方式。纯托盘模式更安静；保持窗口入口会保留 Dock/任务栏入口。
         </p>
-        <label className="select-field">
-          <span className="sr-only">窗口入口策略</span>
-          <select
-            className="input"
-            value={config.windowPresence}
-            onChange={(event) =>
-              onPatch({ windowPresence: event.target.value as PanelProps['config']['windowPresence'] })
-            }
+        <div className="radio-stack window-presence-options" role="radiogroup" aria-label="窗口入口策略">
+          <label className={`radio-row${config.windowPresence === 'tray' ? ' radio-row--active' : ''}`}>
+            <input
+              type="radio"
+              name="window-presence"
+              className="radio-row__input"
+              value="tray"
+              checked={config.windowPresence === 'tray'}
+              onChange={() => onPatch({ windowPresence: 'tray' })}
+            />
+            <span className="radio-row__body">
+              <span className="radio-row__label">纯托盘</span>
+              <span className="radio-row__desc">关闭设置窗口后只保留托盘入口，桌面更安静。</span>
+            </span>
+          </label>
+          <label
+            className={`radio-row${config.windowPresence === 'persistent' ? ' radio-row--active' : ''}`}
           >
-            <option value="tray">纯托盘</option>
-            <option value="persistent">保持 Dock/任务栏入口</option>
-          </select>
-        </label>
+            <input
+              type="radio"
+              name="window-presence"
+              className="radio-row__input"
+              value="persistent"
+              checked={config.windowPresence === 'persistent'}
+              onChange={() => onPatch({ windowPresence: 'persistent' })}
+            />
+            <span className="radio-row__body">
+              <span className="radio-row__label">保持 Dock/任务栏入口</span>
+              <span className="radio-row__desc">关闭窗口后仍保留桌面入口，方便从 Dock 或任务栏返回。</span>
+            </span>
+          </label>
+        </div>
       </section>
     </div>
   );

@@ -19,7 +19,7 @@ pub struct AppState {
     /// Injected input backend. Real `EnigoSender` in production, `FakeMacroSender`
     /// in tests — this is how the trait gives us testability (R-ARCH-007).
     pub sender: Mutex<Arc<dyn MacroSender>>,
-    /// Serializes the complete Ctrl+C -> text -> Enter transaction.
+    /// Serializes the complete Esc -> text -> Enter transaction.
     pub macro_sequence: Mutex<()>,
     /// Absolute path of `config.json`, resolved once at startup from Tauri's
     /// `app_config_dir()`. Held here so the command layer never has to guess the
@@ -85,11 +85,17 @@ pub(crate) fn present_settings_window(app: &AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_config(state: State<'_, AppState>) -> Result<Config, String> {
-    let config = state
+    let mut config = state
         .config
         .lock()
         .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-    Ok(config.clone())
+    let normalized = config::normalize_config(config.clone());
+    *config = normalized.clone();
+    Ok(normalized)
+}
+
+fn window_presence_changed(previous: config::WindowPresence, next: config::WindowPresence) -> bool {
+    previous != next
 }
 
 #[tauri::command]
@@ -98,13 +104,15 @@ pub async fn save_config(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
-    let previous_hotkey = {
+    let config = config::normalize_config(config);
+    let (previous_hotkey, previous_window_presence) = {
         let current = state
             .config
             .lock()
             .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-        current.hotkey.clone()
+        (current.hotkey.clone(), current.window_presence)
     };
+    let next_window_presence = config.window_presence;
 
     // Keep the OS registration in step with the persisted config — without
     // this a hotkey edit would only take effect after a restart.
@@ -130,19 +138,14 @@ pub async fn save_config(
         *current = config;
     }
     #[cfg(target_os = "macos")]
-    app.set_activation_policy(
-        if state
-            .config
-            .lock()
-            .map(|config| config.window_presence == WindowPresence::Persistent)
-            .unwrap_or(false)
-        {
+    if window_presence_changed(previous_window_presence, next_window_presence) {
+        app.set_activation_policy(if next_window_presence == WindowPresence::Persistent {
             tauri::ActivationPolicy::Regular
         } else {
             tauri::ActivationPolicy::Accessory
-        },
-    )
-    .map_err(|e| e.to_string())?;
+        })
+        .map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 
@@ -228,7 +231,7 @@ pub fn trigger_macro(
 ) -> Result<(), String> {
     let attempt_id = resolve_macro_attempt(&state, attempt_id);
     // Safety gate: never inject into a window we can't confirm is a terminal.
-    // Unknown frontmost app should not be spammed with Ctrl+C + text.
+    // Unknown frontmost app should not be spammed with Esc + text.
     //
     // When the frontmost app is not a known terminal, we still try once at the
     // pointer's location: if the cursor is over a safe terminal window, bring
@@ -547,7 +550,7 @@ pub async fn __test_send_macro(phrase: String) -> Result<Vec<String>, String> {
         .get_calls()
         .iter()
         .map(|c| match c {
-            MacroCall::Interrupt => "Interrupt".to_string(),
+            MacroCall::Escape => "Escape".to_string(),
             MacroCall::TypeText(t) => format!("TypeText({t})"),
             MacroCall::Enter => "Enter".to_string(),
         })
@@ -577,5 +580,25 @@ mod tests {
         assert_eq!(resolve_macro_attempt(&state, Some(7)), 7);
         assert_eq!(resolve_macro_attempt(&state, Some(3)), 7);
         assert_eq!(resolve_macro_attempt(&state, None), 8);
+    }
+
+    #[test]
+    fn activation_policy_only_changes_when_window_presence_changes() {
+        assert!(!window_presence_changed(
+            config::WindowPresence::Tray,
+            config::WindowPresence::Tray
+        ));
+        assert!(!window_presence_changed(
+            config::WindowPresence::Persistent,
+            config::WindowPresence::Persistent
+        ));
+        assert!(window_presence_changed(
+            config::WindowPresence::Tray,
+            config::WindowPresence::Persistent
+        ));
+        assert!(window_presence_changed(
+            config::WindowPresence::Persistent,
+            config::WindowPresence::Tray
+        ));
     }
 }

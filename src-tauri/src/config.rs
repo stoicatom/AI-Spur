@@ -185,11 +185,22 @@ pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
 fn migrate(raw: serde_json::Value) -> Result<Config, ConfigError> {
     let version = raw.get("version").and_then(|v| v.as_str()).unwrap_or("1.0");
 
-    match version {
+    let parsed = match version {
         "3.0" => parse_v3(raw),
         "2.0" => migrate_v2_to_v3(raw),
         _ => Err(ConfigError::UnknownVersion(version.to_string())),
+    }?;
+
+    Ok(normalize_config(parsed))
+}
+
+/// Keep persisted configs inside the frontend contract's phrase invariant.
+pub fn normalize_config(mut config: Config) -> Config {
+    config.phrases.retain(|phrase| !phrase.is_empty());
+    if config.phrases.is_empty() {
+        config.phrases = Config::default().phrases;
     }
+    config
 }
 
 /// v2 → v3：三轴合一。把 v2 的 `activeMaterialId` 迁移为 v3 的 `activePackId`；
@@ -250,8 +261,8 @@ pub fn save_config(path: &Path, config: &Config) -> Result<(), ConfigError> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| ConfigError::WriteError(e.to_string()))?;
     }
-    let json =
-        serde_json::to_string_pretty(config).map_err(|e| ConfigError::WriteError(e.to_string()))?;
+    let json = serde_json::to_string_pretty(&normalize_config(config.clone()))
+        .map_err(|e| ConfigError::WriteError(e.to_string()))?;
     fs::write(path, json).map_err(|e| ConfigError::WriteError(e.to_string()))?;
     Ok(())
 }
@@ -409,6 +420,23 @@ mod tests {
         let cfg = Config::default();
         assert!(!cfg.phrases.is_empty());
         assert_eq!(cfg.phrases[0], "FASTER");
+    }
+
+    #[test]
+    fn parse_v3_repairs_empty_phrases() {
+        let config = migrate(serde_json::json!({
+            "version": "3.0",
+            "phrases": ["", "KEEP THIS"],
+        }))
+        .unwrap();
+        assert_eq!(config.phrases, vec!["KEEP THIS"]);
+
+        let config = migrate(serde_json::json!({
+            "version": "3.0",
+            "phrases": [""],
+        }))
+        .unwrap();
+        assert_eq!(config.phrases, Config::default().phrases);
     }
 
     #[test]

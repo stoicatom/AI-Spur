@@ -1,7 +1,7 @@
 /**
  * E2E Journey J10: Cross-platform keyboard input
  *
- * J10: trigger_macro 发送 Ctrl+C + text + Enter（三平台统一行为验证）
+ * J10: trigger_macro 发送 Esc + text + Enter（三平台统一行为验证）
  *
  * Run: npx wdio run wdio.conf.ts --spec tests/e2e/j10-macro.spec.ts
  */

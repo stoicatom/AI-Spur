@@ -142,7 +142,7 @@ export function StepSkin({ activeSkin, onSkinChange, hotkey, threshold }: StepSk
           按 <span className="font-mono">{formatAccel(hotkey)}</span> 唤出覆盖层
         </li>
         <li>快速甩动鼠标，甩到位即触发（也可直接点击）</li>
-        <li>自动发送中断信号 + 一条提示词</li>
+        <li>自动发送 Esc + 一条提示词</li>
       </ol>
 
       <p className="callout callout--info">

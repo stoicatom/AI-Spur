@@ -199,7 +199,7 @@ describe('OnboardingFlow', () => {
     // against the list's combined textContent, not a single text node.
     const steps = container.querySelector('ol');
     expect(steps?.textContent).toContain('唤出覆盖层');
-    expect(steps?.textContent).toContain('自动发送中断信号');
+    expect(steps?.textContent).toContain('自动发送 Esc');
 
     const note = container.querySelector('.callout--info');
     expect(note?.textContent).toContain(

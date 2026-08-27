@@ -1,7 +1,7 @@
 //! Global cursor tracker for the overlay.
 //!
 //! The transparent overlay must never take keyboard focus (the terminal has to
-//! stay frontmost so `Ctrl+C` + the phrase land there). A non-activating window
+//! stay frontmost so `Esc` + the phrase land there). A non-activating window
 //! does not receive reliable DOM `mousemove` events, so the whip material would
 //! sit frozen until the user clicked to "wake" the window — the root cause of
 //! the "must click first" bug.

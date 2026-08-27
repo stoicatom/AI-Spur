@@ -1,7 +1,12 @@
 use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 use serde::Serialize;
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 use thiserror::Error;
+
+const ESCAPE_SETTLE: Duration = Duration::from_millis(90);
+const TEXT_SETTLE: Duration = Duration::from_millis(90);
 
 // Note: EnigoSender is not wired into commands.rs yet (macro trigger wiring
 // consumes this module, matching the pattern used in config.rs.
@@ -92,7 +97,7 @@ impl MacroError {
     }
 }
 
-/// Trait for sending keyboard macros (interrupt + text + enter sequence)
+/// Trait for sending keyboard macros (Escape + text + Enter sequence).
 pub trait MacroSender: Send + Sync {
     /// True only for the startup placeholder used when the native backend
     /// could not be initialized. Runtime send failures must never trigger a
@@ -101,7 +106,7 @@ pub trait MacroSender: Send + Sync {
         false
     }
 
-    fn send_interrupt(&self) -> Result<(), MacroError>;
+    fn send_escape(&self) -> Result<(), MacroError>;
     fn type_text(&self, text: &str) -> Result<(), MacroError>;
     fn press_enter(&self) -> Result<(), MacroError>;
 }
@@ -110,10 +115,16 @@ pub trait MacroSender: Send + Sync {
 /// owns serialization; this helper deliberately stops at the first failure so
 /// a partial send is never silently completed by another stage.
 pub fn send_macro_sequence(sender: &dyn MacroSender, text: &str) -> Result<(), MacroError> {
-    sender
-        .send_interrupt()
-        .and_then(|_| sender.type_text(text))
-        .and_then(|_| sender.press_enter())
+    sender.send_escape()?;
+    // Claude Code needs a brief render/input-state transition after Escape;
+    // without it the immediately following phrase can be swallowed.
+    thread::sleep(ESCAPE_SETTLE);
+    sender.type_text(text)?;
+    // Terminal TUIs receive text through an asynchronous HID event queue. Give
+    // them time to commit the text before delivering Enter, otherwise Codex
+    // can render the phrase but miss the submit key.
+    thread::sleep(TEXT_SETTLE);
+    sender.press_enter()
 }
 
 /// Production implementation using enigo 0.6
@@ -125,7 +136,7 @@ impl EnigoSender {
     pub fn new() -> Result<Self, MacroError> {
         let settings = Settings::default();
         // On macOS, default Settings has independent_of_keyboard_state = true,
-        // which ensures Shift+hotkey彩蛋 doesn't pollute Ctrl+C
+        // which prevents held modifiers from affecting the injected macro.
         let enigo = Enigo::new(&settings)
             .map_err(|e| MacroError::from_runtime_input(format!("{:?}", e)))?;
         Ok(Self {
@@ -135,28 +146,15 @@ impl EnigoSender {
 }
 
 impl MacroSender for EnigoSender {
-    fn send_interrupt(&self) -> Result<(), MacroError> {
+    fn send_escape(&self) -> Result<(), MacroError> {
         let mut enigo = self
             .enigo
             .lock()
             .map_err(|_| MacroError::SendFailure("Enigo lock poisoned".to_string()))?;
 
-        let press_result = enigo
-            .key(Key::Control, Direction::Press)
-            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl press: {:?}", e)));
-        let click_result = match press_result {
-            Ok(()) => enigo
-                .key(Key::Unicode('c'), Direction::Click)
-                .map_err(|e| MacroError::from_runtime_input(format!("C click: {:?}", e))),
-            Err(error) => Err(error),
-        };
-        // Always attempt the compensating release, even if Ctrl press or the
-        // character event failed. Leaving Ctrl held would corrupt the user's
-        // next input when a backend reports an error after a partial event.
-        let release_result = enigo
-            .key(Key::Control, Direction::Release)
-            .map_err(|e| MacroError::from_runtime_input(format!("Ctrl release: {:?}", e)));
-        click_result.and(release_result)
+        enigo
+            .key(Key::Escape, Direction::Click)
+            .map_err(|e| MacroError::from_runtime_input(format!("Escape click: {:?}", e)))
     }
 
     fn type_text(&self, text: &str) -> Result<(), MacroError> {
@@ -189,7 +187,7 @@ impl MacroSender for EnigoSender {
 /// Call record for FakeMacroSender testing
 #[derive(Debug, Clone, PartialEq)]
 pub enum MacroCall {
-    Interrupt,
+    Escape,
     TypeText(String),
     Enter,
 }
@@ -221,7 +219,7 @@ impl MacroSender for UnavailableMacroSender {
         true
     }
 
-    fn send_interrupt(&self) -> Result<(), MacroError> {
+    fn send_escape(&self) -> Result<(), MacroError> {
         Err(self.error())
     }
     fn type_text(&self, _text: &str) -> Result<(), MacroError> {
@@ -251,8 +249,8 @@ impl FakeMacroSender {
 }
 
 impl MacroSender for FakeMacroSender {
-    fn send_interrupt(&self) -> Result<(), MacroError> {
-        self.calls.lock().unwrap().push(MacroCall::Interrupt);
+    fn send_escape(&self) -> Result<(), MacroError> {
+        self.calls.lock().unwrap().push(MacroCall::Escape);
         Ok(())
     }
 
@@ -273,6 +271,7 @@ impl MacroSender for FakeMacroSender {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn macro_error_classifies_permission_and_serializes_event_code() {
@@ -315,7 +314,7 @@ mod tests {
             "missing accessibility permission".to_string(),
         ));
         let error = sender
-            .send_interrupt()
+            .send_escape()
             .expect_err("permission must be surfaced");
         assert_eq!(error.failure_code(), MacroFailureCode::Permission);
     }
@@ -326,7 +325,7 @@ mod tests {
             "platform input backend unavailable".to_string(),
         ));
         let error = sender
-            .send_interrupt()
+            .send_escape()
             .expect_err("unavailable backend must fail");
         assert_eq!(error.failure_code(), MacroFailureCode::SendFailure);
     }
@@ -344,12 +343,12 @@ mod tests {
     }
 
     #[test]
-    fn fake_sender_records_interrupt() {
+    fn fake_sender_records_escape() {
         let sender = FakeMacroSender::new();
-        sender.send_interrupt().unwrap();
+        sender.send_escape().unwrap();
         let calls = sender.get_calls();
         assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0], MacroCall::Interrupt);
+        assert_eq!(calls[0], MacroCall::Escape);
     }
 
     #[test]
@@ -377,9 +376,73 @@ mod tests {
 
         let calls = sender.get_calls();
         assert_eq!(calls.len(), 3);
-        assert_eq!(calls[0], MacroCall::Interrupt);
+        assert_eq!(calls[0], MacroCall::Escape);
         assert_eq!(calls[1], MacroCall::TypeText("FASTER".to_string()));
         assert_eq!(calls[2], MacroCall::Enter);
+    }
+
+    #[test]
+    fn macro_sequence_allows_escape_state_to_settle_before_text() {
+        let sender = FakeMacroSender::new();
+        let started = Instant::now();
+
+        send_macro_sequence(&sender, "FASTER").unwrap();
+
+        assert!(
+            started.elapsed() >= Duration::from_millis(90),
+            "text must wait for the terminal to process Escape before it is typed"
+        );
+    }
+
+    #[test]
+    fn macro_sequence_allows_text_state_to_settle_before_enter() {
+        #[derive(Default)]
+        struct TimedSender {
+            calls: Mutex<Vec<(MacroCall, Instant)>>,
+        }
+
+        impl MacroSender for TimedSender {
+            fn send_escape(&self) -> Result<(), MacroError> {
+                self.calls
+                    .lock()
+                    .unwrap()
+                    .push((MacroCall::Escape, Instant::now()));
+                Ok(())
+            }
+
+            fn type_text(&self, text: &str) -> Result<(), MacroError> {
+                self.calls
+                    .lock()
+                    .unwrap()
+                    .push((MacroCall::TypeText(text.to_string()), Instant::now()));
+                Ok(())
+            }
+
+            fn press_enter(&self) -> Result<(), MacroError> {
+                self.calls
+                    .lock()
+                    .unwrap()
+                    .push((MacroCall::Enter, Instant::now()));
+                Ok(())
+            }
+        }
+
+        let sender = TimedSender::default();
+        send_macro_sequence(&sender, "FASTER").unwrap();
+        let calls = sender.calls.lock().unwrap();
+        let typed_at = calls
+            .iter()
+            .find_map(|(call, at)| matches!(call, MacroCall::TypeText(_)).then_some(*at))
+            .expect("text call must be recorded");
+        let entered_at = calls
+            .iter()
+            .find_map(|(call, at)| matches!(call, MacroCall::Enter).then_some(*at))
+            .expect("enter call must be recorded");
+
+        assert!(
+            entered_at.duration_since(typed_at) >= TEXT_SETTLE,
+            "Enter must wait for the terminal to process injected text"
+        );
     }
 
     #[test]

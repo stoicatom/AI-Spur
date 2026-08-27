@@ -1,13 +1,13 @@
 use aispur::macro_sender::{FakeMacroSender, MacroCall, MacroSender};
 
 /// Simulates the complete whip crack handler logic:
-/// 1. Send interrupt (Ctrl+C)
+/// 1. Send Escape
 /// 2. Type the phrase
 /// 3. Press Enter
 fn handle_whip_crack(sender: &dyn MacroSender, phrase: &str) -> Result<(), String> {
     sender
-        .send_interrupt()
-        .map_err(|e| format!("Interrupt failed: {}", e))?;
+        .send_escape()
+        .map_err(|e| format!("Escape failed: {}", e))?;
     sender
         .type_text(phrase)
         .map_err(|e| format!("Type text failed: {}", e))?;
@@ -23,8 +23,8 @@ fn whip_crack_sends_complete_sequence() {
     handle_whip_crack(&fake, "FASTER").unwrap();
 
     let calls = fake.get_calls();
-    assert_eq!(calls.len(), 3, "Expected 3 calls: interrupt, text, enter");
-    assert_eq!(calls[0], MacroCall::Interrupt);
+    assert_eq!(calls.len(), 3, "Expected 3 calls: escape, text, enter");
+    assert_eq!(calls[0], MacroCall::Escape);
     assert_eq!(calls[1], MacroCall::TypeText("FASTER".to_string()));
     assert_eq!(calls[2], MacroCall::Enter);
 }
@@ -35,8 +35,8 @@ fn whip_crack_preserves_call_order() {
     handle_whip_crack(&fake, "KEEP GOING").unwrap();
 
     let calls = fake.get_calls();
-    // Verify exact order: interrupt must come first, enter must be last
-    assert!(matches!(calls[0], MacroCall::Interrupt));
+    // Verify exact order: Escape must come first, enter must be last
+    assert!(matches!(calls[0], MacroCall::Escape));
     assert!(matches!(calls[2], MacroCall::Enter));
     assert!(matches!(calls[1], MacroCall::TypeText(ref t) if t == "KEEP GOING"));
 }
@@ -58,10 +58,10 @@ fn multiple_whip_cracks_accumulate_calls() {
 
     let calls = fake.get_calls();
     assert_eq!(calls.len(), 6);
-    assert_eq!(calls[0], MacroCall::Interrupt);
+    assert_eq!(calls[0], MacroCall::Escape);
     assert_eq!(calls[1], MacroCall::TypeText("FIRST".to_string()));
     assert_eq!(calls[2], MacroCall::Enter);
-    assert_eq!(calls[3], MacroCall::Interrupt);
+    assert_eq!(calls[3], MacroCall::Escape);
     assert_eq!(calls[4], MacroCall::TypeText("SECOND".to_string()));
     assert_eq!(calls[5], MacroCall::Enter);
 }

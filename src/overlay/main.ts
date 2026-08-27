@@ -220,7 +220,7 @@ function triggerCrack(x: number, y: number, vel: WhipVel) {
   if (material.crackAlive || !active) return;
   hideMacroFailure();
   const attemptId = nextMacroAttempt();
-  // 判定瞬间即发键：终端保持焦点，Ctrl+C 早发早生效。
+  // 判定瞬间即发键：终端保持焦点，Esc 早发早生效。
   triggerMacro(undefined, attemptId).catch((err) => {
     console.error('[overlay] macro failed:', err);
     showMacroInvokeFailure(err, attemptId);

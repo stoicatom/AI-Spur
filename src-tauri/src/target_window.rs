@@ -1,13 +1,12 @@
 #[cfg(target_os = "macos")]
 use std::process::Command;
 
-/// Apps that are safe to inject Ctrl+C + text into.
+/// Apps that are safe to inject Esc + text into.
 ///
 /// Checking the frontmost application before synthesizing input prevents the
-/// worst failure mode: firing Ctrl+C (copy) + typing + Enter into a browser or
-/// editor, which would clobber whatever the user has selected. An unknown app
-/// is treated as unsafe — better to skip the whip than to destroy the user's
-/// selection.
+/// worst failure mode: firing Esc + typing + Enter into a browser or editor,
+/// which could dismiss a dialog or submit unintended text. An unknown app is
+/// treated as unsafe — better to skip the whip than to disrupt the user's work.
 ///
 /// This list covers terminal emulators and IDEs that host AI CLI tools
 /// (Claude Code, Codex, Aider, Cursor, etc.).

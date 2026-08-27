@@ -50,6 +50,7 @@ import { AnimationPanel } from '../settings/components/AnimationPanel';
 import { SoundsPanel } from '../settings/components/SoundsPanel';
 import { StatsPanel } from '../settings/components/StatsPanel';
 import { HotkeyRecorder } from '../settings/components/HotkeyRecorder';
+import { TriggerPanel } from '../settings/components/TriggerPanel';
 
 function cfg(overrides: Partial<Config> = {}): Config {
   return { ...DEFAULT_CONFIG, ...overrides };
@@ -127,6 +128,21 @@ describe('PhrasesPanel', () => {
     expect(onPatch).toHaveBeenCalledWith({ phrases: ['AX'] });
   });
 
+  it('does not persist a temporarily empty phrase while editing', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    render(<PhrasesPanel config={cfg({ phrases: ['A'] })} onPatch={onPatch} />);
+
+    const input = screen.getByLabelText('提示词 1');
+    await user.clear(input);
+
+    expect(input).toHaveValue('');
+    expect(onPatch).not.toHaveBeenCalled();
+
+    await user.type(input, 'REPLACED');
+    expect(onPatch).toHaveBeenLastCalledWith({ phrases: ['REPLACED'] });
+  });
+
   it('adds a trimmed phrase and clears the draft', async () => {
     const user = userEvent.setup();
     const onPatch = vi.fn();
@@ -164,6 +180,26 @@ describe('PhrasesPanel', () => {
 
     expect(screen.getByLabelText('新提示词')).toBeDisabled();
     expect(screen.getByText(/已达上限 20 条/)).toBeInTheDocument();
+  });
+});
+
+describe('TriggerPanel window presence', () => {
+  it('renders the window entry policy as a radio group', () => {
+    render(<TriggerPanel config={cfg({ windowPresence: 'persistent' })} onPatch={vi.fn()} />);
+
+    expect(screen.getByRole('radiogroup', { name: '窗口入口策略' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /纯托盘/ })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: /保持 Dock\/任务栏入口/ })).toBeChecked();
+  });
+
+  it('patches windowPresence when an option is selected', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    render(<TriggerPanel config={cfg({ windowPresence: 'tray' })} onPatch={onPatch} />);
+
+    await user.click(screen.getByRole('radio', { name: /保持 Dock\/任务栏入口/ }));
+
+    expect(onPatch).toHaveBeenCalledWith({ windowPresence: 'persistent' });
   });
 });
 

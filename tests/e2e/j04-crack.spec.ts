@@ -14,6 +14,6 @@ describe('J04: Crack trigger', () => {
     const calls = await browser.execute(
       () => (window as any).__TAURI__.core.invoke('__test_send_macro', { phrase: 'FASTER' })
     ) as string[];
-    expect(calls).toEqual(['Interrupt', 'TypeText(FASTER)', 'Enter']);
+    expect(calls).toEqual(['Escape', 'TypeText(FASTER)', 'Enter']);
   });
 });

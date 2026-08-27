@@ -88,7 +88,7 @@ fn main() {
                     // Show it before emitting or the animation runs on an
                     // invisible window. Intentionally no set_focus / activation
                     // policy change — the overlay stays non-activating so the
-                    // terminal keeps keyboard focus for the Ctrl+C macro.
+                    // terminal keeps keyboard focus for the Esc macro.
                     let _ = w.show();
 
                     // Push global cursor positions to the overlay at ~60fps so the

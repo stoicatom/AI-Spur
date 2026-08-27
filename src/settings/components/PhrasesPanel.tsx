@@ -1,7 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PanelProps } from './panel-props';
 
 const MAX_PHRASES = 20;
+
+interface PhraseInputProps {
+  index: number;
+  phrase: string;
+  onCommit: (index: number, next: string) => void;
+}
+
+function PhraseInput({ index, phrase, onCommit }: PhraseInputProps) {
+  const [value, setValue] = useState(phrase);
+
+  useEffect(() => {
+    setValue(phrase);
+  }, [phrase]);
+
+  return (
+    <input
+      className="input phrase-row__input"
+      value={value}
+      aria-label={`提示词 ${index + 1}`}
+      onChange={(e) => {
+        const next = e.target.value;
+        setValue(next);
+        if (next.length > 0) onCommit(index, next);
+      }}
+      onBlur={() => {
+        if (value.length === 0) setValue(phrase);
+      }}
+    />
+  );
+}
 
 export function PhrasesPanel({ config, onPatch }: PanelProps) {
   const [draft, setDraft] = useState('');
@@ -16,7 +46,7 @@ export function PhrasesPanel({ config, onPatch }: PanelProps) {
     setDraft('');
   }
 
-  function updatePhrase(index: number, next: string) {
+  function commitPhrase(index: number, next: string) {
     const updated = phrases.map((p, i) => (i === index ? next : p));
     onPatch({ phrases: updated });
   }
@@ -38,12 +68,7 @@ export function PhrasesPanel({ config, onPatch }: PanelProps) {
         <ul className="phrase-list">
           {phrases.map((phrase, index) => (
             <li className="phrase-row" key={index}>
-              <input
-                className="input phrase-row__input"
-                value={phrase}
-                aria-label={`提示词 ${index + 1}`}
-                onChange={(e) => updatePhrase(index, e.target.value)}
-              />
+              <PhraseInput index={index} phrase={phrase} onCommit={commitPhrase} />
               <button
                 type="button"
                 className="btn btn--small btn--danger"
