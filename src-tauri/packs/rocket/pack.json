@@ -1,0 +1,32 @@
+{
+  "id": "rocket",
+  "name": "火箭",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "jet",
+    "params": {
+      "thrust": 1.35,
+      "tailLength": 1.5,
+      "climb": 1.2
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 4.747415,
+      "sourceTitle": "Fast rocket whoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1714/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff7a29",
+      "#c23e00"
+    ],
+    "particleHue": 23
+  }
+}

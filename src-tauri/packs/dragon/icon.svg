@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
+  <title>神龙</title>
+  <defs>
+    <linearGradient id="dr-body" x1="10" y1="14" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-scale-light,#2EE88A)"/>
+      <stop offset=".55" stop-color="var(--pack-scale,#12A85E)"/>
+      <stop offset="1" stop-color="var(--pack-scale-dark,#007A3D)"/>
+    </linearGradient>
+    <linearGradient id="dr-head" x1="28" y1="10" x2="44" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="var(--pack-head,#3FDA87)"/>
+      <stop offset="1" stop-color="var(--pack-jaw,#0E8F51)"/>
+    </linearGradient>
+    <filter id="studio-light" x="-28%" y="-24%" width="156%" height="168%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.15" result="shadow-blur"/>
+      <feOffset in="shadow-blur" dy="1.65" result="shadow-offset"/>
+      <feFlood flood-color="#02070A" flood-opacity=".52" result="shadow-color"/>
+      <feComposite in="shadow-color" in2="shadow-offset" operator="in" result="shadow"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="38" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values=".12 0 0 0 .44  0 .12 0 0 .46  0 0 .12 0 .48  0 0 0 .14 0" result="micro-texture"/>
+      <feComposite in="micro-texture" in2="SourceAlpha" operator="in" result="surface"/>
+      <feSpecularLighting in="SourceAlpha" surfaceScale="2.2" specularConstant=".42" specularExponent="26" lighting-color="#FFFFFF" result="specular">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="highlight"/>
+      <feBlend in="SourceGraphic" in2="surface" mode="soft-light" result="textured"/>
+      <feBlend in="textured" in2="highlight" mode="screen" result="lit"/>
+      <feDiffuseLighting in="SourceAlpha" surfaceScale="1.15" diffuseConstant=".18" lighting-color="#FFFFFF" result="diffuse">
+        <feDistantLight azimuth="224" elevation="58"/>
+      </feDiffuseLighting>
+      <feComposite in="diffuse" in2="SourceAlpha" operator="in" result="diffuse-mask"/>
+      <feMorphology in="SourceAlpha" operator="dilate" radius=".28" result="edge-expanded"/>
+      <feComposite in="edge-expanded" in2="SourceAlpha" operator="out" result="edge-mask"/>
+      <feFlood flood-color="#FFFFFF" flood-opacity=".22" result="edge-color"/>
+      <feComposite in="edge-color" in2="edge-mask" operator="in" result="edge-light"/>
+      <feBlend in="lit" in2="diffuse-mask" mode="screen" result="diffuse-lit"/>
+      <feBlend in="diffuse-lit" in2="edge-light" mode="screen" result="studio-lit"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="studio-lit"/></feMerge>
+    </filter>
+    <filter id="contact-shadow" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="1.45"/>
+    </filter>
+  </defs>
+  <ellipse cx="24" cy="42.25" rx="12.5" ry="1.35" fill="#02070A" opacity=".38" filter="url(#contact-shadow)"/>
+  <g filter="url(#studio-light)">
+  <path d="M31 40c-6 2-12 1-16-3l5-2-6-4 6-2Z" fill="var(--pack-mane,#0E8F51)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.5"/>
+  <path d="M14 22c0-8 7-14 16-14 9 0 15 6 15 13 0 6-3 10-8 13l-3-5 4-4-7-1-3-6-8 8Z" fill="url(#dr-head)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.5"/>
+  <path d="M37 34c-6 3-13 2-17-3l9-1-5-5 10 1Z" fill="var(--pack-jaw,#0A6B3D)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.5"/>
+  <path d="M22 30h4m2 3h4" stroke="var(--pack-fang,#F2FFF6)" stroke-width="1.6"/>
+  <path d="m22 9-2-6 6 3 3-4 2 6" fill="var(--pack-horn,#E8DCB8)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.5"/>
+  <path d="m38 10 5-5-1 7 5 1-6 3" fill="var(--pack-horn,#E8DCB8)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.5"/>
+  <path d="M17 26c-4 1-7 4-8 8m9-19c-3-2-6-2-9 0" stroke="var(--pack-whisker,#9BFFC4)" stroke-width="1.5" opacity=".85"/>
+  <path d="M20 18c3-3 7-4 11-3" stroke="var(--pack-ridge,#9BFFC4)" stroke-width="1.5" opacity=".6"/>
+  <circle cx="30" cy="20" r="2.6" fill="var(--pack-eye,#FFD84F)" stroke="var(--pack-ink,#0A3D28)" stroke-width="1.4"/>
+  <circle cx="30.8" cy="19.2" r=".9" fill="var(--pack-eye-hi,#FFFBE8)"/>
+  <path d="M18 24l4-3m1 6 4-4m2 6 4-4m-12-9 3-3m4 2 3-3" stroke="var(--pack-scale-highlight,#B6FFD0)" stroke-width=".8" opacity=".8"/>
+  <path d="M27 8 25 4m8 5 3-5m7 10 4 2" stroke="var(--pack-whisker,#E8DCB8)" stroke-width=".8" opacity=".86"/>
+  <circle cx="39" cy="7" r="1.6" fill="var(--pack-orb,#FFD84F)" stroke="var(--pack-ink,#0A3D28)" stroke-width=".7" opacity=".92"/>
+  </g>
+</svg>

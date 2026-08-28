@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_bow_wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2691E"/>
+      <stop offset="0.3" stop-color="#A0522D"/>
+      <stop offset="0.7" stop-color="#8B4513"/>
+      <stop offset="1" stop-color="#654321"/>
+    </linearGradient>
+    <linearGradient id="g_arrow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#8B4513"/>
+      <stop offset="0.6" stop-color="#A0522D"/>
+      <stop offset="1" stop-color="#C0C0C0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 弓臂阴影 -->
+  <path d="M122 82 C82 182 82 334 122 434" stroke="#000" stroke-width="20" fill="none" opacity="0.15"/>
+
+  <!-- 弓臂主体 -->
+  <path d="M120 80 C80 180 80 332 120 432" stroke="url(#g_bow_wood)" stroke-width="18"
+        fill="none" stroke-linecap="round"/>
+
+  <!-- 弓臂内侧高光 -->
+  <path d="M122 90 C88 180 88 332 122 422" stroke="#D2691E" stroke-width="6"
+        fill="none" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- 弓臂木纹 -->
+  <path d="M120 140 C100 145 100 150 120 155" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 220 C100 225 100 230 120 235" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 300 C100 305 100 310 120 315" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+  <path d="M120 380 C100 385 100 390 120 395" stroke="#654321" stroke-width="2" opacity="0.4" fill="none"/>
+
+  <!-- 弓弦 - 主线 -->
+  <line x1="120" y1="80" x2="120" y2="432" stroke="#E8D5B7" stroke-width="4"/>
+
+  <!-- 弓弦 - 拉伸到箭 -->
+  <line x1="120" y1="80" x2="140" y2="256" stroke="#E8D5B7" stroke-width="3"/>
+  <line x1="120" y1="432" x2="140" y2="256" stroke="#E8D5B7" stroke-width="3"/>
+
+  <!-- 箭杆 -->
+  <line x1="140" y1="256" x2="400" y2="256" stroke="url(#g_arrow)" stroke-width="8"/>
+
+  <!-- 箭羽 -->
+  <path d="M160 246 L180 236 L180 246 Z" fill="#8B4513" opacity="0.6"/>
+  <path d="M160 266 L180 276 L180 266 Z" fill="#8B4513" opacity="0.6"/>
+  <path d="M170 246 L190 238 L190 246 Z" fill="#A0522D" opacity="0.5"/>
+  <path d="M170 266 L190 274 L190 266 Z" fill="#A0522D" opacity="0.5"/>
+
+  <!-- 箭头 -->
+  <path d="M400 256 L370 236 L380 256 L370 276 Z" fill="#C0C0C0" stroke="#808080" stroke-width="3"/>
+  <path d="M400 256 L385 246 L385 266 Z" fill="#E8E8E8" opacity="0.6"/>
+
+  <!-- 箭尾缺口 -->
+  <path d="M135 256 L145 250 L145 262 Z" fill="#654321"/>
+</svg>

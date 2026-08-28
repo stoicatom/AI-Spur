@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_bell_body" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#FFA500"/>
+      <stop offset="1" stop-color="#FF8C00"/>
+    </linearGradient>
+    <radialGradient id="g_bell_shine" cx="0.3" cy="0.3">
+      <stop offset="0" stop-color="#FFEB3B" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#FFA500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <line x1="256" y1="60" x2="256" y2="110" stroke="#FFD700" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="60" r="24" fill="#FFD700" stroke="#FF8C00" stroke-width="6"/>
+  <circle cx="256" cy="60" r="14" fill="#FFEB3B"/>
+  <path d="M160 110 C140 110 120 170 120 260 C120 350 170 395 256 395 C342 395 392 350 392 260 C392 170 372 110 352 110 Z"
+        fill="url(#g_bell_body)" stroke="#FF8C00" stroke-width="10"/>
+  <ellipse cx="200" cy="200" rx="50" ry="70" fill="url(#g_bell_shine)"/>
+  <path d="M140 280 C160 320 200 360 256 360" stroke="#B8860B" stroke-width="6" opacity="0.3" fill="none" stroke-linecap="round"/>
+  <path d="M372 280 C352 320 312 360 256 360" stroke="#B8860B" stroke-width="6" opacity="0.3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="256" cy="395" rx="142" ry="18" fill="#FF8C00" opacity="0.6"/>
+  <path d="M120 395 L392 395" stroke="#B8860B" stroke-width="16" stroke-linecap="round"/>
+  <line x1="256" y1="395" x2="256" y2="430" stroke="#8B4513" stroke-width="10"/>
+  <circle cx="256" cy="445" r="24" fill="#D32F2F" stroke="#B71C1C" stroke-width="6"/>
+  <circle cx="250" cy="440" r="8" fill="#E57373" opacity="0.6"/>
+</svg>

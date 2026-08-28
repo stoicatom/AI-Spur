@@ -1,8 +1,8 @@
 /**
  * E2E Journey J01–J02: App startup + tray trigger
  *
- * J01: 启动后 500ms 内托盘图���可���
- * J02: 点击托盘 ��� overlay 窗口出现 / 再次点��� → ���失
+ * J01: 启动后 500ms 内托盘图标可见
+ * J02: 点击托盘 → AISpur 设置窗口出现；overlay 由全局快捷键触发
  *
  * Prerequisites: debug binary built, @wdio/tauri-service running.
  * Run: npx wdio run wdio.conf.ts --spec tests/e2e/j01-j02-startup.spec.ts
@@ -27,10 +27,10 @@ describe('J01: App startup', () => {
   });
 });
 
-describe('J02: Tray trigger', () => {
-  it('clicking the tray icon makes the overlay window appear', async () => {
+describe('J02: Tray opens AISpur settings', () => {
+  it('clicking the tray icon presents the AISpur settings window', async () => {
     // Use the debug backdoor command to simulate a tray click.
-    await browser.execute('return window.__TAURI__.invoke("__test_click_tray")');
+    await browser.execute('return window.__TAURI__.core.invoke("__test_click_tray")');
     await browser.waitUntil(
       async () => {
         const handles = await browser.getWindowHandles();
@@ -38,14 +38,23 @@ describe('J02: Tray trigger', () => {
       },
       { timeout: 3000, interval: 100 }
     );
-    // The overlay window is always open (transparent); we assert the event fired
-    // by checking the window count stays stable (overlay never closes on tray click).
+    // Both windows are created at startup; a successful command confirms the
+    // native tray entry reaches the same settings presentation path.
     const handles = await browser.getWindowHandles();
     expect(handles.length).toBeGreaterThan(0);
+    let settingsPresented = false;
+    for (const handle of handles) {
+      await browser.switchToWindow(handle);
+      if ((await browser.getTitle()).includes('AISpur 设置')) {
+        settingsPresented = true;
+        break;
+      }
+    }
+    expect(settingsPresented).toBe(true);
   });
 
-  it('a second tray click triggers the overlay again', async () => {
-    await browser.execute('return window.__TAURI__.invoke("__test_click_tray")');
+  it('a second tray click presents the same settings window again', async () => {
+    await browser.execute('return window.__TAURI__.core.invoke("__test_click_tray")');
     await browser.pause(300);
     // Two clicks means two events. The overlay window remains present (it is
     // always shown); this confirms the event path does not block after the first.

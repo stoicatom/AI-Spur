@@ -1,0 +1,234 @@
+import { resolveEffect, type EffectPreset } from './effects';
+import { drawCanvasDownpour } from './canvas-downpour';
+import { drawCanvasElectricDischarge } from './canvas-electric-discharge';
+import { drawImageMaterialFrame } from './draw-image-material-frame';
+import { electricGlideAt } from './electric-glide';
+import { drawCrackLighting } from './material-crack-lighting';
+import { advanceAndDrawParticles } from './material-particle-canvas';
+import { crackStyle, type CrackStyle } from './material-styles';
+import { DEFAULT_VEL, drawImpact, type Particle, type WhipVel } from './particles';
+import { renderContractFor } from './three-effect-contract';
+import { DEFAULT_EFFECT_DURATION_MS, effectDurationFor } from './effect-timings';
+import { MATERIAL_ANIMATION_DURATION_SCALE } from './material-animation-constants';
+import type { EffectPresetId } from '../shared/material-packs';
+import {
+  CURSOR_MAX_PX,
+  cursorDrawRadius,
+  drawCursorSprite,
+  fitSize,
+} from './cursor-sprite';
+
+
+/** 图片素材精灵及其 Canvas 2D 回退爆裂动画。 */
+export class ImageMaterial {
+  private img = new Image();
+  private pendingImage: HTMLImageElement | null = null;
+  private ready = false;
+  private disposed = false;
+  private url = '';
+  private fitW = 0;
+  private fitH = 0;
+  private crackT0 = 0;
+  private crackDurationMs = DEFAULT_EFFECT_DURATION_MS;
+  private lastCrackUpdate = 0;
+  private crackX = 0;
+  private crackY = 0;
+  private crackOn = false;
+  private crackVel: WhipVel = DEFAULT_VEL;
+  private effect: EffectPreset = resolveEffect('jet');
+  private effectParams: Record<string, number> = {};
+  private presetId: EffectPresetId = 'jet';
+  private style: CrackStyle = crackStyle('rocket');
+  private useLegacyStyle = false;
+  private particles: Particle[] = [];
+  private _particleHue = 24;
+
+  /** 预加载旧版图片素材（仅在 URL 变化时触发一次解码）。 */
+  load(url: string, id: string): void {
+    this.style = crackStyle(id);
+    this.useLegacyStyle = true;
+    this.crackDurationMs = DEFAULT_EFFECT_DURATION_MS;
+    this._particleHue = this.style.hue;
+    this.loadImage(url);
+  }
+
+  /** 从 v3 素材包加载图标并绑定特效预设。 */
+  loadPack(
+    url: string,
+    presetId: string,
+    params: Record<string, number>,
+    particleHue: number,
+  ): void {
+    this.effect = resolveEffect(presetId);
+    this.presetId = this.effect.id;
+    this.crackDurationMs = effectDurationFor(this.presetId);
+    this.effectParams = params;
+    this.useLegacyStyle = false;
+    this._particleHue = particleHue;
+    this.loadImage(url);
+  }
+
+  private loadImage(url: string): void {
+    if (this.disposed || url === this.url) return;
+    this.url = url;
+    this.ready = false;
+    this.releasePendingImage();
+    if (!url) {
+      this.releaseImage(this.img);
+      return;
+    }
+
+    const image = new Image();
+    this.pendingImage = image;
+    image.onload = () => {
+      if (this.disposed || this.url !== url || this.pendingImage !== image) return;
+      this.pendingImage = null;
+      image.onload = null;
+      image.onerror = null;
+      const previous = this.img;
+      this.img = image;
+      this.ready = true;
+      const size = fitSize(image, CURSOR_MAX_PX);
+      this.fitW = size.w;
+      this.fitH = size.h;
+      if (previous !== image) this.releaseImage(previous);
+    };
+    image.onerror = () => {
+      if (this.pendingImage !== image) return;
+      this.pendingImage = null;
+      this.releaseImage(image);
+      if (this.url === url) this.ready = false;
+    };
+    image.src = url;
+  }
+
+  private releasePendingImage(): void {
+    const pending = this.pendingImage;
+    if (!pending) return;
+    this.pendingImage = null;
+    this.releaseImage(pending);
+  }
+
+  private releaseImage(image: HTMLImageElement): void {
+    image.onload = null;
+    image.onerror = null;
+    image.src = '';
+  }
+
+  /** 拖尾主色相。 */
+  get hue(): number {
+    return this.useLegacyStyle ? this.style.hue : this._particleHue;
+  }
+
+  get isReady(): boolean {
+    return this.ready;
+  }
+
+  get crackAlive(): boolean {
+    return this.crackOn;
+  }
+
+  /**
+   * drawCursor 在 (x, y) 周围实际落笔的最大半径，供脏区域清除外扩。
+   * 取自 drawCursor 的绘制参数本身：光晕层 0.58 偏移 × 1.16 放大、旋转按对角线
+   * 兜底、再加 shadowBlur 的外溢 —— 漏算任何一项都会留残影。
+   */
+  get cursorDrawRadius(): number {
+    return this.ready ? cursorDrawRadius(this.fitW, this.fitH) : 0;
+  }
+
+  /** 光标跟随：居中绘制在 (x, y)，保持宽高比。 */
+  drawCursor(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+    if (!this.ready) return;
+    drawCursorSprite(ctx, this.img, x, y, this.fitW, this.fitH, this.hue);
+  }
+
+  /** 触发该素材的专属爆裂动画。 */
+  startCrack(x: number, y: number, vel: WhipVel = DEFAULT_VEL): void {
+    this.crackOn = true;
+    this.crackT0 = performance.now();
+    this.lastCrackUpdate = this.crackT0;
+    this.crackX = x;
+    this.crackY = y;
+    this.crackVel = vel;
+    this.particles = !this.useLegacyStyle && (this.presetId === 'downpour' || this.presetId === 'bolt')
+      ? []
+      : this.useLegacyStyle
+      ? this.style.emit(x, y, vel)
+      : this.effect.emit(x, y, vel, this.effectParams);
+    for (const particle of this.particles) {
+      particle.decay /= MATERIAL_ANIMATION_DURATION_SCALE;
+      if (particle.delay !== undefined) particle.delay *= MATERIAL_ANIMATION_DURATION_SCALE;
+    }
+  }
+
+  /** 清理被 3D 主路径或窗口隐藏流程提前终止的 2D 回退状态。 */
+  cancelCrack(): void {
+    this.crackOn = false;
+    this.particles = [];
+  }
+
+  /** 释放待解码请求、当前图片及回退动画状态。 */
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.url = '';
+    this.ready = false;
+    this.releasePendingImage();
+    this.releaseImage(this.img);
+    this.cancelCrack();
+  }
+
+  /** 推进并绘制爆裂动画。 */
+  updateAndDrawCrack(ctx: CanvasRenderingContext2D, now: number): void {
+    if (!this.crackOn) return;
+    const progress = (now - this.crackT0) / this.crackDurationMs;
+    if (progress >= 1) {
+      this.crackOn = false;
+      this.particles = [];
+      return;
+    }
+
+    const x = this.crackX;
+    const y = this.crackY;
+    const dt = now < this.lastCrackUpdate ? 1 / 60 : Math.min(0.05, (now - this.lastCrackUpdate) / 1000);
+    this.lastCrackUpdate = now;
+    const contract = renderContractFor(this.presetId);
+    if (!this.useLegacyStyle && this.presetId === 'downpour') {
+      const width = ctx.canvas.clientWidth || window.innerWidth;
+      const height = ctx.canvas.clientHeight || window.innerHeight;
+      drawCanvasDownpour(ctx, width, height, this.effectParams, now - this.crackT0, this._particleHue, 1 - Math.max(0, progress - .8) / .2);
+    } else if (!this.useLegacyStyle && this.presetId === 'bolt') {
+      const width = ctx.canvas.clientWidth || window.innerWidth;
+      const height = ctx.canvas.clientHeight || window.innerHeight;
+      const speed = Math.min(2.8, Math.max(0.35, this.crackVel.speed / 3.2));
+      const impulse = Math.min(4.8, Math.max(0.32, 0.46 + speed * 0.92));
+      const stiffness = Number.isFinite(this.effectParams.stiffness) ? this.effectParams.stiffness : 1;
+      const drag = Number.isFinite(this.effectParams.drag) ? this.effectParams.drag : 0.962;
+      const glide = electricGlideAt(progress, this.crackDurationMs, width, height, impulse, stiffness, drag);
+      const directionLength = Math.hypot(this.crackVel.vx, this.crackVel.vy) || 1;
+      const directionX = this.crackVel.vx / directionLength;
+      const directionY = this.crackVel.vy / directionLength;
+      drawCanvasElectricDischarge(
+        ctx, width, height,
+        x + directionX * glide.offset,
+        y + directionY * glide.offset,
+        this.effectParams, progress, this._particleHue, 'lightning', undefined,
+        directionX, directionY,
+      );
+    } else {
+      advanceAndDrawParticles(ctx, this.particles, now, this._particleHue, dt);
+    }
+    if (this.useLegacyStyle || contract.genericParticles) {
+      drawCrackLighting(ctx, progress, x, y, this.hue);
+      drawImpact(ctx, now, x, y, this.crackVel, progress);
+    }
+    if (this.ready && (this.useLegacyStyle || contract.sourceSprite)) {
+      const frame = this.useLegacyStyle
+        ? this.style.sprite(progress, this.crackVel)
+        : this.effect.sprite(progress, this.crackVel, this.effectParams);
+      drawImageMaterialFrame(ctx, this.img, frame, x, y, this.fitW, this.fitH,
+        this.hue, this.useLegacyStyle ? 1 : 1.15, now);
+    }
+  }
+}

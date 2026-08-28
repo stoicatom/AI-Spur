@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_fw1" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FF6B35"/>
+      <stop offset="1" stop-color="#FFD60A"/>
+    </linearGradient>
+    <linearGradient id="g_fw2" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#BF5AF2"/>
+      <stop offset="1" stop-color="#5AC8FA"/>
+    </linearGradient>
+  </defs>
+  <g stroke-width="16" stroke-linecap="round">
+    <line x1="256" y1="180" x2="256" y2="80" stroke="url(#g_fw1)"/>
+    <line x1="256" y1="180" x2="336" y2="104" stroke="url(#g_fw2)"/>
+    <line x1="256" y1="180" x2="356" y2="180" stroke="url(#g_fw1)"/>
+    <line x1="256" y1="180" x2="336" y2="256" stroke="url(#g_fw2)"/>
+    <line x1="256" y1="180" x2="256" y2="280" stroke="url(#g_fw1)"/>
+    <line x1="256" y1="180" x2="176" y2="256" stroke="url(#g_fw2)"/>
+    <line x1="256" y1="180" x2="156" y2="180" stroke="url(#g_fw1)"/>
+    <line x1="256" y1="180" x2="176" y2="104" stroke="url(#g_fw2)"/>
+  </g>
+  <circle cx="256" cy="80" r="18" fill="#FF6B35" opacity="0.8"/>
+  <circle cx="336" cy="104" r="16" fill="#BF5AF2" opacity="0.8"/>
+  <circle cx="356" cy="180" r="18" fill="#FFD60A" opacity="0.8"/>
+  <circle cx="336" cy="256" r="16" fill="#5AC8FA" opacity="0.8"/>
+  <circle cx="256" cy="280" r="18" fill="#FF9500" opacity="0.8"/>
+  <circle cx="176" cy="256" r="16" fill="#BF5AF2" opacity="0.8"/>
+  <circle cx="156" cy="180" r="18" fill="#FFD60A" opacity="0.8"/>
+  <circle cx="176" cy="104" r="16" fill="#5AC8FA" opacity="0.8"/>
+  <circle cx="256" cy="180" r="24" fill="#FFEB3B"/>
+</svg>

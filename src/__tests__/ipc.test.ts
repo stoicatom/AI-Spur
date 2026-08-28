@@ -4,11 +4,13 @@ import {
   saveConfig,
   incrementUsage,
   registerHotkey,
+  checkHotkeyConflict,
   listSkins,
-  activateSkin,
   onSpawnWhip,
   onConfigUpdated,
   onSkinChanged,
+  onMacroFailed,
+  openInputPermissions,
 } from '../shared/ipc';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -50,7 +52,7 @@ describe('IPC layer', () => {
     vi.mocked(invoke).mockResolvedValue(DEFAULT_CONFIG);
     const config = await getConfig();
     expect(invoke).toHaveBeenCalledWith('get_config');
-    expect(config.version).toBe('2.0');
+    expect(config.version).toBe('3.0');
   });
 
   it('getConfig should throw if response is invalid', async () => {
@@ -137,6 +139,26 @@ describe('IPC layer', () => {
     await expect(registerHotkey('bogus')).rejects.toBeDefined();
   });
 
+  it('checkHotkeyConflict parses the occupied scope and rollback target', async () => {
+    vi.mocked(invoke).mockResolvedValue({
+      hotkey: 'CommandOrControl+5',
+      suggestions: ['CommandOrControl+6', 'CommandOrControl+4'],
+      scope: 'shift-companion',
+      occupiedBy: '其他应用',
+      occupiedHotkey: 'CommandOrControl+Shift+5',
+      previousHotkey: 'CommandOrControl+W',
+    });
+
+    await expect(checkHotkeyConflict('CommandOrControl+5')).resolves.toMatchObject({
+      scope: 'shift-companion',
+      occupiedHotkey: 'CommandOrControl+Shift+5',
+      previousHotkey: 'CommandOrControl+W',
+    });
+    expect(invoke).toHaveBeenCalledWith('check_hotkey_conflict', {
+      hotkey: 'CommandOrControl+5',
+    });
+  });
+
   it('listSkins should invoke list_skins and parse each manifest', async () => {
     vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, id: 'fire' }]);
     const skins = await listSkins();
@@ -147,12 +169,6 @@ describe('IPC layer', () => {
   it('listSkins should throw if any manifest fails validation', async () => {
     vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, specVersion: '2' }]);
     await expect(listSkins()).rejects.toThrow();
-  });
-
-  it('activateSkin should invoke activate_skin with skinId', async () => {
-    vi.mocked(invoke).mockResolvedValue(undefined);
-    await activateSkin('neon');
-    expect(invoke).toHaveBeenCalledWith('activate_skin', { skinId: 'neon' });
   });
 
   it('onSkinChanged should parse payload and pass the skin id', async () => {
@@ -183,5 +199,32 @@ describe('IPC layer', () => {
     }).toThrow();
 
     expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('onMacroFailed should parse a structured failure and preserve retry metadata', async () => {
+    const mockUnlisten = vi.fn();
+    vi.mocked(listen).mockResolvedValue(mockUnlisten);
+    const callback = vi.fn();
+
+    await onMacroFailed(callback);
+
+    expect(listen).toHaveBeenCalledWith('macro-failed', expect.any(Function));
+    const listenerFn = vi.mocked(listen).mock.calls[0][1];
+    listenerFn({
+      payload: { code: 'Permission', message: '需要输入权限', retryable: true, attemptId: 7 },
+    } as any);
+
+    expect(callback).toHaveBeenCalledWith({
+      code: 'Permission',
+      message: '需要输入权限',
+      retryable: true,
+      attemptId: 7,
+    });
+  });
+
+  it('openInputPermissions should invoke the native permission guide command', async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await openInputPermissions();
+    expect(invoke).toHaveBeenCalledWith('open_input_permissions');
   });
 });

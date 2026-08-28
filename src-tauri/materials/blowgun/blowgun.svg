@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_blow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#8B4513"/>
+      <stop offset="0.5" stop-color="#A0522D"/>
+      <stop offset="1" stop-color="#6B4423"/>
+    </linearGradient>
+  </defs>
+  <rect x="60" y="228" width="392" height="56" rx="28" fill="url(#g_blow)" stroke="#654321" stroke-width="10"/>
+  <rect x="68" y="236" width="376" height="40" rx="20" fill="#A0522D"/>
+  <path d="M452 256 L492 236 L492 276 Z" fill="#C0C0C0" stroke="#808080" stroke-width="8"/>
+  <path d="M452 256 L480 244 L480 268 Z" fill="#E0E0E0"/>
+  <ellipse cx="100" cy="256" rx="20" ry="16" fill="#654321"/>
+  <line x1="180" y1="240" x2="180" y2="272" stroke="#654321" stroke-width="4" opacity="0.3"/>
+  <line x1="280" y1="240" x2="280" y2="272" stroke="#654321" stroke-width="4" opacity="0.3"/>
+  <line x1="380" y1="240" x2="380" y2="272" stroke="#654321" stroke-width="4" opacity="0.3"/>
+</svg>

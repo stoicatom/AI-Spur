@@ -7,9 +7,6 @@
       * {
         margin: 0;
         padding: 0;
-        /* Hide the system cursor: the whip handle tracks the pointer and acts
-           as the cursor while the overlay is up. */
-        cursor: none;
       }
       html,
       body {
@@ -21,10 +18,82 @@
       canvas {
         display: block;
       }
+
+      /* 系统光标只在「甩动进行中」隐藏 —— 素材本体此刻就是光标。
+         这个作用域由 cursor-visibility.ts 挂 / 摘：全屏透明窗口一旦留在
+         屏上，它声明的 cursor 就是用户看到的光标，所以绝不能常驻，
+         更不能挂在通配选择器上。 */
+      html.whip-active,
+      html.whip-active body,
+      html.whip-active canvas {
+        cursor: none;
+      }
+
+      #whip-webgl,
+      #whip-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      #whip-webgl { z-index: 1; }
+      #whip-canvas { z-index: 2; }
+
+      #macro-status {
+        position: fixed;
+        left: 50%;
+        bottom: 48px;
+        z-index: 4;
+        transform: translateX(-50%);
+        min-width: 280px;
+        max-width: min(560px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 194, 99, 0.7);
+        border-radius: 8px;
+        background: rgba(24, 19, 12, 0.94);
+        color: #fff4dc;
+        font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+        pointer-events: auto;
+        box-shadow: 0 8px 30px rgba(0,0,0,.35);
+        /* 恢复面板永远要有可见指针：否则用户看得见按钮却找不到光标。
+           这条同时压过上面的 .whip-active 作用域。 */
+        cursor: default;
+      }
+
+      #macro-status[hidden] { display: none; }
+      #macro-status__message { margin-bottom: 9px; }
+      #macro-status__actions { display: flex; gap: 8px; justify-content: flex-end; }
+      #macro-status button {
+        border: 1px solid rgba(255,255,255,.35);
+        border-radius: 5px;
+        padding: 5px 9px;
+        background: rgba(255,255,255,.1);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        transition: background .12s cubic-bezier(.4,0,.2,1), border-color .12s cubic-bezier(.4,0,.2,1);
+      }
+      #macro-status button:hover { background: rgba(255,255,255,.2); }
+      #macro-status button:focus-visible {
+        outline: none;
+        border-color: rgba(255, 194, 99, .95);
+        box-shadow: 0 0 0 3px rgba(255, 168, 51, .22);
+      }
     </style>
   </head>
   <body>
+    <canvas id="whip-webgl" aria-hidden="true"></canvas>
     <canvas id="whip-canvas"></canvas>
+    <div id="macro-status" role="alert" hidden>
+      <div id="macro-status__message"></div>
+      <div id="macro-status__actions">
+        <button id="macro-status__settings" type="button" hidden>打开输入权限</button>
+        <button id="macro-status__retry" type="button" hidden>重试</button>
+        <button id="macro-status__close" type="button">关闭</button>
+      </div>
+    </div>
     <script type="module" src="/src/overlay/main.ts"></script>
   </body>
 </html>

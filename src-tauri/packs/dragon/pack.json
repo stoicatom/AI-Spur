@@ -1,0 +1,32 @@
+{
+  "id": "dragon",
+  "name": "神龙",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "wave",
+    "params": {
+      "amplitude": 1.6,
+      "wavelength": 0.7,
+      "undulation": 1.4
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 5.125034,
+      "sourceTitle": "Angry dragon growl",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/309/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#2ee88a",
+      "#007a3d"
+    ],
+    "particleHue": 150
+  }
+}

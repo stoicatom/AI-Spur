@@ -1,0 +1,32 @@
+{
+  "id": "water",
+  "name": "碧波",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "water-splash",
+    "params": {
+      "droplets": 2,
+      "splashHeight": 1.4,
+      "ripple": 1.7
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.477914,
+      "sourceTitle": "Water splash",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1311/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#4a8cff",
+      "#0040a0"
+    ],
+    "particleHue": 218
+  }
+}

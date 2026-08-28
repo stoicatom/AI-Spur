@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- 黑胶唱片渐变 -->
+    <radialGradient id="g_vinyl" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#2C2C2C"/>
+      <stop offset="0.2" stop-color="#1A1A1A"/>
+      <stop offset="0.8" stop-color="#0D0D0D"/>
+      <stop offset="1" stop-color="#000000"/>
+    </radialGradient>
+    <!-- 唱片纹理 -->
+    <radialGradient id="g_grooves" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#1A1A1A"/>
+      <stop offset="0.5" stop-color="#0D0D0D"/>
+      <stop offset="1" stop-color="#000000"/>
+    </radialGradient>
+    <!-- 标签渐变 -->
+    <radialGradient id="g_label" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#8B0000"/>
+      <stop offset="0.6" stop-color="#DC143C"/>
+      <stop offset="1" stop-color="#8B0000"/>
+    </radialGradient>
+    <!-- 金色文字 -->
+    <linearGradient id="g_gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD700"/>
+      <stop offset="0.5" stop-color="#FFA500"/>
+      <stop offset="1" stop-color="#FF8C00"/>
+    </linearGradient>
+    <!-- 反光效果 -->
+    <radialGradient id="g_shine" cx="0.3" cy="0.3">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 发光 -->
+    <filter id="glow_vinyl">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 唱片主体 -->
+  <circle cx="256" cy="256" r="180" fill="url(#g_vinyl)" stroke="#000000" stroke-width="4"/>
+
+  <!-- 唱片纹路（同心圆） -->
+  <g fill="none" stroke="#0A0A0A" stroke-width="1" opacity="0.6">
+    <circle cx="256" cy="256" r="170"/>
+    <circle cx="256" cy="256" r="160"/>
+    <circle cx="256" cy="256" r="150"/>
+    <circle cx="256" cy="256" r="140"/>
+    <circle cx="256" cy="256" r="130"/>
+    <circle cx="256" cy="256" r="120"/>
+    <circle cx="256" cy="256" r="110"/>
+    <circle cx="256" cy="256" r="100"/>
+  </g>
+
+  <!-- 更细密的纹路（增加质感） -->
+  <g fill="none" stroke="#1A1A1A" stroke-width="0.5" opacity="0.3">
+    <circle cx="256" cy="256" r="175"/>
+    <circle cx="256" cy="256" r="165"/>
+    <circle cx="256" cy="256" r="155"/>
+    <circle cx="256" cy="256" r="145"/>
+    <circle cx="256" cy="256" r="135"/>
+    <circle cx="256" cy="256" r="125"/>
+    <circle cx="256" cy="256" r="115"/>
+    <circle cx="256" cy="256" r="105"/>
+  </g>
+
+  <!-- 唱片反光（右上） -->
+  <ellipse cx="300" cy="200" rx="60" ry="80" fill="url(#g_shine)" opacity="0.4"/>
+
+  <!-- 中心标签（红色） -->
+  <circle cx="256" cy="256" r="70" fill="url(#g_label)" stroke="#6B0000" stroke-width="3"
+          filter="url(#glow_vinyl)"/>
+
+  <!-- 标签装饰圈 -->
+  <circle cx="256" cy="256" r="65" fill="none" stroke="#FFD700" stroke-width="2" opacity="0.8"/>
+  <circle cx="256" cy="256" r="60" fill="none" stroke="#8B0000" stroke-width="1"/>
+
+  <!-- 标签文字暗示（抽象音符和字母） -->
+  <g fill="url(#g_gold)" opacity="0.9">
+    <!-- 音符 -->
+    <ellipse cx="230" cy="240" rx="6" ry="8"/>
+    <rect x="235" y="220" width="3" height="20"/>
+    <path d="M 238 220 Q 246 218 248 226" fill="none" stroke="url(#g_gold)" stroke-width="2"/>
+
+    <!-- 字母 V -->
+    <path d="M 270 235 L 278 255 L 286 235" fill="none" stroke="url(#g_gold)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- 装饰线 -->
+    <line x1="225" y1="265" x2="290" y2="265" stroke="url(#g_gold)" stroke-width="2"/>
+    <line x1="230" y1="272" x2="285" y2="272" stroke="url(#g_gold)" stroke-width="1.5"/>
+  </g>
+
+  <!-- 中心孔 -->
+  <circle cx="256" cy="256" r="18" fill="#000000" stroke="#1A1A1A" stroke-width="2"/>
+  <circle cx="256" cy="256" r="14" fill="#0D0D0D"/>
+
+  <!-- 唱片边缘高光 -->
+  <circle cx="256" cy="256" r="178" fill="none" stroke="#2C2C2C" stroke-width="2" opacity="0.5"/>
+
+  <!-- 唱片磨损纹理（增加真实感） -->
+  <g opacity="0.2">
+    <path d="M 200 140 Q 210 145 215 140" fill="none" stroke="#3A3A3A" stroke-width="1"/>
+    <path d="M 340 200 Q 345 210 350 205" fill="none" stroke="#3A3A3A" stroke-width="1"/>
+    <path d="M 380 320 Q 375 325 370 320" fill="none" stroke="#3A3A3A" stroke-width="1"/>
+    <path d="M 150 350 Q 155 355 160 350" fill="none" stroke="#3A3A3A" stroke-width="1"/>
+  </g>
+
+  <!-- 音乐波纹（律动感） -->
+  <g opacity="0.3">
+    <circle cx="256" cy="256" r="190" fill="none" stroke="#DC143C" stroke-width="2" stroke-dasharray="5 10"/>
+    <circle cx="256" cy="256" r="200" fill="none" stroke="#FFD700" stroke-width="1" stroke-dasharray="3 8"/>
+  </g>
+</svg>

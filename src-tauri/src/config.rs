@@ -35,13 +35,24 @@ pub enum Theme {
     Auto,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum WindowPresence {
+    /// Keep AISpur tray-resident; closing settings hides the window and, on
+    /// macOS, returns the process to accessory mode.
+    #[default]
+    Tray,
+    /// Keep a normal Dock/taskbar entry so the settings window can be restored
+    /// after it is closed (minimized on Windows/Linux, hidden on macOS).
+    Persistent,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
-    pub version: String, // "2.0"
+    pub version: String, // "3.0"
     pub hotkey: String,
     pub phrases: Vec<String>,
-    pub active_skin: String,
     pub animation_mode: AnimationMode,
     pub auto_switch_threshold: u32,
     pub usage_count: u32,
@@ -55,12 +66,23 @@ pub struct Config {
     pub theme: Theme,
     pub language: String, // "auto" | "zh-CN" | "en-US"
     pub first_launch: bool,
+    #[serde(default)]
+    pub window_presence: WindowPresence,
+    /// ID of the active material pack (v3 single axis: icon + effect + sound + palette).
+    /// Replaces v2's three-axis active_skin / crack_sound_id / active_material_id.
+    /// Kept in sync with the TS `activePackId` (Zod `.default('rocket')`).
+    #[serde(default = "default_active_pack_id")]
+    pub active_pack_id: String,
+}
+
+fn default_active_pack_id() -> String {
+    "rocket".to_string()
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            version: "2.0".to_string(),
+            version: "3.0".to_string(),
             hotkey: "CommandOrControl+Shift+W".to_string(),
             phrases: vec![
                 "FASTER".to_string(),
@@ -68,7 +90,6 @@ impl Default for Config {
                 "DON'T STOP NOW".to_string(),
                 "SHOW ME WHAT YOU GOT".to_string(),
             ],
-            active_skin: "default".to_string(),
             animation_mode: AnimationMode::Auto,
             auto_switch_threshold: 20,
             usage_count: 0,
@@ -80,6 +101,8 @@ impl Default for Config {
             theme: Theme::Auto,
             language: "auto".to_string(),
             first_launch: true,
+            window_presence: WindowPresence::Tray,
+            active_pack_id: "rocket".to_string(),
         }
     }
 }
@@ -162,20 +185,62 @@ pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
 fn migrate(raw: serde_json::Value) -> Result<Config, ConfigError> {
     let version = raw.get("version").and_then(|v| v.as_str()).unwrap_or("1.0");
 
-    match version {
-        "2.0" => parse_v2(raw),
+    let parsed = match version {
+        "3.0" => parse_v3(raw),
+        "2.0" => migrate_v2_to_v3(raw),
         _ => Err(ConfigError::UnknownVersion(version.to_string())),
-    }
+    }?;
+
+    Ok(normalize_config(parsed))
 }
 
-/// Parse a v2 config, filling any absent key from `Config::default()`.
+/// Keep persisted configs inside the frontend contract's phrase invariant.
+pub fn normalize_config(mut config: Config) -> Config {
+    config.phrases.retain(|phrase| !phrase.is_empty());
+    if config.phrases.is_empty() {
+        config.phrases = Config::default().phrases;
+    }
+    config
+}
+
+/// v2 → v3：三轴合一。把 v2 的 `activeMaterialId` 迁移为 v3 的 `activePackId`；
+/// 其余字段原样带过（activeSkin / crackSoundId 弃用，不再保留）。
+fn migrate_v2_to_v3(raw: serde_json::Value) -> Result<Config, ConfigError> {
+    // v3 默认值基底（version=3.0, activePackId=rocket）。
+    let mut merged = serde_json::to_value(Config::default())
+        .map_err(|e| ConfigError::ParseError(e.to_string()))?;
+
+    if let (Some(base), Some(given)) = (merged.as_object_mut(), raw.as_object()) {
+        for (key, value) in given {
+            // 只带过 v3 schema 认识的键；activeSkin / crackSoundId / activeMaterialId
+            // 均不在 v3 schema 中，会被这里滤掉。
+            if base.contains_key(key) {
+                base.insert(key.clone(), value.clone());
+            }
+        }
+    }
+
+    // 迁移 activeMaterialId → activePackId（v3 单一选择轴）。
+    if let Some(active_material) = raw.get("activeMaterialId").and_then(|v| v.as_str()) {
+        if !active_material.is_empty() {
+            merged["activePackId"] = serde_json::json!(active_material);
+        }
+    }
+
+    // 无论 v2 原文件写什么，迁移结果一律是 v3。
+    merged["version"] = serde_json::json!("3.0");
+
+    serde_json::from_value(merged).map_err(|e| ConfigError::ParseError(e.to_string()))
+}
+
+/// Parse a v3 config, filling any absent key from `Config::default()`.
 ///
 /// A field added in a later build is missing from configs written by earlier
 /// ones; without the merge serde would reject the whole file and the user would
 /// land in the error state instead of picking up one new default. Unknown
 /// version strings are still a hard error (see `migrate`) — this only forgives
 /// missing keys, never a foreign schema.
-fn parse_v2(raw: serde_json::Value) -> Result<Config, ConfigError> {
+fn parse_v3(raw: serde_json::Value) -> Result<Config, ConfigError> {
     let mut merged = serde_json::to_value(Config::default())
         .map_err(|e| ConfigError::ParseError(e.to_string()))?;
 
@@ -196,8 +261,8 @@ pub fn save_config(path: &Path, config: &Config) -> Result<(), ConfigError> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| ConfigError::WriteError(e.to_string()))?;
     }
-    let json =
-        serde_json::to_string_pretty(config).map_err(|e| ConfigError::WriteError(e.to_string()))?;
+    let json = serde_json::to_string_pretty(&normalize_config(config.clone()))
+        .map_err(|e| ConfigError::WriteError(e.to_string()))?;
     fs::write(path, json).map_err(|e| ConfigError::WriteError(e.to_string()))?;
     Ok(())
 }
@@ -233,8 +298,100 @@ mod tests {
             "firstLaunch": true
         });
         let cfg = migrate(raw).unwrap();
-        assert_eq!(cfg.version, "2.0");
+        assert_eq!(cfg.version, "3.0"); // migrated to v3
         assert_eq!(cfg.hotkey, "CommandOrControl+Shift+W");
+        assert_eq!(cfg.active_pack_id, "rocket"); // default when no activeMaterialId
+    }
+
+    #[test]
+    fn migrate_v2_to_v3_maps_active_material_to_pack() {
+        // The core v2→v3 migration: activeMaterialId becomes activePackId.
+        let raw = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CommandOrControl+Shift+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "default",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 7,
+            "todayUsageCount": 3,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": false,
+            "activeMaterialId": "lightning",
+            "crackSoundId": "bomb"
+        });
+        let cfg = migrate(raw).unwrap();
+        assert_eq!(cfg.version, "3.0");
+        assert_eq!(cfg.active_pack_id, "lightning");
+        assert_eq!(cfg.usage_count, 7);
+        assert_eq!(cfg.today_usage_count, 3);
+    }
+
+    #[test]
+    fn migrate_v2_to_v3_ignores_stale_axes() {
+        // activeSkin / crackSoundId are dropped; only activeMaterialId survives
+        // as the pack seed. The struct has no such fields at all.
+        let raw = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CmdOrCtrl+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "fire",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 1,
+            "todayUsageCount": 1,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": false,
+            "activeMaterialId": "meteor",
+            "crackSoundId": "guitar"
+        });
+        let cfg = migrate(raw).unwrap();
+        assert_eq!(cfg.active_pack_id, "meteor");
+    }
+
+    #[test]
+    fn migrate_v2_missing_active_material_uses_default_pack() {
+        let raw = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CmdOrCtrl+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "default",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 0,
+            "todayUsageCount": 0,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": false
+        });
+        let cfg = migrate(raw).unwrap();
+        assert_eq!(cfg.active_pack_id, "rocket");
+    }
+
+    #[test]
+    fn migrate_accepts_current_v3() {
+        let raw = serde_json::json!({
+            "version": "3.0",
+            "hotkey": "CommandOrControl+Shift+W",
+            "phrases": ["FASTER"],
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 0,
+            "todayUsageCount": 0,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": true,
+            "activePackId": "phoenix"
+        });
+        let cfg = migrate(raw).unwrap();
+        assert_eq!(cfg.version, "3.0");
+        assert_eq!(cfg.active_pack_id, "phoenix");
     }
 
     #[test]
@@ -255,7 +412,7 @@ mod tests {
     #[test]
     fn default_config_has_correct_version() {
         let cfg = Config::default();
-        assert_eq!(cfg.version, "2.0");
+        assert_eq!(cfg.version, "3.0");
     }
 
     #[test]
@@ -263,6 +420,23 @@ mod tests {
         let cfg = Config::default();
         assert!(!cfg.phrases.is_empty());
         assert_eq!(cfg.phrases[0], "FASTER");
+    }
+
+    #[test]
+    fn parse_v3_repairs_empty_phrases() {
+        let config = migrate(serde_json::json!({
+            "version": "3.0",
+            "phrases": ["", "KEEP THIS"],
+        }))
+        .unwrap();
+        assert_eq!(config.phrases, vec!["KEEP THIS"]);
+
+        let config = migrate(serde_json::json!({
+            "version": "3.0",
+            "phrases": [""],
+        }))
+        .unwrap();
+        assert_eq!(config.phrases, Config::default().phrases);
     }
 
     #[test]
@@ -297,8 +471,51 @@ mod tests {
             "firstLaunch": false,
         });
         let cfg = migrate(partial).unwrap();
+        assert_eq!(cfg.version, "3.0");
         assert_eq!(cfg.usage_count, 42);
         assert_eq!(cfg.last_usage_date, None); // filled from default
+        assert_eq!(cfg.active_pack_id, "rocket"); // migrated default
+    }
+
+    #[test]
+    fn parse_v2_fills_active_material_id_from_default() {
+        // A config written before `activeMaterialId` existed must still parse,
+        // picking up the "rocket" default rather than landing in the error state.
+        let partial = serde_json::json!({
+            "version": "2.0",
+            "hotkey": "CmdOrCtrl+W",
+            "phrases": ["FASTER"],
+            "activeSkin": "default",
+            "animationMode": "auto",
+            "autoSwitchThreshold": 20,
+            "usageCount": 0,
+            "todayUsageCount": 0,
+            "playSound": true,
+            "showBorderFlash": true,
+            "crackSensitivity": 1.0,
+            "firstLaunch": false,
+            // crackSoundId and activeMaterialId intentionally omitted
+        });
+        let cfg = migrate(partial).unwrap();
+        assert_eq!(cfg.active_pack_id, "rocket");
+    }
+
+    #[test]
+    fn default_config_has_rocket_pack() {
+        assert_eq!(Config::default().active_pack_id, "rocket");
+    }
+
+    #[test]
+    fn window_presence_defaults_to_tray_and_roundtrips_persistent() {
+        assert_eq!(Config::default().window_presence, WindowPresence::Tray);
+        let config = Config {
+            window_presence: WindowPresence::Persistent,
+            ..Config::default()
+        };
+        let json = serde_json::to_value(&config).unwrap();
+        assert_eq!(json["windowPresence"], "persistent");
+        let parsed: Config = serde_json::from_value(json).unwrap();
+        assert_eq!(parsed.window_presence, WindowPresence::Persistent);
     }
 
     #[test]
@@ -324,7 +541,7 @@ mod tests {
     #[test]
     fn save_and_load_roundtrip_with_path() {
         use std::env;
-        let path = env::temp_dir().join("openwhip_test_config.json");
+        let path = env::temp_dir().join("aispur_test_config.json");
         let cfg = Config::default();
         save_config(&path, &cfg).unwrap();
         let loaded = load_config(&path).unwrap();

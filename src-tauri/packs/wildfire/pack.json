@@ -1,0 +1,35 @@
+{
+  "id": "wildfire",
+  "name": "燎原烈火",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "wildfire",
+    "params": {
+      "flameHeight": 2.05,
+      "emberLift": 1.8,
+      "spread": 1.65,
+      "heatWarp": 1.42,
+      "smokeRise": 0.85,
+      "gustResponse": 1.25
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 3.631927,
+      "sourceTitle": "Fire swoosh burning",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1328/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#FFB000",
+      "#D92D20"
+    ],
+    "particleHue": 24
+  }
+}

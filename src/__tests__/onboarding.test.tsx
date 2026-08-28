@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
@@ -13,7 +13,6 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('../shared/ipc', () => ({
   listSkins: vi.fn(),
-  activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
   getConfig: vi.fn(),
   saveConfig: vi.fn(),
@@ -161,9 +160,9 @@ describe('OnboardingFlow', () => {
     render(<OnboardingFlow config={cfg()} onComplete={onComplete} onSkip={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'j', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
     await waitFor(() => expect(checkHotkeyConflict).toHaveBeenCalled());
 
     await goToLastStep(user);
@@ -198,8 +197,8 @@ describe('OnboardingFlow', () => {
     // Each instruction line interleaves a <span> for the hotkey, so assert
     // against the list's combined textContent, not a single text node.
     const steps = container.querySelector('ol');
-    expect(steps?.textContent).toContain('触发催促');
-    expect(steps?.textContent).toContain('自动发送中断信号');
+    expect(steps?.textContent).toContain('唤出覆盖层');
+    expect(steps?.textContent).toContain('自动发送 Esc');
 
     const note = container.querySelector('.callout--info');
     expect(note?.textContent).toContain(

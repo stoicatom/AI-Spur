@@ -4,8 +4,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SkinError {
-    #[error("Skin not found: {0}")]
-    NotFound(String),
     #[error("Failed to read skin manifest: {0}")]
     ReadError(String),
     #[error("Invalid skin manifest: {0}")]
@@ -136,18 +134,6 @@ pub fn list_skins(builtin_dir: &Path, user_dir: Option<&Path>) -> Vec<SkinManife
     skins
 }
 
-/// Load a single skin by id from the given directories.
-pub fn load_skin(
-    id: &str,
-    builtin_dir: &Path,
-    user_dir: Option<&Path>,
-) -> Result<SkinManifest, SkinError> {
-    list_skins(builtin_dir, user_dir)
-        .into_iter()
-        .find(|s| s.id == id)
-        .ok_or_else(|| SkinError::NotFound(id.to_string()))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -223,26 +209,27 @@ mod tests {
 
     #[test]
     fn missing_directory_yields_no_skins() {
-        let skins = list_skins_in(std::path::Path::new("/nonexistent/openwhip/skins"));
+        let skins = list_skins_in(std::path::Path::new("/nonexistent/aispur/skins"));
         assert!(skins.is_empty());
     }
 
     #[test]
-    fn load_skin_finds_bundled_skin_by_id() {
-        let skin = load_skin("fire", &bundled_skins_dir(), None).unwrap();
+    fn bundled_skin_is_findable_by_id() {
+        let skins = list_skins(&bundled_skins_dir(), None);
+        let skin = skins.iter().find(|s| s.id == "fire").expect("fire skin");
         assert_eq!(skin.name, "Fire Whip");
         assert_eq!(skin.visuals.particle_effect, ParticleEffect::Sparks);
     }
 
     #[test]
-    fn load_skin_reports_not_found_for_unknown_id() {
-        let err = load_skin("no-such-skin", &bundled_skins_dir(), None).unwrap_err();
-        assert!(matches!(err, SkinError::NotFound(_)));
+    fn unknown_id_is_absent_from_the_listing() {
+        let skins = list_skins(&bundled_skins_dir(), None);
+        assert!(!skins.iter().any(|s| s.id == "no-such-skin"));
     }
 
     #[test]
     fn user_skin_overrides_bundled_skin_with_same_id() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-override-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-override-test");
         let skin_dir = tmp.join("fire");
         std::fs::create_dir_all(&skin_dir).unwrap();
         let mut custom = valid_manifest();
@@ -264,7 +251,7 @@ mod tests {
 
     #[test]
     fn user_skin_with_new_id_is_appended() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-append-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-append-test");
         let skin_dir = tmp.join("custom-skin");
         std::fs::create_dir_all(&skin_dir).unwrap();
         let mut custom = valid_manifest();
@@ -284,7 +271,7 @@ mod tests {
 
     #[test]
     fn invalid_user_manifest_is_skipped_not_fatal() {
-        let tmp = std::env::temp_dir().join("openwhip-skin-invalid-test");
+        let tmp = std::env::temp_dir().join("aispur-skin-invalid-test");
         let skin_dir = tmp.join("broken");
         std::fs::create_dir_all(&skin_dir).unwrap();
         std::fs::write(skin_dir.join("manifest.json"), "{ not valid json").unwrap();

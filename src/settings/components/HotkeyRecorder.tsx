@@ -101,8 +101,29 @@ export function HotkeyRecorder({ value, onChange }: HotkeyRecorderProps) {
       {state.phase === 'conflict' && (
         <div className="callout callout--warning" role="alert">
           <p className="callout__title">
-            <span className="font-mono">{formatAccel(state.conflict.hotkey)}</span> 已被其他应用占用
+            <span className="font-mono">
+              {formatAccel(state.conflict.occupiedHotkey ?? state.conflict.hotkey)}
+            </span>{' '}
+            {(state.conflict.scope ?? 'primary') === 'primary'
+              ? '主快捷键'
+              : 'Shift 完整动画组合'}{' '}
+            已被{state.conflict.occupiedBy ?? '其他应用'}占用
           </p>
+          <p className="callout__text">请选择其他组合后再保存。</p>
+          {state.conflict.previousHotkey && (
+            <div className="callout__actions">
+              <button
+                type="button"
+                className="btn btn--small"
+                onClick={() => {
+                  onChange(state.conflict.previousHotkey!);
+                  setState({ phase: 'idle' });
+                }}
+              >
+                恢复上一次有效组合
+              </button>
+            </div>
+          )}
           {state.conflict.suggestions.length > 0 && (
             <>
               <p className="callout__text">推荐替代方案：</p>

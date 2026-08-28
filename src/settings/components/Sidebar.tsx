@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react';
 import { NAV_GROUPS, type PanelId } from '../panels';
+import { BrandLogo } from './BrandLogo';
 import { Icon } from './Icon';
 
 export interface SidebarProps {
@@ -50,8 +51,8 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
   return (
     <nav className="sidebar" aria-label="设置分类">
       <div className="sidebar__brand">
+        <BrandLogo size={22} className="sidebar__brand-logo" />
         <span className="sidebar__brand-mark font-display">AISpur</span>
-        <span className="sidebar__brand-version font-mono">v2</span>
       </div>
 
       <div className="sidebar__groups" role="tablist" aria-orientation="vertical">

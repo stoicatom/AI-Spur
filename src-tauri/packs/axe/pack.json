@@ -1,0 +1,32 @@
+{
+  "id": "axe",
+  "name": "战斧",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "impact",
+    "params": {
+      "chop": 1.9,
+      "weight": 2.1,
+      "cleave": 1.5
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 0.770975,
+      "sourceTitle": "Metal hammer hit",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/833/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#c8b0e8",
+      "#6a3aa8"
+    ],
+    "particleHue": 266
+  }
+}

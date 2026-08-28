@@ -24,7 +24,7 @@ export function OnboardingFlow({ config, onComplete, onSkip }: OnboardingFlowPro
   const [step, setStep] = useState(0);
   const [hotkey, setHotkey] = useState(config.hotkey);
   const [phrases, setPhrases] = useState<string[]>([...SUGGESTED_PHRASES]);
-  const [activeSkin, setActiveSkin] = useState(config.activeSkin);
+  const [activeSkin, setActiveSkin] = useState(config.activeSkin ?? 'default');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();

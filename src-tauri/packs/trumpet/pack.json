@@ -1,0 +1,32 @@
+{
+  "id": "trumpet",
+  "name": "号角",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "ring",
+    "params": {
+      "fanfare": 2,
+      "brass": 1.8,
+      "projection": 1.6
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.289977,
+      "sourceTitle": "Party trumpet horn isolated",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/526/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ffd66a",
+      "#cc8a00"
+    ],
+    "particleHue": 43
+  }
+}

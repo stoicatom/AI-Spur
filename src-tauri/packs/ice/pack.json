@@ -1,0 +1,32 @@
+{
+  "id": "ice",
+  "name": "寒冰",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "shatter-ice",
+    "params": {
+      "shards": 1.8,
+      "chill": 1.9,
+      "shardSpeed": 1.5
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 2.042154,
+      "sourceTitle": "Dropping ice into a glass",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2834/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#9fe8ff",
+      "#2a7ab8"
+    ],
+    "particleHue": 194
+  }
+}

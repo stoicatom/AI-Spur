@@ -24,11 +24,19 @@ export default defineConfig({
         settings: path.resolve(__dirname, 'settings.html'),
       },
       output: {
-        // Split heavy runtime dependencies into their own chunks so the main
-        // bundle can be re-downloaded without pulling React/Framer Motion along.
-        manualChunks: {
-          'react-runtime': ['react', 'react-dom'],
-          'framer-motion': ['framer-motion'],
+        // Keep the settings runtime independent from the overlay and split
+        // the heavy Three family layers by their stable domain prefix. This
+        // lets a material family be cached independently and keeps a future
+        // family addition from inflating one monolithic `three-effects` file.
+        manualChunks(id) {
+          if (id.includes('node_modules/three')) return 'three-runtime';
+          if (id.includes('node_modules/react')) return 'react-runtime';
+          if (id.includes('node_modules/framer-motion')) return 'framer-motion';
+          const family = id.match(/three-family-(cosmic|impact|natural|rhythm|weapon)/)?.[1];
+          if (family) return `three-effect-family-${family}`;
+          if (id.endsWith('/src/overlay/three-effects.ts')) return 'three-effect-core';
+          if (id.includes('/src/overlay/effects-')) return 'canvas-effect-presets';
+          return undefined;
         },
       },
     },

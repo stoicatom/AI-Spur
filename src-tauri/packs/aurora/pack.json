@@ -1,0 +1,32 @@
+{
+  "id": "aurora",
+  "name": "极光",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "wave",
+    "params": {
+      "shimmer": 2.4,
+      "flow": 1.8,
+      "spectral": 2
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 3.5,
+      "sourceTitle": "Magic sparkle whoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2350/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#4dffa6",
+      "#00b87a"
+    ],
+    "particleHue": 150
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "guitar",
+  "name": "电吉他",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "pulse",
+    "params": {
+      "strum": 1.8,
+      "resonance": 1.9,
+      "punch": 1.4
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.56,
+      "sourceTitle": "Cool guitar riff",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/2321/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#ff9c4d",
+      "#a84a00"
+    ],
+    "particleHue": 27
+  }
+}

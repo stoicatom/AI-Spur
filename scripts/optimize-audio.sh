@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Audio optimization script for AI-Spur sound effects
+# Audio optimization script for AISpur sound effects
 # Reduces bitrate and converts to mono for smaller file size
 
 set -euo pipefail

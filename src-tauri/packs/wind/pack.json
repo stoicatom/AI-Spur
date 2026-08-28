@@ -1,0 +1,32 @@
+{
+  "id": "wind",
+  "name": "疾风",
+  "icon": "icon.svg",
+  "effect": {
+    "preset": "whirl",
+    "params": {
+      "spirals": 2.2,
+      "suction": 1.5,
+      "gust": 1.8
+    }
+  },
+  "sound": {
+    "layers": [],
+    "sample": {
+      "file": "sound.m4a",
+      "gain": 0.9,
+      "maxDuration": 1.451995,
+      "sourceTitle": "Cinematic wind swoosh",
+      "sourceUrl": "https://mixkit.co/free-sound-effects/download/1471/",
+      "license": "Mixkit Sound Effects Free License"
+    },
+    "masterGain": 0.9
+  },
+  "palette": {
+    "bodyGradient": [
+      "#a8e8ff",
+      "#3a88c8"
+    ],
+    "particleHue": 196
+  }
+}

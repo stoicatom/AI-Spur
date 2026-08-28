@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -19,7 +19,6 @@ vi.mock('../shared/ipc', () => ({
   onConfigUpdated: vi.fn(),
   // Panels render for real inside App, so their IPC calls need stubs too.
   listSkins: vi.fn(),
-  activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
 }));
 
@@ -86,10 +85,10 @@ describe('settings App', () => {
     render(<App />);
     await waitFor(() => expect(screen.getByRole('tabpanel')).toBeInTheDocument());
 
-    await user.click(screen.getByRole('tab', { name: /皮肤/ }));
+    await user.click(screen.getByRole('tab', { name: /素材包/ }));
 
     await waitFor(() => {
-      expect(screen.getByRole('tab', { name: /皮肤/ })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: /素材包/ })).toHaveAttribute('aria-selected', 'true');
     });
     expect(screen.getByRole('tab', { name: /触发/ })).toHaveAttribute('aria-selected', 'false');
 
@@ -190,7 +189,7 @@ describe('settings App', () => {
 
     // Applying an update must not tear down the rendered panel.
     const handler = vi.mocked(onConfigUpdated).mock.calls[0][0];
-    handler({ usageCount: 21 });
+    await act(async () => handler({ usageCount: 21 }));
 
     await waitFor(() => expect(screen.getByRole('tabpanel')).toBeInTheDocument());
   });

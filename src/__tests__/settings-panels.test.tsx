@@ -1,54 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG, type Config } from '../shared/config';
 
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(() => Promise.resolve(() => {})),
 }));
-vi.mock('@tauri-apps/api/core', () => ({
-  convertFileSrc: vi.fn((p: string) => `asset://localhost/${p}`),
-  invoke: vi.fn(),
-}));
-vi.mock('@tauri-apps/plugin-dialog', () => ({
-  open: vi.fn(),
-}));
-
 // All Rust access goes through shared/ipc, so that is the only seam to mock
 // (R-TEST-005 forbids real invoke calls in component tests).
 vi.mock('../shared/ipc', () => ({
-  listSkins: vi.fn(),
-  activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
 }));
 
-import { listSkins, activateSkin, checkHotkeyConflict } from '../shared/ipc';
+import { checkHotkeyConflict } from '../shared/ipc';
 import { PhrasesPanel } from '../settings/components/PhrasesPanel';
-import { SkinsPanel } from '../settings/components/SkinsPanel';
 import { AnimationPanel } from '../settings/components/AnimationPanel';
 import { SoundsPanel } from '../settings/components/SoundsPanel';
 import { StatsPanel } from '../settings/components/StatsPanel';
 import { HotkeyRecorder } from '../settings/components/HotkeyRecorder';
+import { TriggerPanel } from '../settings/components/TriggerPanel';
 
 function cfg(overrides: Partial<Config> = {}): Config {
   return { ...DEFAULT_CONFIG, ...overrides };
 }
-
-const skinFixture = {
-  specVersion: '1' as const,
-  id: 'default',
-  name: 'Classic',
-  description: 'The original look.',
-  visuals: {
-    handleColor: '#111111',
-    bodyGradient: ['#111111', '#333333'] as [string, string],
-    tipGlow: false,
-    particleEffect: 'none' as const,
-    outlineColor: '#ffffff',
-    bgAlpha: 0.011,
-  },
-  sounds: { crack: ['A.mp3'], whoosh: [] },
-};
 
 beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
@@ -86,6 +60,21 @@ describe('PhrasesPanel', () => {
 
     await user.type(screen.getByLabelText('提示词 1'), 'X');
     expect(onPatch).toHaveBeenCalledWith({ phrases: ['AX'] });
+  });
+
+  it('does not persist a temporarily empty phrase while editing', async () => {
+    const user = userEvent.setup();
+    const onPatch = vi.fn();
+    render(<PhrasesPanel config={cfg({ phrases: ['A'] })} onPatch={onPatch} />);
+
+    const input = screen.getByLabelText('提示词 1');
+    await user.clear(input);
+
+    expect(input).toHaveValue('');
+    expect(onPatch).not.toHaveBeenCalled();
+
+    await user.type(input, 'REPLACED');
+    expect(onPatch).toHaveBeenLastCalledWith({ phrases: ['REPLACED'] });
   });
 
   it('adds a trimmed phrase and clears the draft', async () => {
@@ -128,64 +117,23 @@ describe('PhrasesPanel', () => {
   });
 });
 
-describe('SkinsPanel', () => {
-  it('shows a loading hint before skins arrive', () => {
-    vi.mocked(listSkins).mockReturnValue(new Promise(() => {}));
-    render(<SkinsPanel config={cfg()} onPatch={vi.fn()} />);
-    expect(screen.getByText('正在读取皮肤列表…')).toBeInTheDocument();
+describe('TriggerPanel window presence', () => {
+  it('renders the window entry policy as a radio group', () => {
+    render(<TriggerPanel config={cfg({ windowPresence: 'persistent' })} onPatch={vi.fn()} />);
+
+    expect(screen.getByRole('radiogroup', { name: '窗口入口策略' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /纯托盘/ })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: /保持 Dock\/任务栏入口/ })).toBeChecked();
   });
 
-  it('marks the active skin as checked', async () => {
-    vi.mocked(listSkins).mockResolvedValue([
-      skinFixture,
-      { ...skinFixture, id: 'fire', name: 'Fire Whip' },
-    ]);
-    render(<SkinsPanel config={cfg({ activeSkin: 'fire' })} onPatch={vi.fn()} />);
-
-    await waitFor(() => expect(screen.getByRole('radio', { name: /Fire Whip/ })).toBeChecked());
-    expect(screen.getByRole('radio', { name: /Classic/ })).not.toBeChecked();
-  });
-
-  it('activates a skin and mirrors it locally', async () => {
+  it('patches windowPresence when an option is selected', async () => {
     const user = userEvent.setup();
     const onPatch = vi.fn();
-    vi.mocked(listSkins).mockResolvedValue([
-      skinFixture,
-      { ...skinFixture, id: 'neon', name: 'Neon' },
-    ]);
-    vi.mocked(activateSkin).mockResolvedValue(undefined);
+    render(<TriggerPanel config={cfg({ windowPresence: 'tray' })} onPatch={onPatch} />);
 
-    render(<SkinsPanel config={cfg()} onPatch={onPatch} />);
-    await waitFor(() => expect(screen.getByRole('radio', { name: /Neon/ })).toBeInTheDocument());
+    await user.click(screen.getByRole('radio', { name: /保持 Dock\/任务栏入口/ }));
 
-    await user.click(screen.getByRole('radio', { name: /Neon/ }));
-
-    await waitFor(() => expect(activateSkin).toHaveBeenCalledWith('neon'));
-    expect(onPatch).toHaveBeenCalledWith({ activeSkin: 'neon' });
-  });
-
-  it('surfaces a load failure instead of rendering an empty grid', async () => {
-    vi.mocked(listSkins).mockRejectedValue(new Error('skins dir unreadable'));
-    render(<SkinsPanel config={cfg()} onPatch={vi.fn()} />);
-
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-    expect(screen.getByText('skins dir unreadable')).toBeInTheDocument();
-  });
-
-  it('surfaces an activation failure and leaves config untouched', async () => {
-    const user = userEvent.setup();
-    const onPatch = vi.fn();
-    vi.mocked(listSkins).mockResolvedValue([skinFixture]);
-    vi.mocked(activateSkin).mockRejectedValue(new Error('skin not found'));
-
-    render(<SkinsPanel config={cfg()} onPatch={onPatch} />);
-    await waitFor(() => expect(screen.getByRole('radio', { name: /Classic/ })).toBeInTheDocument());
-
-    await user.click(screen.getByRole('radio', { name: /Classic/ }));
-
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-    expect(screen.getByText('skin not found')).toBeInTheDocument();
-    expect(onPatch).not.toHaveBeenCalled();
+    expect(onPatch).toHaveBeenCalledWith({ windowPresence: 'persistent' });
   });
 });
 
@@ -265,7 +213,7 @@ describe('SoundsPanel', () => {
     render(
       <SoundsPanel config={cfg({ playSound: true, showBorderFlash: false })} onPatch={vi.fn()} />
     );
-    expect(screen.getByRole('checkbox', { name: /播放 crack 音效/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /播放程序化音效/ })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: /屏幕边缘闪光/ })).not.toBeChecked();
   });
 
@@ -274,7 +222,7 @@ describe('SoundsPanel', () => {
     const onPatch = vi.fn();
     render(<SoundsPanel config={cfg({ playSound: true })} onPatch={onPatch} />);
 
-    await user.click(screen.getByRole('checkbox', { name: /播放 crack 音效/ }));
+    await user.click(screen.getByRole('checkbox', { name: /播放程序化音效/ }));
     expect(onPatch).toHaveBeenCalledWith({ playSound: false });
   });
 
@@ -330,11 +278,50 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+E'));
+  });
+
+  it('commits Cmd/Ctrl+Shift+5 captured from the physical key code', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    vi.mocked(checkHotkeyConflict).mockResolvedValue(null);
+
+    render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
+
+    await act(async () => window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: '5',
+        code: 'Digit5',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      })
+    ));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith('CommandOrControl+Shift+5'));
+  });
+
+  it('keeps recording when the browser reports an unsupported key code', async () => {
+    const user = userEvent.setup();
+    render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
+
+    await act(async () => window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Unidentified',
+        code: 'UnknownKey',
+        ctrlKey: true,
+        bubbles: true,
+      })
+    ));
+
+    expect(screen.getByText('按下你的快捷键组合…')).toBeInTheDocument();
+    expect(checkHotkeyConflict).not.toHaveBeenCalled();
   });
 
   it('shows suggestions when the combination is taken', async () => {
@@ -343,14 +330,18 @@ describe('HotkeyRecorder', () => {
     vi.mocked(checkHotkeyConflict).mockResolvedValue({
       hotkey: 'CommandOrControl+Shift+E',
       suggestions: ['CommandOrControl+Shift+F', 'CommandOrControl+Shift+D'],
+      scope: 'primary',
+      occupiedBy: '其他应用',
+      occupiedHotkey: 'CommandOrControl+Shift+E',
+      previousHotkey: 'CommandOrControl+Shift+W',
     });
 
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={onChange} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByText(/已被其他应用占用/)).toBeInTheDocument();
@@ -363,7 +354,7 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
 
     await waitFor(() =>
       expect(screen.queryByText('按下你的快捷键组合…')).not.toBeInTheDocument()
@@ -376,7 +367,7 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true }));
+    await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', shiftKey: true })));
 
     expect(screen.getByText('按下你的快捷键组合…')).toBeInTheDocument();
     expect(checkHotkeyConflict).not.toHaveBeenCalled();
@@ -389,9 +380,9 @@ describe('HotkeyRecorder', () => {
     render(<HotkeyRecorder value="CommandOrControl+Shift+W" onChange={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: '录制全局快捷键' }));
 
-    window.dispatchEvent(
+    await act(async () => window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'e', ctrlKey: true, shiftKey: true, bubbles: true })
-    );
+    ));
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByText('shortcut plugin unavailable')).toBeInTheDocument();

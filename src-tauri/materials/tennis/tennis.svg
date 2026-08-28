@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g_tennis" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#D4FF2E"/>
+      <stop offset="0.5" stop-color="#C6FF00"/>
+      <stop offset="1" stop-color="#AEEA00"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="140" fill="url(#g_tennis)" stroke="#9E9D24" stroke-width="12"/>
+  <path d="M160 160 C200 200 312 312 352 352" stroke="#9E9D24" stroke-width="12" fill="none"/>
+  <path d="M352 160 C312 200 200 312 160 352" stroke="#9E9D24" stroke-width="12" fill="none"/>
+  <path d="M165 165 C202 202 310 310 347 347" stroke="#F4FF81" stroke-width="4" opacity="0.6" fill="none"/>
+  <path d="M347 165 C310 202 202 310 165 347" stroke="#F4FF81" stroke-width="4" opacity="0.6" fill="none"/>
+  <ellipse cx="190" cy="220" rx="30" ry="40" fill="#F4FF81" opacity="0.3"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="#C6FF00" stroke-width="4" opacity="0.3"/>
+</svg>

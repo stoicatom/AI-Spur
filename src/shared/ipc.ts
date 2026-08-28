@@ -3,17 +3,30 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { z } from 'zod';
 import { Config, ConfigSchema } from './config';
 import { SkinManifest, SkinManifestSchema } from './skins';
+import { Material, MaterialSchema } from './materials';
+import { MaterialPack, MaterialPackSchema } from './material-packs';
 
 const PartialConfigSchema = ConfigSchema.partial();
 const SkinChangedPayloadSchema = z.object({ skinId: z.string().min(1) });
+const MacroFailedPayloadSchema = z.object({
+  code: z.enum(['SafetyGate', 'Permission', 'SendFailure']),
+  message: z.string().min(1),
+  retryable: z.boolean(),
+  attemptId: z.number().int().nonnegative(),
+});
 
 /** Mirrors `shortcut::ConflictInfo` on the Rust side. */
 export const ConflictInfoSchema = z.object({
   hotkey: z.string().min(1),
   suggestions: z.array(z.string().min(1)),
+  scope: z.enum(['primary', 'shift-companion']).optional(),
+  occupiedBy: z.string().min(1).optional(),
+  occupiedHotkey: z.string().min(1).optional(),
+  previousHotkey: z.string().min(1).nullable().optional(),
 });
 
 export type ConflictInfo = z.infer<typeof ConflictInfoSchema>;
+export type MacroFailedPayload = z.infer<typeof MacroFailedPayloadSchema>;
 
 // ============ Commands (TS → Rust) ============
 
@@ -39,7 +52,7 @@ export async function registerHotkey(hotkey: string): Promise<void> {
 /**
  * Check whether a hotkey is already claimed by another application.
  *
- * Resolves to `null` when the hotkey is free (including when OpenWhip itself
+ * Resolves to `null` when the hotkey is free (including when AISpur itself
  * already holds it), or conflict details with two suggested alternatives.
  */
 export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo | null> {
@@ -48,8 +61,16 @@ export async function checkHotkeyConflict(hotkey: string): Promise<ConflictInfo 
   return ConflictInfoSchema.parse(raw);
 }
 
-export async function triggerMacro(phrase?: string): Promise<void> {
-  return invoke('trigger_macro', { phrase });
+export async function triggerMacro(phrase?: string, attemptId?: number): Promise<void> {
+  return invoke('trigger_macro', { phrase, attemptId });
+}
+
+export async function openSettings(): Promise<void> {
+  return invoke('open_settings');
+}
+
+export async function openInputPermissions(): Promise<void> {
+  return invoke('open_input_permissions');
 }
 
 export async function incrementUsage(): Promise<number> {
@@ -61,8 +82,72 @@ export async function listSkins(): Promise<SkinManifest[]> {
   return raw.map((skin) => SkinManifestSchema.parse(skin));
 }
 
-export async function activateSkin(skinId: string): Promise<void> {
-  return invoke('activate_skin', { skinId });
+// ============ Materials ============
+
+/** 列出全部素材：内置矢量 + 内置图片 + 用户自定义图片。 */
+export async function listMaterials(): Promise<Material[]> {
+  const raw = await invoke<unknown[]>('list_materials');
+  return raw.map((m) => MaterialSchema.parse(m));
+}
+
+// ============ Material Packs (v3 single axis) ============
+
+/** 列出全部素材包：内置 + 用户自定义。 */
+export async function listPacks(): Promise<MaterialPack[]> {
+  const raw = await invoke<unknown[]>('list_packs');
+  return raw.map((p) => MaterialPackSchema.parse(p));
+}
+
+/** 设置活跃素材包：Rust 落盘 config.active_pack_id 并 emit pack-changed。 */
+export async function setActivePack(id: string): Promise<void> {
+  return invoke('set_active_pack', { id });
+}
+
+/**
+ * 创建自定义素材包：上传图标和真实音频，并绑定特效预设与配色。
+ * Rust 复制资产到 `app_data_dir()/packs/custom/<id>/` 并写 pack.json。
+ */
+export async function createCustomPack(input: {
+  id: string;
+  name: string;
+  iconPath: string;
+  soundPath: string;
+  effectPreset: string;
+  /** 特效参数（按预设的真实参数表取值）；省略时后端写入空表。 */
+  effectParams?: Record<string, number>;
+  sound: unknown;
+  palette: { bodyGradient: [string, string]; particleHue: number };
+}): Promise<MaterialPack> {
+  const raw = await invoke<unknown>('create_custom_pack', input);
+  return MaterialPackSchema.parse(raw);
+}
+
+/**
+ * 编辑已有的自定义素材包。
+ *
+ * 省略（`undefined`）的字段表示「沿用现有值」：不传 `iconPath` / `soundPath`
+ * 时，Rust 一个字节都不碰原有资产文件。`id` 只用于定位，永不改写。
+ */
+export async function updateCustomPack(input: {
+  id: string;
+  name?: string;
+  iconPath?: string;
+  effectPreset?: string;
+  effectParams?: Record<string, number>;
+  soundPath?: string;
+  palette?: { bodyGradient: [string, string]; particleHue: number };
+}): Promise<MaterialPack> {
+  const raw = await invoke<unknown>('update_custom_pack', input);
+  return MaterialPackSchema.parse(raw);
+}
+
+export async function readLocalSoundData(path: string): Promise<string> {
+  return invoke<string>('read_local_sound_data', { path });
+}
+
+/** 删除自定义素材包（仅限 custom 目录内的素材包）。 */
+export async function deleteCustomPack(id: string): Promise<void> {
+  return invoke('delete_custom_pack', { id });
 }
 
 // ============ Events (Rust → TS) ============
@@ -70,25 +155,59 @@ export async function activateSkin(skinId: string): Promise<void> {
 export const Events = {
   SPAWN_WHIP: 'spawn-whip',
   DROP_WHIP: 'drop-whip',
+  CURSOR_POS: 'cursor-pos',
   MODE_CHANGED: 'mode-changed',
   CONFIG_UPDATED: 'config-updated',
   SKIN_CHANGED: 'skin-changed',
+  MATERIAL_CHANGED: 'material-changed',
+  PACK_CHANGED: 'pack-changed',
+  MACRO_FAILED: 'macro-failed',
 } as const;
 
-export interface SpawnWhipPayload {
+/**
+ * spawn-whip 载荷。
+ *
+ * `x` / `y` 是 overlay 窗口内的逻辑坐标（Rust 端由光标全局坐标换算而来）；
+ * 取不到光标位置时二者省略，下游（overlay/main.ts，WF2）回退到窗口中心。
+ */
+export const SpawnWhipPayloadSchema = z.object({
   /** True when triggered via the Shift Easter egg — force the full animation. */
-  forceFull?: boolean;
-}
+  forceFull: z.boolean().default(false),
+  x: z.number().optional(),
+  y: z.number().optional(),
+});
+
+export type SpawnWhipPayload = z.infer<typeof SpawnWhipPayloadSchema>;
 
 export function onSpawnWhip(fn: (payload: SpawnWhipPayload) => void): Promise<UnlistenFn> {
   return listen<unknown>(Events.SPAWN_WHIP, (event) => {
-    const payload = event.payload as SpawnWhipPayload | null | undefined;
-    fn(payload ?? {});
+    // Rust 可能发送 null / 空对象；用 schema 归一并回退默认值。
+    const parsed = SpawnWhipPayloadSchema.safeParse(event.payload ?? {});
+    fn(parsed.success ? parsed.data : { forceFull: false });
   });
 }
 
 export function onDropWhip(fn: () => void): Promise<UnlistenFn> {
   return listen<void>(Events.DROP_WHIP, () => fn());
+}
+
+/**
+ * cursor-pos 载荷：overlay 窗口内的逻辑坐标，由 Rust 以 ~60fps 全局读取推送。
+ * 让非激活覆盖层无需夺焦点即可让素材跟随光标（消除「必须先点击」）。
+ */
+const CursorPosPayloadSchema = z.object({ x: z.number(), y: z.number() });
+export type CursorPosPayload = z.infer<typeof CursorPosPayloadSchema>;
+
+export function onCursorPos(fn: (pos: CursorPosPayload) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.CURSOR_POS, (event) => {
+    const parsed = CursorPosPayloadSchema.safeParse(event.payload);
+    if (parsed.success) fn(parsed.data);
+  });
+}
+
+/** 停止 Rust 侧的光标推送循环（overlay 隐藏 / Esc / crack 收尾后调用）。 */
+export async function stopCursorTracking(): Promise<void> {
+  return invoke('stop_cursor_tracking');
 }
 
 export function onModeChanged(fn: (mode: string) => void): Promise<UnlistenFn> {
@@ -106,5 +225,32 @@ export function onSkinChanged(fn: (skinId: string) => void): Promise<UnlistenFn>
   return listen<unknown>(Events.SKIN_CHANGED, (event) => {
     const { skinId } = SkinChangedPayloadSchema.parse(event.payload);
     fn(skinId);
+  });
+}
+
+const MaterialChangedPayloadSchema = z.object({ materialId: z.string().min(1) });
+
+export function onMaterialChanged(fn: (materialId: string) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.MATERIAL_CHANGED, (event) => {
+    const { materialId } = MaterialChangedPayloadSchema.parse(event.payload);
+    fn(materialId);
+  });
+}
+
+const PackChangedPayloadSchema = z.object({ packId: z.string().min(1) });
+
+/** 素材包切换通知（v3）：overlay 收到后换图标/特效/声音/配色，无需重载。 */
+export function onPackChanged(fn: (packId: string) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.PACK_CHANGED, (event) => {
+    const { packId } = PackChangedPayloadSchema.parse(event.payload);
+    fn(packId);
+  });
+}
+
+/** Structured macro failure notification used by the overlay recovery UI. */
+export function onMacroFailed(fn: (failure: MacroFailedPayload) => void): Promise<UnlistenFn> {
+  return listen<unknown>(Events.MACRO_FAILED, (event) => {
+    const parsed = MacroFailedPayloadSchema.safeParse(event.payload);
+    if (parsed.success) fn(parsed.data);
   });
 }

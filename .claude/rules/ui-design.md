@@ -34,7 +34,7 @@
 - `indigo-500` / `indigo-600`（默认靛蓝）
 
 ✅ **必须使用 frontend-design skill 提供的品牌色：**
-- 从产品定位推导颜色情感（OpenWhip = 趣味 + 效率 → 活力、运动感）
+- 从产品定位推导颜色情感（AISpur = 趣味 + 效率 → 活力、运动感）
 - 使用非预设的色相（例如：橙红 `#FF4400`、电光蓝 `#00AAFF`）
 - 明确的明暗对比方案（Light/Dark 两套完整定义）
 
@@ -171,7 +171,7 @@ transition: all 0.3s ease;
 
 自定义断点：
 ```css
-/* OpenWhip 窗口尺寸 */
+/* AISpur 窗口尺寸 */
 @custom-media --compact (max-width: 720px);
 @custom-media --standard (min-width: 721px) and (max-width: 1080px);
 @custom-media --wide (min-width: 1081px);
