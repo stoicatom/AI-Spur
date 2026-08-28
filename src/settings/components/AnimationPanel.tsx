@@ -1,5 +1,6 @@
 import type { AnimationMode } from '../../shared/config';
 import type { PanelProps } from './panel-props';
+import { QualitySelector } from './QualitySelector';
 
 interface ModeOption {
   value: AnimationMode;
@@ -89,6 +90,17 @@ export function AnimationPanel({ config, onPatch }: PanelProps) {
             {Math.round(config.crackSensitivity * 100)}%
           </output>
         </div>
+      </section>
+
+      <section className="field">
+        <h2 className="field__label">特效画质</h2>
+        <p className="field__desc">
+          档位决定粒子密度、后处理链与物理刚体数量，只影响观感上限，不改变特效时长。
+        </p>
+        <QualitySelector
+          value={config.quality}
+          onChange={(quality) => onPatch({ quality })}
+        />
       </section>
 
       <section className="field">

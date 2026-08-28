@@ -565,6 +565,170 @@
   margin-bottom: var(--space-2);
 }
 
+/* ─── Quality throttle（特效画质五档）─────────────────────────────────────── */
+/*
+ * 炉火节流阀：五个凹槽共用一条导轨，每槽一列递增刻度；选中槽顶边燃起灯丝、
+ * 铺一层余温底色。刻度让"档位高低"先于文字被扫到，auto 换成菱形以示它不是
+ * 阶梯上的一级。档位说明放在导轨下的读数条，独占整幅宽度不被挤断。
+ */
+
+.quality-throttle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.quality-throttle__rail {
+  display: grid;
+  /* 封顶宽度：宽面板上再拉长只会把刻度拉散，反而看不出档位阶梯。 */
+  max-width: 620px;
+  /* auto-fit 按容器实际宽度收放：宽面板一排五档，窄面板自行折行。
+   * 视口媒体查询会看错宽度——侧边栏占掉 200px，容器远窄于窗口。 */
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+}
+
+.quality-notch {
+  position: relative;
+  display: flex;
+  min-height: var(--touch-min);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px var(--space-2);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
+}
+
+.quality-notch:hover {
+  border-color: var(--border-default);
+  background: var(--surface-base);
+}
+
+.quality-notch:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* 边框同样用 accent-active：明色主题下 --accent 压在导轨底上只有 2.52:1。
+ * 选中状态另有底色、灯丝、点亮刻度三重冗余，不单靠颜色传达。 */
+.quality-notch--active {
+  border-color: var(--accent-active);
+  background: var(--accent-subtle);
+}
+
+/* 灯丝：只有选中档位点亮，横铺整条顶边。 */
+.quality-notch__filament {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-normal) var(--ease-whip);
+}
+
+.quality-notch--active .quality-notch__filament {
+  transform: scaleX(1);
+}
+
+.quality-notch__gauge {
+  display: flex;
+  height: 13px;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+/* 4 格固定高度阶梯，点亮数量 = 档位高度。 */
+.quality-notch__rung {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--border-strong);
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.quality-notch__rung:nth-child(1) { height: 4px; }
+.quality-notch__rung:nth-child(2) { height: 7px; }
+.quality-notch__rung:nth-child(3) { height: 10px; }
+.quality-notch__rung:nth-child(4) { height: 13px; }
+
+.quality-notch__rung--lit {
+  background: var(--text-muted);
+}
+
+/* 选中槽用 accent-active 而非 accent：accent 压在 accent-subtle 底色上，
+ * 明色主题只有 2.41:1，达不到图形元素 3:1 的下限。 */
+.quality-notch--active .quality-notch__rung--lit {
+  background: var(--accent-active);
+}
+
+/* auto 的自适应标记：菱形，暗示它会自己左右摆动而不是钉在某一级。 */
+.quality-notch__auto-mark {
+  width: 9px;
+  height: 9px;
+  margin-bottom: 2px;
+  border: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
+}
+
+.quality-notch--active .quality-notch__auto-mark {
+  border-color: var(--accent-active);
+  background: var(--accent-active);
+}
+
+.quality-notch__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.quality-notch--active .quality-notch__name {
+  color: var(--text-primary);
+}
+
+/* 读数条：当前档位的说明，独占整幅宽度。 */
+.quality-readout {
+  display: flex;
+  max-width: 620px;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-1);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  color: var(--text-secondary);
+}
+
+.quality-readout__tier {
+  flex: none;
+  /* 小字要过 4.5:1：--accent 在明色主题只有 2.84，--accent-active 是 6.86。 */
+  color: var(--accent-active);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quality-notch__filament {
+    transition: none;
+  }
+}
+
 /* ─── Threshold slider ──────────────────────────────────────────────────── */
 
 .threshold-row {

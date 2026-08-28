@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, render, screen, waitFor, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEFAULT_CONFIG } from '../shared/config';
 
@@ -213,5 +213,43 @@ describe('settings App', () => {
     await waitFor(() => {
       expect(screen.getByRole('tabpanel')).toBeInTheDocument();
     });
+  });
+
+  it('切到动画面板可设置特效画质 cinematic', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('tab', { name: /动画/ });
+    await user.click(screen.getByRole('tab', { name: /动画/ }));
+    const group = await screen.findByRole('radiogroup', { name: /特效画质/ });
+    const radio = within(group).getByRole('radio', { name: /电影级/ });
+    await user.click(radio);
+    // App 的写盘走 400ms 防抖，等它落地再断言。
+    await waitFor(() =>
+      expect(saveConfig).toHaveBeenCalledWith(expect.objectContaining({ quality: 'cinematic' }))
+    );
+  });
+
+  it('画质选择器回显当前档位并支持方向键换档', async () => {
+    const user = userEvent.setup();
+    vi.mocked(getConfig).mockResolvedValue({ ...SETTLED_CONFIG, quality: 'medium' });
+    render(<App />);
+    await user.click(await screen.findByRole('tab', { name: /动画/ }));
+
+    const group = await screen.findByRole('radiogroup', { name: /特效画质/ });
+    const current = within(group).getByRole('radio', { name: /中/ });
+    // 只有选中项留在 tab 序列里（roving tabindex），与素材库单选组一致。
+    expect(current).toHaveAttribute('aria-checked', 'true');
+    expect(current).toHaveAttribute('tabindex', '0');
+
+    current.focus();
+    await user.keyboard('{ArrowRight}');
+
+    await waitFor(() =>
+      expect(within(group).getByRole('radio', { name: /^低/ })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      )
+    );
+    expect(within(group).getByRole('radio', { name: /^低/ })).toHaveFocus();
   });
 });

@@ -4,6 +4,7 @@ import type { MaterialPack } from '../../shared/material-packs';
 import type { PanelProps } from './panel-props';
 import { CreatePackWizard } from './CreatePackWizard';
 import { Icon } from './Icon';
+import { nextRadioIndex } from './radio-nav';
 import {
   familyCounts,
   familyForPack,
@@ -21,23 +22,6 @@ type LoadState =
   | { status: 'loading' }
   | { status: 'ready'; packs: MaterialPack[] }
   | { status: 'error'; message: string };
-
-function nextRadioIndex(key: string, index: number, length: number): number | null {
-  switch (key) {
-    case 'ArrowDown':
-    case 'ArrowRight':
-      return (index + 1) % length;
-    case 'ArrowUp':
-    case 'ArrowLeft':
-      return (index - 1 + length) % length;
-    case 'Home':
-      return 0;
-    case 'End':
-      return length - 1;
-    default:
-      return null;
-  }
-}
 
 export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
