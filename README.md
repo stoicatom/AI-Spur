@@ -2,6 +2,16 @@
 
 AISpur —AI 终端加速器。一个跨平台（macOS / Windows / Linux）桌面托盘应用，通过全局快捷键向终端 AI 工具（Claude Code、Codex 等）发送"催促"信号。
 
+## 安装
+
+**macOS 用户**：下载 DMG 后若提示「已损坏，无法打开」，请在终端运行一条命令解决（30 秒）：
+
+```bash
+sudo xattr -r -d com.apple.quarantine /Applications/AISpur.app
+```
+
+详细说明与图形化脚本见 **[INSTALL.md](INSTALL.md)**。
+
 ## 技术栈
 
 - **前端**：React 18 + TypeScript + Vite + Framer Motion

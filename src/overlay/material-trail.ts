@@ -23,6 +23,36 @@ export class MaterialTrail {
     this.count = 0;
   }
 
+  /**
+   * 当前拖尾所占的包围盒（未含线宽），供渲染循环做脏区域清除。
+   * 无点时返回 null —— 调用方据此只清光标自身的区域。
+   *
+   * 必须由拖尾自己算：点是 14 帧 / 220ms 的历史轨迹，快速甩动时跨度可达数百
+   * 像素，用「光标 ± 固定边距」猜出来的矩形会漏清，屏幕上留下残影。
+   */
+  bounds(): { minX: number; minY: number; maxX: number; maxY: number } | null {
+    if (this.count === 0) return null;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let index = 0; index < this.count; index++) {
+      const point = this.points[(this.head + index) % this.max];
+      if (!point) continue;
+      if (point.x < minX) minX = point.x;
+      if (point.y < minY) minY = point.y;
+      if (point.x > maxX) maxX = point.x;
+      if (point.y > maxY) maxY = point.y;
+    }
+    if (minX === Infinity) return null;
+    return { minX, minY, maxX, maxY };
+  }
+
+  /** draw() 用到的最大线宽 —— 包围盒要按它外扩，否则描边边缘会漏清。 */
+  get maxLineWidth(): number {
+    return 10;
+  }
+
   push(x: number, y: number, now: number): void {
     const writeAt = this.count < this.max ? this.count : this.head;
     // 仅在移动足够时记点，避免静止时堆叠。

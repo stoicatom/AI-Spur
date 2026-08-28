@@ -74,6 +74,43 @@ describe('MaterialTrail（环形缓冲）', () => {
     expect(strokes()).toBe(0);
   });
 
+  it('bounds 覆盖所有存活点（脏区域清除的依据）', () => {
+    const trail = new MaterialTrail();
+    trail.push(100, 200, 0);
+    trail.push(400, 60, 16);
+    trail.push(250, 500, 32);
+    const bounds = trail.bounds();
+    expect(bounds).toEqual({ minX: 100, minY: 60, maxX: 400, maxY: 500 });
+  });
+
+  it('bounds 在环形回绕后不会漏掉回绕段的点', () => {
+    const trail = new MaterialTrail();
+    // 前 14 点集中在左上，回绕后的新点甩到右下：漏算回绕段就会把右下留成残影。
+    for (let i = 0; i < 14; i++) trail.push(i * 4 + 10, 10, i * 16);
+    for (let i = 0; i < 5; i++) trail.push(600 + i * 10, 400 + i * 10, (14 + i) * 16);
+    const bounds = trail.bounds();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.maxX).toBeGreaterThanOrEqual(640);
+    expect(bounds!.maxY).toBeGreaterThanOrEqual(440);
+  });
+
+  it('无点 / clear 之后 bounds 为 null', () => {
+    const trail = new MaterialTrail();
+    expect(trail.bounds()).toBeNull();
+    trail.push(50, 50, 0);
+    trail.push(90, 90, 16);
+    expect(trail.bounds()).not.toBeNull();
+    trail.clear();
+    expect(trail.bounds()).toBeNull();
+  });
+
+  it('maxLineWidth 不小于 draw() 实际用到的最大线宽', () => {
+    // draw() 里 lineWidth = 10 * life * (index / count)，life 与比例都 <= 1，
+    // 所以 10 是上界；脏区域按它外扩才能盖住描边边缘。
+    const trail = new MaterialTrail();
+    expect(trail.maxLineWidth).toBeGreaterThanOrEqual(10);
+  });
+
   it('环形回绕后仍按时间顺序从旧到新绘制', () => {
     const trail = new MaterialTrail();
     // 填入 20 个点：环形缓冲会回绕（head 不再是 0）。

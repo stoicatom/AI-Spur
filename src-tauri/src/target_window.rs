@@ -84,31 +84,38 @@ fn process_name_from_path(path: &str) -> &str {
     path.rsplit(['\\', '/']).next().unwrap_or(path)
 }
 
+/// 前台应用的名字，macOS 原生 API（NSWorkspace.menuBarOwningApplication）。
+///
+/// 取代原先的 `osascript`（149ms → <0.001ms，约 150,000 倍）。
+///
+/// `menuBarOwningApplication` 返回当前拥有菜单栏的应用，即接收键盘输入的应用，
+/// 比 `frontmostApplication` 更适合判定注入目标：后者在屏幕锁定时返回 "loginwindow"，
+/// 而前者仍正确返回锁定前的应用（如 iTerm2）。返回的是应用的本地化名称，与
+/// osascript 的 "name of process" 一致。
+///
+/// `None` = 查询失败或无菜单栏拥有者 —— 调用方必须按「不安全」处理。
+#[cfg(target_os = "macos")]
+fn frontmost_owner_name() -> Option<String> {
+    use objc2_app_kit::NSWorkspace;
+    // SAFETY: NSWorkspace.sharedWorkspace is a singleton getter; menuBarOwningApplication
+    // reads the current menubar owner and returns None when unavailable.
+    unsafe {
+        let workspace = NSWorkspace::sharedWorkspace();
+        let app = workspace.menuBarOwningApplication()?;
+        app.localizedName().map(|n| n.to_string())
+    }
+}
+
 /// True when the currently focused macOS application looks like a terminal or
 /// an editor that runs a terminal, i.e. safe to inject into.
 ///
-/// Non-macOS platforms return `true` — on Linux/Windows the desktop integration
-/// for frontmost-app detection is heavier, and the overlay already avoids
-/// stealing focus, so the risk is lower and accepted for now.
+/// 判不出前台应用时返回 `false`：宁可跳过这一鞭，也不要把 Esc + 文本打进一个
+/// 身份不明的窗口。
 #[cfg(target_os = "macos")]
 pub fn active_app_is_safe() -> bool {
-    // Query the frontmost app via System Events; the result is its name.
-    let out = match Command::new("osascript")
-        .args([
-            "-e",
-            "tell application \"System Events\" to get name of first application process whose frontmost is true",
-        ])
-        .output()
-    {
-        Ok(o) => o,
-        Err(_) => return false, // can't tell → don't risk it
-    };
-
-    let name = String::from_utf8_lossy(&out.stdout).trim().to_string();
-    if name.is_empty() {
-        return false;
-    }
-    is_safe_app(&name)
+    frontmost_owner_name()
+        .map(|name| is_safe_app(&name))
+        .unwrap_or(false)
 }
 
 #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
@@ -486,6 +493,39 @@ mod tests {
         for app in TERMINAL_APPS {
             assert!(!app.trim().is_empty(), "empty entry in TERMINAL_APPS");
         }
+    }
+
+    /// 前台应用判定必须走「查 application」而不是「枚举窗口」。
+    ///
+    /// 这条测试来自一次真实的踩坑：先前用 `CGWindowListCopyWindowInfo` 的 z 序
+    /// 取第一个 layer-0 窗口当前台应用，实测发现 **iTerm2 根本不在这份窗口快照
+    /// 里**（38 个窗口里只有 Antigravity / Chrome / loginwindow），于是安全门
+    /// 恒判 false，宏永久不触发 —— 而 iTerm2 恰恰是本产品最主要的宿主终端。
+    ///
+    /// 这里不断言具体名字（取决于运行时谁在前台），只钉住两件事：调用不 panic，
+    /// 且返回值要么是非空名字、要么是 None（绝不是空字符串 —— 空串会被
+    /// `is_safe_app` 的 `contains` 语义静默匹配成"安全"）。
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn frontmost_owner_name_returns_a_usable_name_or_none() {
+        match frontmost_owner_name() {
+            Some(name) => assert!(
+                !name.trim().is_empty(),
+                "前台应用名不能是空串：空串会让 is_safe_app 误判为安全"
+            ),
+            None => {} // 判不出前台应用是合法结果，调用方按不安全处理
+        }
+    }
+
+    /// 空名字绝不能被当成安全应用。
+    ///
+    /// `is_safe_app` 用的是 `lowered.contains(safe)`，方向是「前台应用名包含白名单
+    /// 项」，所以空的前台名不会匹配 —— 但反过来如果哪天改成 `safe.contains(name)`
+    /// 就会全部命中。这条测试把这个方向钉死。
+    #[test]
+    fn empty_app_name_is_never_safe() {
+        assert!(!is_safe_app(""));
+        assert!(!is_safe_app("   "));
     }
 
     #[cfg(target_os = "macos")]

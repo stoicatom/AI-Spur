@@ -9,6 +9,10 @@ pub mod skins;
 pub mod sounds;
 pub mod usage;
 
+// Performance-critical modules exposed for benchmarking
+#[cfg(target_os = "macos")]
+pub mod target_window;
+
 // Re-export commonly used types for integration tests
 pub use config::Config;
 pub use macro_sender::{

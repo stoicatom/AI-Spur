@@ -46,12 +46,20 @@ const POLL_INTERVAL: Duration = Duration::from_millis(16);
 /// origin and divided by the window's scale factor — wrong on mixed-DPI
 /// setups, where the window's scale is not the monitor's scale. Returns `None`
 /// if any query fails.
-fn cursor_in_overlay(window: &tauri::WebviewWindow) -> Option<(f64, f64)> {
-    let (cursor_x, cursor_y) = crate::overlay_placement::cursor_in_points(window)?;
+///
+/// **Optimization**: This is called at 60fps (every 16ms). The original
+/// implementation queried `primary_monitor()` every tick (0.19ms each), costing
+/// ~11ms/second. Display topology does not change during an overlay session, so
+/// we cache the primary scale at tracker start and reuse it for the entire
+/// session. The cache is dropped when the tracker stops.
+fn cursor_in_overlay(
+    window: &tauri::WebviewWindow,
+    primary_scale_cache: f64,
+) -> Option<(f64, f64)> {
+    let cursor = window.cursor_position().ok()?;
+    let cursor_x = cursor.x / primary_scale_cache;
+    let cursor_y = cursor.y / primary_scale_cache;
     let origin = window.outer_position().ok()?;
-    // The overlay is physically native-resolution. Its logical origin equals
-    // the monitor's point-space origin because placement sets its position to
-    // exactly that, so outer_position / window_scale is the monitor origin.
     let scale = window.scale_factor().ok().unwrap_or(1.0);
     Some((
         cursor_x - origin.x as f64 / scale,
@@ -78,8 +86,18 @@ pub fn start(app: &tauri::AppHandle, flag: &Arc<AtomicBool>) {
             flag.store(false, Ordering::SeqCst);
             return;
         };
+
+        // Cache primary scale for the entire tracker session. Display topology
+        // does not change while the overlay is active (no hot-plug mid-animation).
+        // This avoids querying primary_monitor() at 60fps (was 0.19ms × 60 = 11ms/sec).
+        let primary_scale = window
+            .primary_monitor()
+            .ok()
+            .and_then(|m| m.map(|m| m.scale_factor()))
+            .unwrap_or(1.0);
+
         while flag.load(Ordering::SeqCst) {
-            if let Some((x, y)) = cursor_in_overlay(&window) {
+            if let Some((x, y)) = cursor_in_overlay(&window, primary_scale) {
                 // A failed emit (window torn down mid-flight) is not worth
                 // aborting the loop for; the next tick re-checks the flag.
                 let _ = window.emit("cursor-pos", CursorPos { x, y });

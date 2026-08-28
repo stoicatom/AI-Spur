@@ -19,13 +19,14 @@ dependencies = [
 
 [[package]]
 name = "aispur"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
  "core-graphics",
  "dirs 5.0.1",
  "enigo",
+ "objc2-app-kit",
  "serde",
  "serde_json",
  "tauri",

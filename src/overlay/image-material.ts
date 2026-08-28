@@ -11,15 +11,13 @@ import { renderContractFor } from './three-effect-contract';
 import { DEFAULT_EFFECT_DURATION_MS, effectDurationFor } from './effect-timings';
 import { MATERIAL_ANIMATION_DURATION_SCALE } from './material-animation-constants';
 import type { EffectPresetId } from '../shared/material-packs';
+import {
+  CURSOR_MAX_PX,
+  cursorDrawRadius,
+  drawCursorSprite,
+  fitSize,
+} from './cursor-sprite';
 
-const CURSOR_MAX_PX = 96;
-
-function fitSize(img: HTMLImageElement, max: number): { w: number; h: number } {
-  const imageWidth = img.naturalWidth || max;
-  const imageHeight = img.naturalHeight || max;
-  const scale = max / Math.max(imageWidth, imageHeight);
-  return { w: imageWidth * scale, h: imageHeight * scale };
-}
 
 /** 图片素材精灵及其 Canvas 2D 回退爆裂动画。 */
 export class ImageMaterial {
@@ -130,30 +128,19 @@ export class ImageMaterial {
     return this.crackOn;
   }
 
+  /**
+   * drawCursor 在 (x, y) 周围实际落笔的最大半径，供脏区域清除外扩。
+   * 取自 drawCursor 的绘制参数本身：光晕层 0.58 偏移 × 1.16 放大、旋转按对角线
+   * 兜底、再加 shadowBlur 的外溢 —— 漏算任何一项都会留残影。
+   */
+  get cursorDrawRadius(): number {
+    return this.ready ? cursorDrawRadius(this.fitW, this.fitH) : 0;
+  }
+
   /** 光标跟随：居中绘制在 (x, y)，保持宽高比。 */
   drawCursor(ctx: CanvasRenderingContext2D, x: number, y: number): void {
     if (!this.ready) return;
-    const time = performance.now() * 0.004;
-    const bob = 1 + Math.sin(time * 1.7) * 0.035;
-    const tilt = Math.sin(time * 1.15) * 0.12;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(tilt);
-    ctx.scale(bob, 1 / bob);
-    ctx.shadowColor = `hsl(${this.hue}, 100%, 62%)`;
-    ctx.shadowBlur = 24;
-    ctx.globalAlpha = 0.3;
-    ctx.drawImage(
-      this.img,
-      -this.fitW * 0.58,
-      -this.fitH * 0.42,
-      this.fitW * 1.16,
-      this.fitH * 1.16,
-    );
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
-    ctx.drawImage(this.img, -this.fitW / 2, -this.fitH / 2, this.fitW, this.fitH);
-    ctx.restore();
+    drawCursorSprite(ctx, this.img, x, y, this.fitW, this.fitH, this.hue);
   }
 
   /** 触发该素材的专属爆裂动画。 */
