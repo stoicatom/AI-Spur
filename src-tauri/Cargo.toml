@@ -1,6 +1,6 @@
 [package]
 name = "aispur"
-version = "0.2.0"
+version = "0.3.0"
 description = "Spur terminal AI tools into moving faster"
 authors = ["lorain"]
 license = "MIT"
