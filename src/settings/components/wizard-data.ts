@@ -18,6 +18,27 @@ export interface AccentColor {
   label: string;
 }
 
+/**
+ * 由 particleHue 反查配色档位（编辑模式预填）。
+ *
+ * 素材包存的是具体色值而非档位索引，用户也可能手改过 pack.json，
+ * 因此取色相距离最近的一档，而不是要求精确相等 —— 色相是环形的，
+ * 359° 与 0° 只差 1°。
+ */
+export function accentIndexForHue(hue: number): number {
+  let best = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  ACCENT_COLORS.forEach((color, index) => {
+    const raw = Math.abs(color.hue - hue) % 360;
+    const distance = Math.min(raw, 360 - raw);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
+  });
+  return best;
+}
+
 export const ACCENT_COLORS: AccentColor[] = [
   { hue: 24,  c1: '#FF6B35', c2: '#C23E00', label: '橙焰' },
   { hue: 55,  c1: '#FFD700', c2: '#B88A00', label: '金芒' },

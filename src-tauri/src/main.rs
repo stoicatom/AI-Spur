@@ -3,16 +3,16 @@
 mod commands;
 mod config;
 mod cursor_tracker;
-mod custom_skins;
 mod macro_sender;
 mod material_commands;
 mod materials;
+mod overlay_placement;
 mod pack_commands;
+mod pack_edit;
 mod pack_icons;
 mod packs;
 mod shortcut;
 mod skins;
-mod sound_commands;
 mod sounds;
 mod target_window;
 mod tray;
@@ -26,25 +26,6 @@ use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_global_shortcut::ShortcutState;
-
-/// Build the `spawn-whip` payload, attaching the cursor position so the overlay
-/// can spawn the whip at the mouse (task 4 — cursor follow).
-///
-/// `cursor_position()` returns a global **physical** point; subtract the
-/// overlay window's physical top-left (`outer_position`) and divide by the
-/// display scale factor to convert into overlay-window **logical** coordinates,
-/// which is the space the WebView renders in. If any of the three window
-/// queries fail, `x`/`y` are omitted and the overlay falls back to its centre.
-fn spawn_whip_payload(w: &tauri::WebviewWindow, force_full: bool) -> serde_json::Value {
-    let mut payload = serde_json::json!({ "forceFull": force_full });
-    if let (Ok(cursor), Ok(origin), Ok(scale)) =
-        (w.cursor_position(), w.outer_position(), w.scale_factor())
-    {
-        payload["x"] = serde_json::json!((cursor.x - origin.x as f64) / scale);
-        payload["y"] = serde_json::json!((cursor.y - origin.y as f64) / scale);
-    }
-    payload
-}
 
 fn main() {
     // Build the real input backend. If it fails (e.g. no Accessibility
@@ -98,10 +79,19 @@ fn main() {
                         }
                     }
 
-                    // Show it before emitting or the animation runs on an
-                    // invisible window. Intentionally no set_focus / activation
-                    // policy change — the overlay stays non-activating so the
-                    // terminal keeps keyboard focus for the Esc macro.
+                    // Place the overlay over the cursor's display *before*
+                    // showing it, so no frame ever flashes on the wrong (or a
+                    // stale, shrunken) monitor. The placement is unconditional
+                    // on every show: the frontend shrinks the overlay to a
+                    // 300x110 recovery panel on macro failure, and a crash
+                    // mid-shrink must not leak that size into the next launch.
+                    // Intentionally no set_focus / activation policy change —
+                    // the overlay stays non-activating so the terminal keeps
+                    // keyboard focus for the Esc macro.
+                    let placement = overlay_placement::wrap_overlay(&w);
+                    if let Err(e) = &placement {
+                        eprintln!("[overlay] placement failed: {e}");
+                    }
                     let _ = w.show();
 
                     // Push global cursor positions to the overlay at ~60fps so the
@@ -122,7 +112,18 @@ fn main() {
                         shortcut::is_egg_variant(&primary, shortcut.to_string().as_str())
                     };
 
-                    let _ = w.emit("spawn-whip", spawn_whip_payload(&w, force_full));
+                    // Placement passed through so the payload's cursor
+                    // coordinates are in the same point space the overlay was
+                    // just placed in (spawn_whip_payload recomputes only the
+                    // cursor side; the origin comes from the placement).
+                    let _ = w.emit(
+                        "spawn-whip",
+                        overlay_placement::spawn_whip_payload(
+                            &w,
+                            force_full,
+                            placement.ok().flatten(),
+                        ),
+                    );
                 })
                 .build(),
         )
@@ -137,26 +138,15 @@ fn main() {
             commands::trigger_macro,
             commands::stop_cursor_tracking,
             commands::list_skins,
-            commands::activate_skin,
             commands::open_settings,
             commands::open_input_permissions,
-            custom_skins::list_custom_skins,
-            custom_skins::import_custom_skin,
-            custom_skins::delete_custom_skin,
-            sound_commands::list_sound_presets,
-            sound_commands::read_sound_data,
-            sound_commands::set_crack_sound,
-            sound_commands::upload_custom_sound,
-            sound_commands::delete_custom_sound,
             material_commands::list_materials,
-            material_commands::set_active_material,
-            material_commands::upload_custom_material,
-            material_commands::delete_custom_material,
             pack_commands::list_packs,
             pack_commands::set_active_pack,
             pack_commands::create_custom_pack,
             pack_commands::read_local_sound_data,
             pack_commands::delete_custom_pack,
+            pack_edit::update_custom_pack,
             // Debug-only test backdoor commands (compiled in debug builds only)
             #[cfg(debug_assertions)]
             commands::__test_trigger_shortcut,
@@ -250,6 +240,11 @@ fn main() {
                 // different one in settings, so log and carry on.
                 if let Err(e) = shortcut::register(app.handle(), &hotkey) {
                     eprintln!("[shortcut] failed to register {hotkey}: {e}");
+                    shortcut::notify_startup_registration_failure(
+                        app.handle(),
+                        &hotkey,
+                        &e.to_string(),
+                    );
                 }
             }
             Ok(())

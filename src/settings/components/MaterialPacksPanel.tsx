@@ -9,6 +9,7 @@ import {
   familyForPack,
   familyMeta,
   matchesPack,
+  sortPacks,
   PACK_FAMILIES,
   type PackFamily,
   effectLabel,
@@ -42,6 +43,8 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [failure, setFailure] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
+  /** 非 null = 向导处于编辑模式，编辑的是这个包。 */
+  const [editing, setEditing] = useState<MaterialPack | null>(null);
   const [family, setFamily] = useState<PackFamily>('all');
   const [query, setQuery] = useState('');
   const [rovingPackId, setRovingPackId] = useState(config.activePackId);
@@ -61,7 +64,9 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
   async function reload(isCancelled = () => false) {
     try {
       const packs = await listPacks();
-      if (!isCancelled()) setLoad({ status: 'ready', packs });
+      // 在数据源头排序：`filtered` 的顺序同时驱动卡片渲染、packRefs 索引与键盘漫游，
+      // 只在渲染层排序会让焦点落到错误的卡片上。
+      if (!isCancelled()) setLoad({ status: 'ready', packs: sortPacks(packs) });
     } catch (error) {
       if (!isCancelled()) setLoad({ status: 'error', message: error instanceof Error ? error.message : String(error) });
     }
@@ -94,10 +99,29 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
     }
   }
 
-  async function onPackCreated(pack: MaterialPack) {
+  function openWizard(pack: MaterialPack | null) {
+    setFailure(null);
+    setEditing(pack);
+    setWizardOpen(true);
+  }
+
+  function closeWizard() {
     setWizardOpen(false);
+    setEditing(null);
+  }
+
+  /**
+   * 向导保存成功（新建或编辑）后的收尾。
+   *
+   * 编辑当前激活包时必须重新 `choose()`：overlay 的素材缓存按 id 判断是否
+   * 需要刷新（material-resolver.ts `packListNeedsRefresh`），同 id 内容变了
+   * 它自己看不出来，得靠 set_active_pack 再发一次 pack-changed 把它踢醒。
+   */
+  async function onPackSaved(pack: MaterialPack) {
+    const wasEditingActive = editing !== null && editing.id === config.activePackId;
+    closeWizard();
     await reload();
-    await choose(pack.id);
+    if (!editing || wasEditingActive) await choose(pack.id);
   }
 
   const filtered = useMemo(() => {
@@ -131,7 +155,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
     <div className="material-library">
       <div className="packs-intro">
         <p className="packs-subtitle">选择一套素材，同时切换图标、运动特效与音效。</p>
-        <button type="button" className="btn btn--primary packs-new-btn" onClick={() => setWizardOpen(true)}>
+        <button type="button" className="btn btn--primary packs-new-btn" onClick={() => openWizard(null)}>
           <Icon name="plus" />
           <span>新建场景</span>
         </button>
@@ -152,7 +176,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
               {PACK_FAMILIES.map((item, index) => (
                 <button key={item.id} type="button" role="radio" aria-checked={family === item.id} tabIndex={family === item.id ? 0 : -1}
                   ref={(node) => { familyRefs.current[index] = node; }}
-                  className={`pack-family-tab${family === item.id ? ' pack-family-tab--active' : ''}`} onClick={() => setFamily(item.id)}
+                  className={`pack-family-tab pack-family-tab--${item.id}${family === item.id ? ' pack-family-tab--active' : ''}`} onClick={() => setFamily(item.id)}
                   onKeyDown={(event) => handleFamilyKeyDown(event, index)}>
                   <span>{item.shortLabel}</span><span className="pack-family-tab__count font-mono">{counts?.[item.id] ?? 0}</span>
                 </button>
@@ -172,7 +196,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
             <div className="pack-grid" role="radiogroup" aria-label="素材包">
               {filtered.map((pack, index) => {
                 const isActive = pack.id === config.activePackId;
-                const packFamily = familyForPack(pack.id);
+                const packFamily = familyForPack(pack);
                 const meta = familyMeta(packFamily);
                 const glow = `hsl(${pack.palette.particleHue}, 90%, 60%)`;
                 return (
@@ -195,7 +219,12 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
                       </span>
                     </span>
                   </button>
-                  {!pack.builtin && <button type="button" className="pack-card__del" aria-label={`删除 ${pack.name}`} onClick={() => void handleDelete(pack.id)}><Icon name="trash" /></button>}
+                  {!pack.builtin && (
+                    <div className="pack-card__tools">
+                      <button type="button" className="pack-card__tool pack-card__edit" aria-label={`编辑 ${pack.name}`} onClick={() => openWizard(pack)}><Icon name="pencil" /></button>
+                      <button type="button" className="pack-card__tool pack-card__del" aria-label={`删除 ${pack.name}`} onClick={() => void handleDelete(pack.id)}><Icon name="trash" /></button>
+                    </div>
+                  )}
                   </div>
                 );
               })}
@@ -205,7 +234,13 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
       )}
 
       {failure && <div className="callout callout--error" role="alert"><p className="callout__text font-mono">{failure}</p></div>}
-      {wizardOpen && <CreatePackWizard onCreated={(pack) => void onPackCreated(pack)} onClose={() => setWizardOpen(false)} />}
+      {wizardOpen && (
+        <CreatePackWizard
+          editing={editing ?? undefined}
+          onSaved={(pack) => void onPackSaved(pack)}
+          onClose={closeWizard}
+        />
+      )}
     </div>
   );
 }

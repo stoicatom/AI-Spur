@@ -1,6 +1,18 @@
 import type { MaterialPack, SoundRecipe } from '../../shared/material-packs';
 
-export type PackFamily = 'all' | 'nature' | 'instrument' | 'weapon' | 'daily' | 'cosmic' | 'myth' | 'other';
+export type PackFamily =
+  | 'all'
+  | 'custom'
+  | 'nature'
+  | 'instrument'
+  | 'weapon'
+  | 'daily'
+  | 'cosmic'
+  | 'myth'
+  | 'other';
+
+/** 内置素材按题材归类的系列；用户上传的素材始终落在 `custom`。 */
+type BuiltinFamily = Exclude<PackFamily, 'all' | 'custom' | 'other'>;
 
 export interface PackFamilyMeta {
   id: PackFamily;
@@ -10,6 +22,7 @@ export interface PackFamilyMeta {
 
 export const PACK_FAMILIES: readonly PackFamilyMeta[] = [
   { id: 'all', label: '全部系列', shortLabel: '全部' },
+  { id: 'custom', label: '我的素材', shortLabel: '我的' },
   { id: 'nature', label: '自然', shortLabel: '自然' },
   { id: 'instrument', label: '乐器', shortLabel: '乐器' },
   { id: 'weapon', label: '武器', shortLabel: '武器' },
@@ -19,7 +32,7 @@ export const PACK_FAMILIES: readonly PackFamilyMeta[] = [
   { id: 'other', label: '其他', shortLabel: '其他' },
 ];
 
-const FAMILY_IDS: Record<Exclude<PackFamily, 'all' | 'other'>, readonly string[]> = {
+const FAMILY_IDS: Record<BuiltinFamily, readonly string[]> = {
   nature: ['tornado', 'downpour', 'wildfire', 'wind', 'water', 'lightning', 'flame', 'ice', 'thunder', 'aurora'],
   instrument: ['piano', 'saxophone', 'vinyl', 'drum', 'guitar', 'harp', 'bell', 'trumpet'],
   weapon: ['revolver', 'glass-shot', 'katana', 'bow', 'shield', 'axe', 'spear', 'ninja-star', 'bomb', 'rocket'],
@@ -33,8 +46,21 @@ const FAMILY_LOOKUP = Object.entries(FAMILY_IDS).reduce<Record<string, PackFamil
   return lookup;
 }, {});
 
-export function familyForPack(id: string): Exclude<PackFamily, 'all'> {
-  return (FAMILY_LOOKUP[id] ?? 'other') as Exclude<PackFamily, 'all'>;
+/**
+ * 归类一个素材包。`builtin` 是权威判据：用户上传的素材无论 id 取什么
+ * （哪怕撞上内置白名单）都属于「我的素材」。
+ */
+export function familyForPack(pack: Pick<MaterialPack, 'id' | 'builtin'>): Exclude<PackFamily, 'all'> {
+  if (!pack.builtin) return 'custom';
+  return (FAMILY_LOOKUP[pack.id] ?? 'other') as Exclude<PackFamily, 'all'>;
+}
+
+/**
+ * 自定义素材置顶，其余保持入参顺序。
+ * `Array.prototype.sort` 在 ES2019+ 保证稳定，因此内置素材之间的相对次序不变。
+ */
+export function sortPacks(packs: readonly MaterialPack[]): MaterialPack[] {
+  return [...packs].sort((a, b) => Number(a.builtin) - Number(b.builtin));
 }
 
 export function familyMeta(family: PackFamily): PackFamilyMeta {
@@ -92,10 +118,10 @@ export function soundSignature(sound: SoundRecipe): string {
 }
 
 export function matchesPack(pack: MaterialPack, query: string, family: PackFamily): boolean {
-  if (family !== 'all' && familyForPack(pack.id) !== family) return false;
+  if (family !== 'all' && familyForPack(pack) !== family) return false;
   const normalized = query.trim().toLocaleLowerCase();
   if (!normalized) return true;
-  const haystack = [pack.id, pack.name, effectLabel(pack.effect.preset), physicsMode(pack.effect.preset), familyMeta(familyForPack(pack.id)).label]
+  const haystack = [pack.id, pack.name, effectLabel(pack.effect.preset), physicsMode(pack.effect.preset), familyMeta(familyForPack(pack)).label]
     .join(' ')
     .toLocaleLowerCase();
   return haystack.includes(normalized);
@@ -104,6 +130,6 @@ export function matchesPack(pack: MaterialPack, query: string, family: PackFamil
 export function familyCounts(packs: readonly MaterialPack[]): Record<PackFamily, number> {
   const counts = Object.fromEntries(PACK_FAMILIES.map((item) => [item.id, 0])) as Record<PackFamily, number>;
   counts.all = packs.length;
-  for (const pack of packs) counts[familyForPack(pack.id)] += 1;
+  for (const pack of packs) counts[familyForPack(pack)] += 1;
   return counts;
 }

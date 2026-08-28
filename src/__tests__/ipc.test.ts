@@ -6,7 +6,6 @@ import {
   registerHotkey,
   checkHotkeyConflict,
   listSkins,
-  activateSkin,
   onSpawnWhip,
   onConfigUpdated,
   onSkinChanged,
@@ -170,12 +169,6 @@ describe('IPC layer', () => {
   it('listSkins should throw if any manifest fails validation', async () => {
     vi.mocked(invoke).mockResolvedValue([validSkin, { ...validSkin, specVersion: '2' }]);
     await expect(listSkins()).rejects.toThrow();
-  });
-
-  it('activateSkin should invoke activate_skin with skinId', async () => {
-    vi.mocked(invoke).mockResolvedValue(undefined);
-    await activateSkin('neon');
-    expect(invoke).toHaveBeenCalledWith('activate_skin', { skinId: 'neon' });
   });
 
   it('onSkinChanged should parse payload and pass the skin id', async () => {

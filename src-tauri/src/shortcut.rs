@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::collections::HashSet;
-use tauri::AppHandle;
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use tauri::{AppHandle, Emitter};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -292,6 +292,12 @@ pub fn check_conflict(
     hotkey: &str,
     previous_hotkey: Option<String>,
 ) -> Option<ConflictInfo> {
+    // System-reserved combinations cannot be detected by probing (they
+    // register successfully on macOS but never deliver the keystroke), so the
+    // static table wins before we touch the OS at all.
+    if let Some(conflict) = reserved_conflict(hotkey, previous_hotkey.clone()) {
+        return Some(conflict);
+    }
     let registry = AppShortcutRegistry { app };
     let mut probed: Vec<String> = Vec::new();
     for (index, candidate) in registered_set(hotkey).into_iter().enumerate() {
@@ -323,10 +329,258 @@ pub fn check_conflict(
     None
 }
 
+// ---------------------------------------------------------------------------
+// System-reserved shortcut interception
+// ---------------------------------------------------------------------------
+//
+// The probe strategy in `check_conflict` (register -> unregister) catches
+// shortcuts owned by *other applications*, but several OS-level combinations
+// are special: registration succeeds (e.g. Carbon's RegisterEventHotKey
+// returns noErr for Cmd+Space) while the keystrokes never reach our handler.
+// Those must be rejected statically, before any probing.
+//
+// Policy: conservative — when in doubt, list it ("宁多勿漏"). A false
+// positive costs one extra warning in the settings UI; a false negative
+// silently kills the shortcut, which is far worse. Entries come from public
+// OS behaviour knowledge: macOS Spotlight/input-source/screenshot/AppKit
+// window responders, Windows shell (Win+*) & table keys, Linux WM/IME keys.
+//
+// Precision: every entry matches the FULL modifier set exactly, so
+// Cmd+Shift+Space is NOT treated as the reserved Cmd+Space.
+
+/// Occupier label surfaced verbatim to the settings UI for reserved keys.
+pub const SYSTEM_RESERVED_OWNER: &str = "系统保留快捷键";
+
+/// Combine modifier flags inside a `const` table.
+///
+/// bitflags 2.x implements `BitOr` as a plain (non-const) operator, so a
+/// literal `Modifiers::A | Modifiers::B` cannot appear in a `const` item.
+/// Folding the raw bits and rebuilding with the const `from_bits_retain`
+/// produces exactly the same value while staying const-evaluable.
+const fn mods(parts: &[Modifiers]) -> Modifiers {
+    let mut bits = 0u32;
+    let mut index = 0;
+    while index < parts.len() {
+        bits |= parts[index].bits();
+        index += 1;
+    }
+    Modifiers::from_bits_retain(bits)
+}
+
+#[cfg(target_os = "macos")]
+const SYSTEM_RESERVED: &[(Modifiers, Code)] = &[
+    // Spotlight / system search.
+    (Modifiers::SUPER, Code::Space),
+    // Input-source switching family (prev / next input method; all exact).
+    (Modifiers::CONTROL, Code::Space),
+    (mods(&[Modifiers::CONTROL, Modifiers::SHIFT]), Code::Space),
+    (mods(&[Modifiers::CONTROL, Modifiers::ALT]), Code::Space),
+    // Application switcher.
+    (Modifiers::SUPER, Code::Tab),
+    // Same-app window cycling (Cmd+`).
+    (Modifiers::SUPER, Code::Backquote),
+    // Screenshot family: full screen / selection / window / Touch Bar.
+    (mods(&[Modifiers::SUPER, Modifiers::SHIFT]), Code::Digit3),
+    (mods(&[Modifiers::SUPER, Modifiers::SHIFT]), Code::Digit4),
+    (mods(&[Modifiers::SUPER, Modifiers::SHIFT]), Code::Digit5),
+    (mods(&[Modifiers::SUPER, Modifiers::SHIFT]), Code::Digit6),
+    // Screenshots written to the clipboard (Cmd+Ctrl+Shift+3/4).
+    (
+        mods(&[Modifiers::SUPER, Modifiers::CONTROL, Modifiers::SHIFT]),
+        Code::Digit3,
+    ),
+    (
+        mods(&[Modifiers::SUPER, Modifiers::CONTROL, Modifiers::SHIFT]),
+        Code::Digit4,
+    ),
+    // AppKit window-level responders: quit / close / hide / minimize.
+    (Modifiers::SUPER, Code::KeyQ),
+    (Modifiers::SUPER, Code::KeyW),
+    (Modifiers::SUPER, Code::KeyH),
+    (Modifiers::SUPER, Code::KeyM),
+    // Force-quit dialog.
+    (mods(&[Modifiers::SUPER, Modifiers::ALT]), Code::Escape),
+    // Lock screen / log out.
+    (mods(&[Modifiers::SUPER, Modifiers::CONTROL]), Code::KeyQ),
+    // Conservative per spec: some macOS builds consume Cmd+Ctrl+Delete.
+    (mods(&[Modifiers::SUPER, Modifiers::CONTROL]), Code::Delete),
+    // Emoji / character picker (Cmd+Ctrl+Space).
+    (mods(&[Modifiers::SUPER, Modifiers::CONTROL]), Code::Space),
+];
+
+#[cfg(target_os = "windows")]
+const SYSTEM_RESERVED: &[(Modifiers, Code)] = &[
+    // Alt+Tab switcher and its reverse companion.
+    (Modifiers::ALT, Code::Tab),
+    (mods(&[Modifiers::ALT, Modifiers::SHIFT]), Code::Tab),
+    // Close window.
+    (Modifiers::ALT, Code::F4),
+    // Task manager.
+    (mods(&[Modifiers::CONTROL, Modifiers::SHIFT]), Code::Escape),
+    // Security / reboot screen.
+    (mods(&[Modifiers::CONTROL, Modifiers::ALT]), Code::Delete),
+    // IME / input-language toggle.
+    (Modifiers::CONTROL, Code::Space),
+    // Shell (Win+*) family: lock, show desktop, explorer, quick link,
+    // settings, task view, clipboard history, project, snipping.
+    (Modifiers::SUPER, Code::KeyL),
+    (Modifiers::SUPER, Code::KeyD),
+    (Modifiers::SUPER, Code::KeyE),
+    (Modifiers::SUPER, Code::KeyX),
+    (Modifiers::SUPER, Code::KeyI),
+    (Modifiers::SUPER, Code::Tab),
+    (Modifiers::SUPER, Code::KeyV),
+    (Modifiers::SUPER, Code::KeyP),
+    (mods(&[Modifiers::SUPER, Modifiers::SHIFT]), Code::KeyS),
+];
+
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+const SYSTEM_RESERVED: &[(Modifiers, Code)] = &[
+    // Window-manager essentials (GNOME/KDE/XFCE all grab these).
+    (Modifiers::ALT, Code::Tab),
+    (mods(&[Modifiers::ALT, Modifiers::SHIFT]), Code::Tab),
+    (Modifiers::ALT, Code::F4),
+    // Logout / reboot dialogue on most desktop environments.
+    (mods(&[Modifiers::CONTROL, Modifiers::ALT]), Code::Delete),
+    // Legacy X.org server restart.
+    (mods(&[Modifiers::CONTROL, Modifiers::ALT]), Code::Backspace),
+    // IME toggling (fcitx / ibus).
+    (Modifiers::CONTROL, Code::Space),
+    // Shell / desktop (Super+*) family.
+    (Modifiers::SUPER, Code::KeyL),
+    (Modifiers::SUPER, Code::KeyD),
+    (Modifiers::SUPER, Code::KeyE),
+    (Modifiers::SUPER, Code::Tab),
+];
+
+/// Rebuild `hotkey` with modifier tokens in canonical order so it can feed
+/// `Shortcut::from_str`. The plugin's own parser requires every modifier to
+/// precede the key, so "Space+Cmd" and "3+Shift+Command" are unparseable as
+/// written — they must still be matchable against the reserved table.
+///
+/// `commandorcontrol` keeps its own identity: it means SUPER on macOS but
+/// CONTROL elsewhere, so the platform decision is deferred to the plugin
+/// parser rather than hardcoded here.
+fn normalize_hotkey(hotkey: &str) -> Option<Shortcut> {
+    let mut modifiers: Vec<&'static str> = Vec::new();
+    let mut key: Option<&str> = None;
+
+    for raw in hotkey.split('+') {
+        let token = raw.trim();
+        if token.is_empty() {
+            return None;
+        }
+        let canonical = match token.to_ascii_lowercase().as_str() {
+            "commandorcontrol" | "commandorctrl" | "cmdorctrl" | "cmdorcontrol" => {
+                Some("commandorcontrol")
+            }
+            "command" | "cmd" | "super" | "meta" => Some("super"),
+            "control" | "ctrl" => Some("control"),
+            "alt" | "option" => Some("alt"),
+            "shift" => Some("shift"),
+            _ => None,
+        };
+        match canonical {
+            Some(value) => {
+                if !modifiers.contains(&value) {
+                    modifiers.push(value);
+                }
+            }
+            None => {
+                if key.is_some() {
+                    return None; // more than one key token — invalid format
+                }
+                key = Some(token);
+            }
+        }
+    }
+
+    let key = key?;
+    let mut rebuilt = modifiers.join("+");
+    if !rebuilt.is_empty() {
+        rebuilt.push('+');
+    }
+    rebuilt.push_str(key);
+    rebuilt.parse::<Shortcut>().ok()
+}
+
+/// True when `hotkey` is an OS-reserved combination whose registration
+/// succeeds but whose keystrokes never arrive. Exact match on the full
+/// modifier set: `Cmd+Shift+Space` is not the reserved `Cmd+Space`.
+pub fn is_system_reserved(hotkey: &str) -> bool {
+    let Some(shortcut) = normalize_hotkey(hotkey) else {
+        return false;
+    };
+    SYSTEM_RESERVED
+        .iter()
+        .any(|(mods, code)| shortcut.mods == *mods && shortcut.key == *code)
+}
+
+/// Static-table conflict check — pure, no AppHandle needed. Returns `Some`
+/// when the primary (or its Shift companion) is system-reserved.
+pub fn reserved_conflict(hotkey: &str, previous_hotkey: Option<String>) -> Option<ConflictInfo> {
+    for (index, candidate) in registered_set(hotkey).into_iter().enumerate() {
+        if is_system_reserved(&candidate) {
+            return Some(ConflictInfo {
+                hotkey: hotkey.to_string(),
+                suggestions: unique_suggestions(hotkey),
+                scope: if index == 0 {
+                    ConflictScope::Primary
+                } else {
+                    ConflictScope::ShiftCompanion
+                },
+                occupied_by: SYSTEM_RESERVED_OWNER.to_string(),
+                occupied_hotkey: candidate,
+                previous_hotkey,
+            });
+        }
+    }
+    None
+}
+
+/// If `candidate` is itself system-reserved, substitute one level of its own
+/// adjacent-key alternatives; otherwise keep it unchanged.
+fn non_reserved_alternative(candidate: String) -> Option<String> {
+    if !is_system_reserved(&candidate) {
+        return Some(candidate);
+    }
+    generate_alternatives(&candidate)
+        .into_iter()
+        .find(|deeper| !is_system_reserved(deeper))
+}
+
+/// Payload for the `shortcut-unavailable` event (startup registration
+/// failure surfaced to a live window).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct ShortcutUnavailablePayload {
+    pub hotkey: String,
+    pub error: String,
+}
+
+/// Surface a startup registration failure beyond stderr.
+///
+/// Channel choice: `tauri-plugin-notification` is NOT in Cargo.toml, and the
+/// tray tooltip is owned by tray.rs (touched by the caller's later wiring),
+/// so the remaining safe channel is an emitted event. It only reaches a live
+/// settings/overlay window — `main.rs`'s setup keeps its own `eprintln!` so the
+/// failure is never silently swallowed, and emit errors are logged too.
+pub fn notify_startup_registration_failure(app: &AppHandle, hotkey: &str, error: &str) {
+    let payload = ShortcutUnavailablePayload {
+        hotkey: hotkey.to_string(),
+        error: error.to_string(),
+    };
+    if let Err(emit_error) = app.emit("shortcut-unavailable", &payload) {
+        eprintln!("[shortcut] failed to emit shortcut-unavailable: {emit_error}");
+    }
+}
+
 fn unique_suggestions(hotkey: &str) -> Vec<String> {
     let mut seen = HashSet::new();
     generate_alternatives(hotkey)
         .into_iter()
+        .filter_map(non_reserved_alternative)
         .filter(|suggestion| seen.insert(suggestion.clone()))
         .collect()
 }
@@ -537,6 +791,158 @@ mod tests {
     fn alternatives_for_zero_are_distinct() {
         let alternatives = generate_alternatives("CommandOrControl+Shift+0");
         assert_ne!(alternatives[0], alternatives[1]);
+    }
+
+    // --- is_system_reserved ---
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn reserved_detects_macos_system_combinations() {
+        // Spotlight / input-source switching: RegisterEventHotKey reports
+        // success for these but the key never reaches our handler.
+        assert!(is_system_reserved("CommandOrControl+Space"));
+        assert!(is_system_reserved("Control+Space"));
+        assert!(is_system_reserved("Command+Tab"));
+        // Screenshot family.
+        assert!(is_system_reserved("CommandOrControl+Shift+3"));
+        assert!(is_system_reserved("CommandOrControl+Shift+4"));
+        assert!(is_system_reserved("CommandOrControl+Shift+5"));
+        // AppKit window-level responders.
+        assert!(is_system_reserved("CommandOrControl+Q"));
+        assert!(is_system_reserved("CommandOrControl+W"));
+        assert!(is_system_reserved("CommandOrControl+H"));
+        assert!(is_system_reserved("CommandOrControl+M"));
+        // Force quit / lock / logout.
+        assert!(is_system_reserved("Command+Alt+Escape"));
+        assert!(is_system_reserved("Command+Control+Q"));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn reserved_matches_cmd_and_cmdorctrl_spellings_alike() {
+        // On macOS both spellings normalise to SUPER, so the table must hit
+        // regardless of which one the recorder produced.
+        assert!(is_system_reserved("Cmd+Space"));
+        assert!(is_system_reserved("Command+Space"));
+        assert!(is_system_reserved("CmdOrCtrl+Space"));
+        assert!(is_system_reserved("CommandOrControl+Space"));
+    }
+
+    #[test]
+    fn reserved_ignores_unreserved_combinations() {
+        assert!(!is_system_reserved("CommandOrControl+Shift+W"));
+        assert!(!is_system_reserved("CommandOrControl+Alt+W"));
+        assert!(!is_system_reserved("Alt+F5"));
+        assert!(!is_system_reserved("CommandOrControl+Shift+E"));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn reserved_requires_exact_modifier_set() {
+        // Cmd+Space is reserved; adding Shift makes a *different*, free
+        // combination. Matching on "contains Cmd and Space" would over-report.
+        assert!(is_system_reserved("Command+Space"));
+        assert!(!is_system_reserved("Command+Shift+Space"));
+        assert!(!is_system_reserved("Command+Alt+Space"));
+        // Same rule the other way: Cmd+Shift+4 is reserved, Cmd+4 is not.
+        assert!(is_system_reserved("Command+Shift+4"));
+        assert!(!is_system_reserved("Command+4"));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn reserved_normalises_token_order() {
+        // The plugin's parser demands modifiers-before-key, so the reserved
+        // check must normalise order itself rather than delegating blindly.
+        assert!(is_system_reserved("Space+Cmd"));
+        assert!(is_system_reserved("Shift+Command+3"));
+        assert!(is_system_reserved("3+Shift+Command"));
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn reserved_table_is_macos_scoped() {
+        // Windows-only entries must not leak into the macOS table: Alt+F4 and
+        // Alt+Tab are ordinary combinations on macOS.
+        assert!(!is_system_reserved("Alt+F4"));
+        assert!(!is_system_reserved("Alt+Tab"));
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn reserved_detects_windows_system_combinations() {
+        assert!(is_system_reserved("Alt+Tab"));
+        assert!(is_system_reserved("Alt+F4"));
+        assert!(is_system_reserved("Control+Alt+Delete"));
+        assert!(is_system_reserved("Super+L"));
+        assert!(is_system_reserved("Super+D"));
+    }
+
+    #[test]
+    fn reserved_ignores_unparseable_input() {
+        // Garbage is not "reserved" — validate_hotkey is what rejects it.
+        assert!(!is_system_reserved(""));
+        assert!(!is_system_reserved("CommandOrControl+"));
+        assert!(!is_system_reserved("NotAKey+Whatever"));
+    }
+
+    #[test]
+    fn suggestions_never_recommend_a_reserved_combination() {
+        for hotkey in [
+            "CommandOrControl+Shift+W",
+            "CommandOrControl+Shift+3",
+            "CommandOrControl+Q",
+            "Alt+F4",
+        ] {
+            for suggestion in unique_suggestions(hotkey) {
+                assert!(
+                    !is_system_reserved(&suggestion),
+                    "suggested {suggestion} for {hotkey} is system-reserved"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reserved_conflict_reports_the_system_as_the_owner() {
+        // Built without an AppHandle: the static table is consulted before any
+        // probe registration, so this path is pure.
+        let conflict = reserved_conflict(
+            "CommandOrControl+Shift+3",
+            Some("CommandOrControl+Shift+W".to_string()),
+        );
+        if cfg!(target_os = "macos") {
+            let conflict = conflict.expect("Cmd+Shift+3 is a macOS screenshot shortcut");
+            assert_eq!(conflict.occupied_by, "系统保留快捷键");
+            assert_eq!(conflict.occupied_hotkey, "CommandOrControl+Shift+3");
+            assert!(matches!(conflict.scope, ConflictScope::Primary));
+            assert_eq!(
+                conflict.previous_hotkey,
+                Some("CommandOrControl+Shift+W".to_string())
+            );
+            assert!(!conflict.suggestions.is_empty());
+            for suggestion in &conflict.suggestions {
+                assert!(!is_system_reserved(suggestion));
+            }
+        }
+    }
+
+    #[test]
+    fn reserved_conflict_flags_a_reserved_shift_companion() {
+        // Cmd+3 itself is free on macOS, but registering it also claims the
+        // Cmd+Shift+3 screenshot companion — that must be reported.
+        let conflict = reserved_conflict("CommandOrControl+3", None);
+        if cfg!(target_os = "macos") {
+            let conflict = conflict.expect("the Shift companion is the screenshot shortcut");
+            assert_eq!(conflict.occupied_by, "系统保留快捷键");
+            assert_eq!(conflict.occupied_hotkey, "CommandOrControl+Shift+3");
+            assert!(matches!(conflict.scope, ConflictScope::ShiftCompanion));
+        }
+    }
+
+    #[test]
+    fn reserved_conflict_returns_none_for_a_free_combination() {
+        assert!(reserved_conflict("CommandOrControl+Alt+W", None).is_none());
     }
 
     #[test]

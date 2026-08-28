@@ -82,73 +82,12 @@ export async function listSkins(): Promise<SkinManifest[]> {
   return raw.map((skin) => SkinManifestSchema.parse(skin));
 }
 
-export async function activateSkin(skinId: string): Promise<void> {
-  return invoke('activate_skin', { skinId });
-}
-
-// ============ Sound Presets ============
-
-export interface SoundPreset {
-  id: string;
-  name: string;
-  isBuiltin: boolean;
-  files: string[];
-}
-
-export async function listSoundPresets(): Promise<SoundPreset[]> {
-  return invoke<SoundPreset[]>('list_sound_presets');
-}
-
-/** 读取某音效包内一个音频文件，返回 data: URI（用于试听 / overlay 播放）。 */
-export async function readSoundData(presetId: string, file: string): Promise<string> {
-  return invoke<string>('read_sound_data', { presetId, file });
-}
-
-export async function setCrackSound(presetId: string): Promise<void> {
-  return invoke('set_crack_sound', { presetId });
-}
-
-export async function uploadCustomSound(
-  sourceDir: string,
-  packName: string,
-): Promise<SoundPreset> {
-  return invoke<SoundPreset>('upload_custom_sound', {
-    sourceDir,
-    packName,
-  });
-}
-
-export async function deleteCustomSound(presetId: string): Promise<void> {
-  return invoke('delete_custom_sound', { presetId });
-}
-
 // ============ Materials ============
 
 /** 列出全部素材：内置矢量 + 内置图片 + 用户自定义图片。 */
 export async function listMaterials(): Promise<Material[]> {
   const raw = await invoke<unknown[]>('list_materials');
   return raw.map((m) => MaterialSchema.parse(m));
-}
-
-/** 设置活跃素材：Rust 会落盘 config.active_material_id 并 emit material-changed。 */
-export async function setActiveMaterial(id: string): Promise<void> {
-  return invoke('set_active_material', { id });
-}
-
-/**
- * 上传自定义图片素材。
- *
- * `sourcePath` 是用户选择的单个图片文件（png/jpg/jpeg/gif/svg/webp）；
- * Rust 复制到 `app_data_dir()/materials/custom/<slug>/` 并返回新建的 Material。
- */
-export async function uploadCustomMaterial(sourcePath: string): Promise<Material> {
-  const raw = await invoke<unknown>('upload_custom_material', { sourcePath });
-  return MaterialSchema.parse(raw);
-}
-
-/** 删除自定义素材（仅限 custom 目录内的素材）。 */
-export async function deleteCustomMaterial(id: string): Promise<void> {
-  return invoke('delete_custom_material', { id });
 }
 
 // ============ Material Packs (v3 single axis) ============
@@ -174,10 +113,31 @@ export async function createCustomPack(input: {
   iconPath: string;
   soundPath: string;
   effectPreset: string;
+  /** 特效参数（按预设的真实参数表取值）；省略时后端写入空表。 */
+  effectParams?: Record<string, number>;
   sound: unknown;
   palette: { bodyGradient: [string, string]; particleHue: number };
 }): Promise<MaterialPack> {
   const raw = await invoke<unknown>('create_custom_pack', input);
+  return MaterialPackSchema.parse(raw);
+}
+
+/**
+ * 编辑已有的自定义素材包。
+ *
+ * 省略（`undefined`）的字段表示「沿用现有值」：不传 `iconPath` / `soundPath`
+ * 时，Rust 一个字节都不碰原有资产文件。`id` 只用于定位，永不改写。
+ */
+export async function updateCustomPack(input: {
+  id: string;
+  name?: string;
+  iconPath?: string;
+  effectPreset?: string;
+  effectParams?: Record<string, number>;
+  soundPath?: string;
+  palette?: { bodyGradient: [string, string]; particleHue: number };
+}): Promise<MaterialPack> {
+  const raw = await invoke<unknown>('update_custom_pack', input);
   return MaterialPackSchema.parse(raw);
 }
 

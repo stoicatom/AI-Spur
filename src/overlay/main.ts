@@ -9,193 +9,108 @@ import {
   openInputPermissions,
   incrementUsage,
   stopCursorTracking,
-  listPacks,
-  listMaterials,
   getConfig,
   onMacroFailed,
-  type MacroFailedPayload,
 } from '../shared/ipc';
-import {
-  ImageMaterial,
-  MaterialTrail,
-  packListNeedsRefresh,
-  resolveMaterial,
-  resolvePackMaterial,
-} from './material-visual';
+import { ImageMaterial, MaterialTrail } from './material-visual';
 import { SwingDetector, DEFAULT_SWING, type SwingParams } from './swing';
 import { toWhipVel, type WhipVel } from './particles';
-import { playMaterialSound, preloadMaterialSound, closeAudioContext, releaseAudioContextWhenIdle } from './audio-engine';
-import type { MaterialPack } from '../shared/material-packs';
-import { ThreeEffectHost } from './three-effect-host';
+import { playMaterialSound, closeAudioContext, releaseAudioContextWhenIdle } from './audio-engine';
 import { UnlistenRegistry } from './unlisten-registry';
-import { resizeCanvas2D } from './canvas-pixel-budget';
-import { MacroRecoveryState } from './macro-recovery';
+import { mountOverlayCanvases } from './overlay-canvases';
+import { effectDurationFor } from './effect-timings';
+import { setWhipCursorHidden } from './cursor-visibility';
+import { OverlayWindowController } from './overlay-window';
+import { OverlayRenderLoop } from './overlay-render-loop';
+import { MacroFailurePanel } from './macro-failure-panel';
+import { ActivePackLoader } from './active-pack-loader';
 
-const canvasEl = document.getElementById('whip-canvas') as HTMLCanvasElement | null;
-if (!canvasEl) throw new Error('whip-canvas element not found');
-const ctxOrNull = canvasEl.getContext('2d');
-if (!ctxOrNull) throw new Error('2D context unavailable');
-const canvas: HTMLCanvasElement = canvasEl;
-const ctx: CanvasRenderingContext2D = ctxOrNull;
-const webglCanvas = document.getElementById('whip-webgl') as HTMLCanvasElement | null;
-const three = new ThreeEffectHost(webglCanvas);
-
-let width = 0;
-let height = 0;
-
-function resize() {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  resizeCanvas2D(canvas, ctx, width, height, window.devicePixelRatio || 1);
-  three.resize(width, height);
-}
-resize();
-window.addEventListener('resize', resize);
-three.ensure();
+const canvases = mountOverlayCanvases();
+const { ctx, three } = canvases;
+const width = canvases.width;
+const height = canvases.height;
 
 const material = new ImageMaterial();
 const trail = new MaterialTrail();
 const swing = new SwingDetector(performance.now());
+/** 素材包选取 / 加载（内含列表缓存与选包竞态处理）。 */
+const packs = new ActivePackLoader(material, trail);
 let swingParams: SwingParams = { ...DEFAULT_SWING };
 
 let soundEnabled = true;
-let activePack: MaterialPack | null = null;
-let packSelectionRevision = 0;
-let mouseX = width / 2;
-let mouseY = height / 2;
+let mouseX = width() / 2;
+let mouseY = height() / 2;
 let active = false; // 覆盖层是否处于活跃状态
-let macroFailureVisible = false;
-const macroRecovery = new MacroRecoveryState();
 
-const macroStatus = document.getElementById('macro-status') as HTMLElement | null;
-const macroStatusMessage = document.getElementById('macro-status__message') as HTMLElement | null;
-const macroRetry = document.getElementById('macro-status__retry') as HTMLButtonElement | null;
-const macroSettings = document.getElementById('macro-status__settings') as HTMLButtonElement | null;
-const macroClose = document.getElementById('macro-status__close') as HTMLButtonElement | null;
-if (macroSettings && /Windows/i.test(navigator.userAgent)) {
-  macroSettings.textContent = '查看 Windows 诊断';
-}
+/** 单例：窗口几何全部经由它，dismiss 与 dispose 不会互相打架。 */
+const win = new OverlayWindowController();
 
-function hideMacroFailure(): void {
-  macroFailureVisible = false;
-  if (macroStatus) macroStatus.hidden = true;
-}
+const panel = new MacroFailurePanel({
+  triggerMacro,
+  openInputPermissions,
+  onRetryDismiss: () => dismiss(),
+});
 
-function showMacroFailure(failure: MacroFailedPayload, source: 'event' | 'fallback' = 'event'): void {
-  // A failure from a previous crack can arrive after the user has retried.
-  // Never let that stale event replace the current recovery state.
-  const accepted = source === 'event'
-    ? macroRecovery.acceptEvent(failure.attemptId)
-    : macroRecovery.shouldShowFallback(failure.attemptId);
-  if (!accepted) return;
-  if (!macroStatus || !macroStatusMessage) return;
-  macroFailureVisible = true;
-  macroStatus.dataset.code = failure.code;
-  macroStatusMessage.textContent = failure.message;
-  if (macroRetry) macroRetry.hidden = !failure.retryable;
-  if (macroSettings) macroSettings.hidden = failure.code !== 'Permission';
-  macroStatus.hidden = false;
-  // The crack animation can finish before the event arrives. Bring the
-  // non-activating overlay back so the recovery action remains visible.
-  void import('@tauri-apps/api/window')
-    .then(({ getCurrentWindow }) => getCurrentWindow().show())
-    .catch(() => {});
-}
+const loop = new OverlayRenderLoop({
+  ctx,
+  three,
+  material,
+  trail,
+  width,
+  height,
+  mouseX: () => mouseX,
+  mouseY: () => mouseY,
+  isActive: () => active,
+  onDismiss: () => dismiss(),
+});
 
-function nextMacroAttempt(): number {
-  return macroRecovery.beginAttempt();
-}
-
-function showMacroInvokeFailure(error: unknown, attemptId: number): void {
-  // A structured event may win the race with invoke rejection. Never replace
-  // its classification or permission action with a generic fallback.
-  const message = error instanceof Error ? error.message : String(error);
-  const normalized = message.toLocaleLowerCase();
-  const code: MacroFailedPayload['code'] =
-    /permission|accessibility|权限|辅助功能|输入权限/.test(normalized)
-      ? 'Permission'
-      : /safety|terminal|前台|终端|安全/.test(normalized)
-        ? 'SafetyGate'
-        : 'SendFailure';
-  showMacroFailure({
-    code,
-    message: message || '宏发送失败，请确认终端仍处于可输入状态后重试。',
-    retryable: code !== 'SafetyGate',
-    attemptId,
-  }, 'fallback');
-}
-
-async function retryMacro(): Promise<void> {
-  hideMacroFailure();
-  const attemptId = nextMacroAttempt();
+/**
+ * 收起覆盖层。四层防御里的第 1、2、3 层都汇聚在这里，顺序不可调换：
+ *  1. 无论窗口最终是否隐藏成功，光标作用域一定先摘掉 —— 这是保底；
+ *  2. 宏失败时不留全屏窗口，而是缩成只包住恢复面板的小窗；
+ *  3. 窗口操作全部走 OverlayWindowController：失败重试一次并记录，绝不静默。
+ */
+async function dismiss(): Promise<void> {
+  active = false;
+  trail.clear();
+  loop.stop();
+  three.cancel();
+  material.cancelCrack();
+  // 视觉可以先隐藏；声音图表会在自身尾音结束后释放上下文。
+  releaseAudioContextWhenIdle();
   try {
-    await triggerMacro(undefined, attemptId);
-    await dismiss();
+    await stopCursorTracking();
   } catch (error) {
-    console.error('[overlay] macro retry failed:', error);
-    // The event is authoritative when it arrives; this visible fallback also
-    // covers the small startup/listener race where invoke rejects first.
-    showMacroInvokeFailure(error, attemptId);
+    console.error('[overlay] stop cursor tracking failed:', error);
   }
+
+  // 防线 1（治本）：窗口即便留屏，指针也一定回到系统手里。
+  setWhipCursorHidden(false);
+
+  if (panel.isVisible) {
+    // 防线 2：恢复面板要可见，但绝不为此留一个全屏透明窗口。
+    if (await win.shrinkToRecoveryPanel()) return;
+    // 缩窗失败：宁可丢掉面板，也不把全屏窗口留在屏上。
+    console.error('[overlay] recovery panel shrink failed, hiding overlay instead');
+  }
+  // 防线 3：hide 内部会先还原几何、失败重试一次并记录日志。
+  await win.hide();
 }
 
-macroRetry?.addEventListener('click', () => void retryMacro());
-macroSettings?.addEventListener('click', () => {
-  openInputPermissions()
-    .then(() => dismiss())
-    .catch((error) => {
-      console.error('[overlay] open settings failed:', error);
-      showMacroFailure({
-        code: 'Permission',
-        message: error instanceof Error ? error.message : String(error),
-        retryable: true,
-        attemptId: macroRecovery.latestAttempt,
-      });
-    });
-});
-macroClose?.addEventListener('click', () => {
-  hideMacroFailure();
-  void dismiss();
-});
-
-async function applyActivePack(packId?: string) {
-  const revision = ++packSelectionRevision;
-  try {
-    let packs = packsCache;
-    if (packListNeedsRefresh(packs, packId)) {
-      const refreshed = await listPacks();
-      if (revision !== packSelectionRevision) return;
-      packsCache = refreshed;
-      packs = refreshed;
-    }
-    if (!packs) return;
-    const config = packId ? null : await getConfig();
-    if (revision !== packSelectionRevision) return;
-    const targetId = packId ?? config?.activePackId ?? 'rocket';
-    const pack = packs.find((p) => p.id === targetId) ?? packs.find((p) => p.id === 'rocket');
-    if (!pack) return;
-    activePack = pack;
-    preloadMaterialSound(pack.sound);
-    const resolved = resolvePackMaterial(targetId, packs);
-    material.loadPack(resolved.url, pack.effect.preset, pack.effect.params, pack.palette.particleHue);
-    trail.setHue(pack.palette.particleHue);
-  } catch {
-    if (revision === packSelectionRevision) await applyActiveMaterialLegacy(packId);
+/**
+ * 宏失败事件可能在特效播完、窗口已隐藏之后才到。此时要把恢复面板重新
+ * 呈现出来 —— 但只以「缩窗 + 可见光标」的形态，绝不还原成全屏透明窗口。
+ */
+async function presentRecoveryPanel(): Promise<void> {
+  setWhipCursorHidden(false);
+  // 先定几何再 show：避免全屏透明窗口闪现一帧后才缩回去。
+  if (!(await win.shrinkToRecoveryPanel())) {
+    console.error('[overlay] cannot shrink for recovery panel, leaving overlay hidden');
+    panel.hide();
+    await win.hide();
+    return;
   }
-}
-
-/** 向后兼容：当素材包列表空时，回退旧 Material 路径。 */
-async function applyActiveMaterialLegacy(materialId?: string) {
-  try {
-    const [config, materials] = await Promise.all([
-      materialId ? Promise.resolve(null) : getConfig(),
-      listMaterials(),
-    ]);
-    const targetId = materialId ?? config?.activeMaterialId ?? config?.activePackId ?? 'rocket';
-    const resolved = resolveMaterial(targetId, materials);
-    material.load(resolved.url, resolved.id);
-    trail.setHue(material.hue);
-  } catch {}
+  await win.show();
 }
 
 async function loadPreferences() {
@@ -207,27 +122,28 @@ async function loadPreferences() {
 }
 
 function playEffectSound(x: number, vel: WhipVel) {
-  if (!soundEnabled) return;
-  if (!activePack) return;
+  const activePack = packs.activePack;
+  if (!soundEnabled || !activePack) return;
   playMaterialSound(activePack.id, activePack.effect.preset, activePack.sound, {
     x,
-    viewportWidth: width,
+    viewportWidth: width(),
     velocityX: vel.vx,
     velocitySpeed: vel.speed,
   });
 }
 function triggerCrack(x: number, y: number, vel: WhipVel) {
   if (material.crackAlive || !active) return;
-  hideMacroFailure();
-  const attemptId = nextMacroAttempt();
+  panel.hide();
+  const attemptId = panel.beginAttempt();
   // 判定瞬间即发键：终端保持焦点，Esc 早发早生效。
   triggerMacro(undefined, attemptId).catch((err) => {
     console.error('[overlay] macro failed:', err);
-    showMacroInvokeFailure(err, attemptId);
+    panel.showInvokeFailure(err, attemptId);
   });
   active = false;
   playEffectSound(x, vel);
   material.startCrack(x, y, vel);
+  const activePack = packs.activePack;
   if (activePack) {
     three.start({
       packId: activePack.id,
@@ -241,78 +157,28 @@ function triggerCrack(x: number, y: number, vel: WhipVel) {
     });
   }
   trail.clear();
+  // 看门狗：无论渲染状态死在哪，超时强制收起。
+  loop.armWatchdog(effectDurationFor(packs.activePack?.effect.preset ?? 'whip-crack'));
   incrementUsage().catch(() => {});
-}
-let rafId = 0;
-
-function frame() {
-  ctx.clearRect(0, 0, width, height);
-  const now = performance.now();
-
-  if (material.crackAlive) {
-    let ended = false;
-    if (three.isAlive) ended = three.update(now);
-    if (!three.isAlive) material.updateAndDrawCrack(ctx, now);
-    if (ended || (!three.isAlive && !material.crackAlive)) {
-      void dismiss();
-      return;
-    }
-  } else if (active) {
-    trail.draw(ctx, now);
-    material.drawCursor(ctx, mouseX, mouseY);
-  }
-
-  rafId = requestAnimationFrame(frame);
-}
-
-function startLoop() {
-  if (rafId === 0) rafId = requestAnimationFrame(frame);
-}
-
-function stopLoop() {
-  if (rafId !== 0) {
-    cancelAnimationFrame(rafId);
-    rafId = 0;
-  }
-  ctx.clearRect(0, 0, width, height);
-}
-
-async function dismiss() {
-  active = false;
-  trail.clear();
-  stopLoop();
-  three.cancel();
-  material.cancelCrack();
-  // 视觉可以先隐藏；声音图表会在自身尾音结束后释放上下文。
-  releaseAudioContextWhenIdle();
-  try {
-    await stopCursorTracking();
-  } catch {}
-  if (!macroFailureVisible) {
-    try {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window');
-      await getCurrentWindow().hide();
-    } catch {}
-  }
 }
 
 const subscriptions = new UnlistenRegistry();
-// 素材包列表缓存：初始化后保存，只在 pack-changed 事件时局部更新
-let packsCache: MaterialPack[] | null = null;
 
 // 预加载首个素材包（避免第一次触发时等待）
-void applyActivePack();
+void packs.apply();
 void loadPreferences();
 subscriptions.track(onSpawnWhip((payload) => {
   // spawn 时只重新应用偏好（灵敏度等），不重复拉取素材包列表（已缓存）
   void loadPreferences();
-  mouseX = payload.x ?? width / 2;
-  mouseY = payload.y ?? height / 2;
+  mouseX = payload.x ?? width() / 2;
+  mouseY = payload.y ?? height() / 2;
   active = true;
   swing.reset(performance.now());
   trail.clear();
   trail.push(mouseX, mouseY, performance.now());
-  startLoop();
+  // 光标先隐藏：全屏透明窗口此刻就是指针本体。
+  setWhipCursorHidden(true);
+  loop.start();
 }), 'spawn-whip');
 subscriptions.track(onCursorPos((pos) => {
   mouseX = pos.x;
@@ -328,29 +194,35 @@ subscriptions.track(onCursorPos((pos) => {
 }), 'cursor-pos');
 
 subscriptions.track(onDropWhip(() => {
-  hideMacroFailure();
+  panel.hide();
   void dismiss();
 }), 'drop-whip');
 
-subscriptions.track(onMacroFailed(showMacroFailure), 'macro-failed');
+subscriptions.track(onMacroFailed((failure) => {
+  if (!panel.show(failure, 'event')) return;
+  // 事件晚于特效结束到达时窗口已隐藏，需要重新呈现（缩窗形态）。
+  void presentRecoveryPanel();
+}), 'macro-failed');
 
 // 素材包切换：仅在包 id 变化时重新加载
-subscriptions.track(onPackChanged((id) => void applyActivePack(id)), 'pack-changed');
+subscriptions.track(onPackChanged((id) => void packs.apply(id)), 'pack-changed');
 // 向后兼容
-subscriptions.track(onMaterialChanged((id) => void applyActiveMaterialLegacy(id)), 'material-changed');
+subscriptions.track(onMaterialChanged((id) => void packs.applyLegacy(id)), 'material-changed');
 
 let overlayDisposed = false;
 function disposeOverlay(): void {
   if (overlayDisposed) return;
   overlayDisposed = true;
-  window.removeEventListener('resize', resize);
+  canvases.stop();
   window.removeEventListener('pagehide', disposeOverlay);
-  stopLoop();
+  loop.stop();
   subscriptions.dispose();
   closeAudioContext();
   three.dispose();
   material.dispose();
-  packsCache = null;
+  packs.clearCache();
+  // 页面卸载是最后一次执行机会：光标作用域必须在这里摘掉。
+  setWhipCursorHidden(false);
   void stopCursorTracking().catch(() => {});
 }
 

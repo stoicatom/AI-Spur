@@ -243,6 +243,8 @@ pub fn scan_packs_in(dir: &Path, builtin: bool) -> Vec<MaterialPack> {
             }
         }
     }
+    // `read_dir` 顺序由文件系统决定；前端的稳定排序要求输入确定，故按 id 定序。
+    packs.sort_by(|a, b| a.id.cmp(&b.id));
     packs
 }
 

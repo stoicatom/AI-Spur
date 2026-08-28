@@ -5,6 +5,7 @@ use crate::cursor_tracker;
 use crate::macro_sender::{
     EnigoSender, MacroFailure, MacroFailureCode, MacroSender, send_macro_sequence,
 };
+use crate::overlay_placement;
 use crate::shortcut::{self, ConflictInfo};
 use crate::skins::{self, SkinManifest};
 use crate::target_window;
@@ -241,9 +242,15 @@ pub fn trigger_macro(
     if !target_window::active_app_is_safe() {
         let ready = app
             .get_webview_window("overlay")
-            .and_then(|w| w.cursor_position().ok())
-            .map(|pos| {
-                target_window::app_under_cursor(pos.x, pos.y)
+            .and_then(|w| overlay_placement::cursor_in_points(&w))
+            .map(|(x, y)| {
+                // cursor_position() is primary-scaled physical pixels, but
+                // app_under_cursor compares against kCGWindowBounds, which is
+                // points — on a Retina primary the raw pass-through shifted
+                // the hit by the scale factor and the "terminal under the
+                // cursor" rescue never activated. cursor_in_points does the
+                // one division that restores point space.
+                target_window::app_under_cursor(x, y)
                     .map(|hit| {
                         let ok = target_window::activate_app(hit.pid);
                         if ok {
@@ -477,38 +484,6 @@ pub async fn list_skins(app: AppHandle) -> Result<Vec<SkinManifest>, String> {
     let builtin = builtin_skins_dir(&app);
     let user = user_skins_dir(&app);
     Ok(skins::list_skins(&builtin, user.as_deref()))
-}
-
-#[tauri::command]
-pub async fn activate_skin(
-    skin_id: String,
-    app: AppHandle,
-    state: State<'_, AppState>,
-) -> Result<(), String> {
-    // Verify the skin exists before persisting it as the active one.
-    let builtin = builtin_skins_dir(&app);
-    let user = user_skins_dir(&app);
-    skins::load_skin(&skin_id, &builtin, user.as_deref()).map_err(|e| e.to_string())?;
-
-    // Persist first, then commit to in-memory state (see increment_usage).
-    let mut guard = state
-        .config
-        .lock()
-        .map_err(|_| "Internal state error: config lock poisoned".to_string())?;
-    let mut updated = guard.clone();
-    updated.active_pack_id = skin_id.clone();
-    config::save_config(&state.config_path, &updated).map_err(|e| e.to_string())?;
-    *guard = updated.clone();
-    drop(guard);
-
-    usage::emit_config_updated(&app, &updated);
-
-    // Notify the overlay so it can re-render with the new skin.
-    if let Some(w) = app.get_webview_window("overlay") {
-        w.emit("skin-changed", serde_json::json!({ "skinId": skin_id }))
-            .map_err(|e| e.to_string())?;
-    }
-    Ok(())
 }
 
 // ── Debug-only commands for E2E testing (Phase 5) ────────────────────────────

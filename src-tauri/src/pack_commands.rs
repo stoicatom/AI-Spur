@@ -3,7 +3,9 @@
 //! Split from `commands.rs` to keep files under the 300-line budget
 //! (CLAUDE.md §3). Pure scanning/parsing logic lives in `packs.rs`; this
 //! module only resolves paths from Tauri, unwraps arguments, and wraps results
-//! (R-ARCH-008). Persist → in-memory → emit ordering mirrors `activate_skin`.
+//! (R-ARCH-008). Every mutating command persists to disk first, then commits
+//! to in-memory state, then emits — so a failed write never leaves the UI
+//! showing a value the config file does not hold.
 
 use crate::commands::AppState;
 use crate::config;
@@ -143,6 +145,7 @@ pub async fn create_custom_pack(
     name: String,
     icon_path: String,
     effect_preset: String,
+    effect_params: Option<std::collections::HashMap<String, f32>>,
     sound: packs::SoundRecipe,
     sound_path: Option<String>,
     palette: packs::PackPalette,
@@ -207,7 +210,8 @@ pub async fn create_custom_pack(
         icon: file_name.clone(),
         effect: packs::EffectSpec {
             preset: effect_preset,
-            params: Default::default(),
+            // 向导按预设的真实参数表传值；省略时退回空表（旧前端仍可调用）。
+            params: effect_params.unwrap_or_default(),
         },
         sound,
         palette,
@@ -261,14 +265,13 @@ pub async fn create_custom_pack(
 }
 
 /// Delete a custom material pack (built-in packs are never deletable).
+///
+/// Path-traversal containment lives in `pack_edit::delete_pack_at`, shared with
+/// the edit path so both entry points enforce the same canonicalise+prefix rule.
 #[tauri::command]
 pub async fn delete_custom_pack(id: String, app: AppHandle) -> Result<(), String> {
     let custom_dir = user_custom_packs_dir(&app)?;
-    let target = custom_dir.join(&id);
-    if !target.exists() {
-        return Err(format!("素材包 '{id}' 不存在"));
-    }
-    fs::remove_dir_all(&target).map_err(|e| format!("删除素材包失败: {e}"))?;
+    crate::pack_edit::delete_pack_at(&custom_dir, &id)?;
     Ok(())
 }
 

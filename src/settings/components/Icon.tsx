@@ -18,6 +18,7 @@ export type IconName =
   | 'search'
   | 'close'
   | 'trash'
+  | 'pencil'
   | 'check'
   | 'upload'
   | 'play'
@@ -157,6 +158,15 @@ const ICON_PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M4 6H16M7.5 3.5H12.5L13.5 6M6 6L6.75 16.5H13.25L14 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M8.5 9V13.5M11.5 9V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </>
+  ),
+
+  // Pencil: angled graver over its work line — edit, in the same forged-tool
+  // language as the trash icon (straight strokes, 1.5px, mitred joins).
+  pencil: (
+    <>
+      <path d="M13.6 3.6L16.4 6.4L7.4 15.4L4 16L4.6 12.6L13.6 3.6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11.9 5.3L14.7 8.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </>
   ),
 

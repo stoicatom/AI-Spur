@@ -174,3 +174,14 @@ fn every_builtin_material_uses_the_sound_declared_in_its_own_manifest() {
         );
     }
 }
+
+/// 前端「自定义素材置顶」依赖稳定排序，而稳定排序要求输入本身是确定的。
+/// `read_dir` 的顺序由文件系统决定，因此扫描果必须按 id 排序。
+#[test]
+fn scanned_packs_are_sorted_by_id() {
+    let packs = packs::scan_packs_in(&bundled_packs_dir(), true);
+    let ids: Vec<&str> = packs.iter().map(|pack| pack.id.as_str()).collect();
+    let mut sorted = ids.clone();
+    sorted.sort_unstable();
+    assert_eq!(ids, sorted, "scan_packs_in must return packs ordered by id");
+}

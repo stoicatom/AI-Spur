@@ -185,6 +185,7 @@ impl MacroSender for EnigoSender {
 }
 
 /// Call record for FakeMacroSender testing
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum MacroCall {
     Escape,
@@ -193,6 +194,7 @@ pub enum MacroCall {
 }
 
 /// Fake implementation for testing without real keyboard events
+#[allow(dead_code)]
 pub struct FakeMacroSender {
     pub calls: Arc<Mutex<Vec<MacroCall>>>,
 }

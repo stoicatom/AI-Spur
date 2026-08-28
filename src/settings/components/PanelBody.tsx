@@ -28,7 +28,7 @@ export function PanelBody({ panel, config, onPatch }: PanelBodyProps) {
     case 'phrases':
       return <PhrasesPanel {...props} />;
     case 'skins':
-      // v3: SkinsPanel 已升级为素材包面板（三轴合一）
+      // v3：皮肤/素材/音效三轴已合并为单一素材包轴
       return <MaterialPacksPanel {...props} />;
     case 'animation':
       return <AnimationPanel {...props} />;

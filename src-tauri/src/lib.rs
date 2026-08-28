@@ -1,5 +1,7 @@
 pub mod config;
 pub mod macro_sender;
+pub mod overlay_placement;
+pub mod pack_edit;
 pub mod pack_icons;
 pub mod packs;
 pub mod shortcut;

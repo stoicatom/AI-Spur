@@ -13,7 +13,6 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('../shared/ipc', () => ({
   listSkins: vi.fn(),
-  activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
   getConfig: vi.fn(),
   saveConfig: vi.fn(),

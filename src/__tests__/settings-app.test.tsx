@@ -19,7 +19,6 @@ vi.mock('../shared/ipc', () => ({
   onConfigUpdated: vi.fn(),
   // Panels render for real inside App, so their IPC calls need stubs too.
   listSkins: vi.fn(),
-  activateSkin: vi.fn(),
   checkHotkeyConflict: vi.fn(),
 }));
 

@@ -36,17 +36,26 @@ struct CursorPos {
 /// the overlay never starves for a fresh position.
 const POLL_INTERVAL: Duration = Duration::from_millis(16);
 
-/// Convert the global physical cursor point into overlay-window logical
-/// coordinates — the space the WebView renders in. Mirrors the conversion in
-/// `main::spawn_whip_payload`: subtract the overlay's physical top-left and
-/// divide by the display scale factor. Returns `None` if any window query fails.
+/// Convert the global cursor point into overlay-window logical coordinates —
+/// the space the WebView renders in.
+///
+/// Shared with the placement module: the cursor is first reduced to desktop
+/// **points** by dividing by the primary display's scale (the only multiplier
+/// `cursor_position()` carries), and the overlay's own top-left is subtracted
+/// in the same point space. The old code subtracted the overlay's *physical*
+/// origin and divided by the window's scale factor — wrong on mixed-DPI
+/// setups, where the window's scale is not the monitor's scale. Returns `None`
+/// if any query fails.
 fn cursor_in_overlay(window: &tauri::WebviewWindow) -> Option<(f64, f64)> {
-    let cursor = window.cursor_position().ok()?;
+    let (cursor_x, cursor_y) = crate::overlay_placement::cursor_in_points(window)?;
     let origin = window.outer_position().ok()?;
-    let scale = window.scale_factor().ok()?;
+    // The overlay is physically native-resolution. Its logical origin equals
+    // the monitor's point-space origin because placement sets its position to
+    // exactly that, so outer_position / window_scale is the monitor origin.
+    let scale = window.scale_factor().ok().unwrap_or(1.0);
     Some((
-        (cursor.x - origin.x as f64) / scale,
-        (cursor.y - origin.y as f64) / scale,
+        cursor_x - origin.x as f64 / scale,
+        cursor_y - origin.y as f64 / scale,
     ))
 }
 
