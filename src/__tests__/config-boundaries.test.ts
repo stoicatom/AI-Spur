@@ -18,9 +18,10 @@ function variant(patch: Partial<typeof VALID>): unknown {
 }
 
 describe('ConfigSchema 边界：version / hotkey', () => {
-  it('拒绝非 3.0 的 version', () => {
+  it('拒绝非 4.0 的 version', () => {
     expect(ConfigSchema.safeParse(variant({ version: '2.0' as never })).success).toBe(false);
-    expect(ConfigSchema.safeParse(variant({ version: '4.0' as never })).success).toBe(false);
+    expect(ConfigSchema.safeParse(variant({ version: '3.0' as never })).success).toBe(false);
+    expect(ConfigSchema.safeParse(variant({ version: '5.0' as never })).success).toBe(false);
     expect(ConfigSchema.safeParse(variant({ version: '' as never })).success).toBe(false);
   });
 

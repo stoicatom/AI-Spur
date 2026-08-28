@@ -52,7 +52,7 @@ describe('IPC layer', () => {
     vi.mocked(invoke).mockResolvedValue(DEFAULT_CONFIG);
     const config = await getConfig();
     expect(invoke).toHaveBeenCalledWith('get_config');
-    expect(config.version).toBe('3.0');
+    expect(config.version).toBe('4.0');
   });
 
   it('getConfig should throw if response is invalid', async () => {

@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { ConfigSchema } from '../../shared/config';
 
 describe('Config IPC contract', () => {
-  describe('get_config response (v3)', () => {
+  describe('get_config response (v4)', () => {
     it('解析含 lastUsageDate: null 的配置', () => {
       const rustResponse = {
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CommandOrControl+Shift+W',
         phrases: ['FASTER'],
         animationMode: 'auto',
@@ -29,7 +29,7 @@ describe('Config IPC contract', () => {
 
     it('解析含 lastUsageDate: "2026-08-13" 的配置', () => {
       const rustResponse = {
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CommandOrControl+Shift+W',
         phrases: ['FASTER'],
         animationMode: 'auto',
@@ -53,7 +53,7 @@ describe('Config IPC contract', () => {
     it('缺失 activePackId 时回退默认 rocket', () => {
       // Rust 侧 serde default 保证不缺失；此处验证 Zod 侧的兜底。
       const rustResponse = {
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CommandOrControl+Shift+W',
         phrases: ['FASTER'],
         animationMode: 'auto',
@@ -82,7 +82,7 @@ describe('Config IPC contract', () => {
 
     it('拒绝空 phrases 数组', () => {
       const invalid = {
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CmdOrCtrl+W',
         phrases: [], // 违反 .min(1)
         animationMode: 'auto',
@@ -101,7 +101,7 @@ describe('Config IPC contract', () => {
 
     it('拒绝负数 usageCount', () => {
       const invalid = {
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CmdOrCtrl+W',
         phrases: ['A'],
         animationMode: 'auto',
@@ -119,12 +119,12 @@ describe('Config IPC contract', () => {
     });
   });
 
-  describe('v2 → v3 迁移（Rust 端语义镜像）', () => {
-    // 这些用例验证 TS 侧对「Rust 迁移后返回」的兼容：即使前端拿到 v3 配置，
+  describe('v2/v3 → v4 迁移（Rust 端语义镜像）', () => {
+    // 这些用例验证 TS 侧对「Rust 迁移后返回」的兼容：即使前端拿到 v4 配置，
     // 旧的三轴字段不再出现在 payload 中。
-    it('v3 payload 不含旧三轴字段', () => {
+    it('v4 payload 不含旧三轴字段', () => {
       const parsed = ConfigSchema.parse({
-        version: '3.0',
+        version: '4.0',
         hotkey: 'CommandOrControl+Shift+W',
         phrases: ['FASTER'],
         animationMode: 'auto',

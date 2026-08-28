@@ -9,8 +9,16 @@ export type Theme = z.infer<typeof ThemeSchema>;
 export const WindowPresenceSchema = z.enum(['tray', 'persistent']);
 export type WindowPresence = z.infer<typeof WindowPresenceSchema>;
 
+/**
+ * 特效画质档位（CG 场景基座）：
+ * - auto：运行时自适应，按实测帧耗时升降档（最流畅优先）
+ * - cinematic / high / medium / low：固定档位，由用户在设置页显式指定
+ */
+export const EffectQualitySchema = z.enum(['auto', 'cinematic', 'high', 'medium', 'low']);
+export type EffectQuality = z.infer<typeof EffectQualitySchema>;
+
 export const ConfigSchema = z.object({
-  version: z.literal('3.0'),
+  version: z.literal('4.0'),
   hotkey: z.string().min(1),
   phrases: z.array(z.string().min(1)).min(1).max(20),
   animationMode: AnimationModeSchema,
@@ -37,6 +45,8 @@ export const ConfigSchema = z.object({
    * 新增字段用 default 保持向后兼容。
    */
   activePackId: z.string().default('rocket'),
+  /** 特效画质档位：auto = 运行时自适应（最流畅优先）。 */
+  quality: EffectQualitySchema.default('auto'),
   /**
    * v2 遗留字段：仅用于迁移时保留，运行时不再使用。
    * Rust 迁移后不再写回；此处保留 default 以兼容 v2 配置解析。
@@ -49,7 +59,7 @@ export const ConfigSchema = z.object({
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
-  version: '3.0',
+  version: '4.0',
   hotkey: 'CommandOrControl+Shift+W',
   phrases: ['FASTER', 'KEEP GOING', "DON'T STOP NOW", 'SHOW ME WHAT YOU GOT'],
   animationMode: 'auto',
@@ -65,4 +75,5 @@ export const DEFAULT_CONFIG: Config = {
   firstLaunch: true,
   windowPresence: 'tray',
   activePackId: 'rocket',
+  quality: 'auto',
 };

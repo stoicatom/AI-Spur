@@ -38,3 +38,41 @@ describe('Config schema', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('v4 quality', () => {
+  const base = {
+    version: '4.0',
+    hotkey: 'CommandOrControl+Shift+W',
+    phrases: ['FASTER'],
+    animationMode: 'auto',
+    autoSwitchThreshold: 20,
+    usageCount: 0,
+    todayUsageCount: 0,
+    playSound: true,
+    showBorderFlash: true,
+    crackSensitivity: 1,
+    theme: 'auto',
+    language: 'auto',
+    firstLaunch: true,
+    windowPresence: 'tray',
+    activePackId: 'rocket',
+  } as const;
+
+  it('解析 quality=cinematic', () => {
+    const cfg = ConfigSchema.parse({ ...base, quality: 'cinematic' });
+    expect(cfg.quality).toBe('cinematic');
+  });
+
+  it('quality 缺省为 auto', () => {
+    const cfg = ConfigSchema.parse(base);
+    expect(cfg.quality).toBe('auto');
+  });
+
+  it('拒绝非法 quality', () => {
+    expect(() => ConfigSchema.parse({ ...base, quality: 'ultra' })).toThrow();
+  });
+
+  it('拒绝 v3 版本', () => {
+    expect(() => ConfigSchema.parse({ ...base, version: '3.0' })).toThrow();
+  });
+});
