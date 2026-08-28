@@ -97,13 +97,12 @@ fn process_name_from_path(path: &str) -> &str {
 #[cfg(target_os = "macos")]
 fn frontmost_owner_name() -> Option<String> {
     use objc2_app_kit::NSWorkspace;
-    // SAFETY: NSWorkspace.sharedWorkspace is a singleton getter; menuBarOwningApplication
-    // reads the current menubar owner and returns None when unavailable.
-    unsafe {
-        let workspace = NSWorkspace::sharedWorkspace();
-        let app = workspace.menuBarOwningApplication()?;
-        app.localizedName().map(|n| n.to_string())
-    }
+    // objc2 exposes these as safe bindings, so no `unsafe` block is needed:
+    // sharedWorkspace is a singleton getter, and menuBarOwningApplication
+    // yields None when there is no menubar owner (e.g. a locked screen).
+    let workspace = NSWorkspace::sharedWorkspace();
+    let app = workspace.menuBarOwningApplication()?;
+    app.localizedName().map(|n| n.to_string())
 }
 
 /// True when the currently focused macOS application looks like a terminal or
@@ -508,12 +507,13 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn frontmost_owner_name_returns_a_usable_name_or_none() {
-        match frontmost_owner_name() {
-            Some(name) => assert!(
+        // None 是合法结果（判不出前台应用时调用方按不安全处理），只在拿到
+        // 名字时才有断言可做。
+        if let Some(name) = frontmost_owner_name() {
+            assert!(
                 !name.trim().is_empty(),
                 "前台应用名不能是空串：空串会让 is_safe_app 误判为安全"
-            ),
-            None => {} // 判不出前台应用是合法结果，调用方按不安全处理
+            );
         }
     }
 
