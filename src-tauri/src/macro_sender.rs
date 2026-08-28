@@ -238,6 +238,7 @@ impl Default for FakeMacroSender {
     }
 }
 
+#[allow(dead_code)]
 impl FakeMacroSender {
     pub fn new() -> Self {
         Self {
