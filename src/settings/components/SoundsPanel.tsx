@@ -6,7 +6,7 @@ export function SoundsPanel({ config, onPatch }: PanelProps) {
       <section className="field">
         <h2 className="field__label">音效与反馈</h2>
         <p className="field__desc">
-          crack 音效已与素材包强绑定——在「素材包」面板切换素材即同步更换音色（程序化合成，零音频文件）。此处仅控制全局开关与视觉反馈。
+          crack 音效已与素材包强绑定——在「素材库」面板切换素材即同步更换音色（程序化合成，零音频文件）。此处仅控制全局开关与视觉反馈。
         </p>
 
         <label className="toggle-row">
