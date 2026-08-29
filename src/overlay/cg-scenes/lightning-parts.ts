@@ -7,12 +7,11 @@
 import * as THREE from 'three';
 import type { CgStageContext } from '../cg-scene';
 import {
-  POOL_FRAGMENT,
-  RAIN_FRAGMENT,
   VOLUME_CLOUD_FRAGMENT,
   createAdditivePlaneMaterial,
   createBlendedPlaneMaterial,
 } from '../cg-shaders';
+import { POOL_FRAGMENT, RAIN_FRAGMENT } from './lightning-shaders';
 import { additiveMaterial, createSceneResources, type SceneResources } from '../cg-scene-kit';
 import { scaledCount } from '../cg-particle-kit';
 
@@ -32,6 +31,13 @@ export type Bolt = {
   forks: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>[];
   /** 落雷光池。 */
   pool: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  /**
+   * 落点溅起的雨滴环（规格互动③的后半句）。
+   *
+   * 与光池分开一个节点：涟漪是地面光扩散，雨滴是被砸起的水花，
+   * 合到一个材质上就没法让水花比光池晚一点起、早一点落。
+   */
+  splash: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
   /** 该相的落点 x（世界坐标）。 */
   strikeX: number;
 };
@@ -153,7 +159,18 @@ export function buildLightningParts(ctx: CgStageContext): LightningParts {
     pool.position.set(strikeX, -height * 0.46, 0);
     res.group.add(pool);
 
-    return { main, forks, pool, strikeX };
+    // 溅起的雨滴：贴地一圈水花环，运行期靠缩放外推、透明度收尾。
+    const splashR = Math.min(width, height) * 0.16;
+    const splash = res.mesh(
+      `rain-splash-${phase}`,
+      new THREE.RingGeometry(splashR * 0.35, splashR, 24, 1),
+      additiveMaterial('#BFD4FF', 0),
+    );
+    splash.position.set(strikeX, -height * 0.44, 0);
+    splash.scale.setScalar(0.4);
+    res.group.add(splash);
+
+    return { main, forks, pool, splash, strikeX };
   });
 
   // ⑤ 雨幕：斜向条带，档位控制条数。整幕是一个元素，

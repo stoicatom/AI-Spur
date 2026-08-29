@@ -64,7 +64,20 @@ export function createShrapnelField(
   });
 
   // 地面：与焦圈同高的静态平面，碎片在此反弹（规格「碎片弹射」的落点）。
-  const ground = new Body({ mass: 0, type: Body.STATIC, shape: new Plane() });
+  // 碰撞分组：碎片只与地面互撞，彼此穿透。
+  // 全部刚体在起爆前同处爆心一点，若开启碎片间碰撞，cannon 的穿透分离
+  // 冲量会把它们炸向随机深度（实测 z 冲到 ±1400，早已飞出画面与烟体）。
+  // 规格要的物理是「重力 + 落地反弹」，碎片互撞既非必需，还是 O(n²)。
+  const GROUP_GROUND = 1;
+  const GROUP_PIECE = 2;
+
+  const ground = new Body({
+    mass: 0,
+    type: Body.STATIC,
+    shape: new Plane(),
+    collisionFilterGroup: GROUP_GROUND,
+    collisionFilterMask: GROUP_PIECE,
+  });
   ground.position.set(0, groundY, 0);
   // Plane 默认法线朝 +z，转到朝 +y 才是水平地面。
   ground.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
@@ -91,6 +104,8 @@ export function createShrapnelField(
       angularDamping: 0.1,
       allowSleep: true,
       sleepSpeedLimit: blast * 0.05,
+      collisionFilterGroup: GROUP_PIECE,
+      collisionFilterMask: GROUP_GROUND,
     });
     world.addBody(body);
     pieces.push({ mesh, body });

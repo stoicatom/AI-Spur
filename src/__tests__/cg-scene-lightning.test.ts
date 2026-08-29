@@ -1,16 +1,16 @@
 /**
  * 场景 03 lightning 实现验收（设计规格 §4.2 场景 03）。
  *
- * 断言按规格逐条对应：8 元素齐备、三幕时间轴、全屏覆盖（顶部 2/3 云幕 +
- * 贯穿电弧 + 全屏半径光池）、三条互动、独立签名（先导-暗闪-落雷三相耦合）、
- * 资源释放。结构照 cg-scene-black-hole.test.ts 标杆。
+ * 断言按规格逐条对应：8 元素齐备、三幕时间轴、全屏覆盖、三条互动、
+ * 独立签名（先导-暗闪-落雷三相耦合）、资源释放。
+ * 结构照 cg-scene-black-hole.test.ts 标杆，取值走共用夹具。
  */
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { resolveScene } from '../overlay/cg-scene-registry';
 import '../overlay/cg-scenes';
 import { LIGHTNING_ACT1_END, LIGHTNING_ACT2_END, phaseCoupling } from '../overlay/cg-scenes/cg-lightning';
-import type { CgStageContext } from '../overlay/cg-scene';
+import { box, makeSceneCtx as makeCtx, names, node, nodes, opacity, uniformOf, visualSnapshot } from './cg-scene-harness';
 
 /** 场景总时长（ms），规格 §4.2 场景 03。 */
 const DURATION = 1200;
@@ -23,55 +23,8 @@ const ELEMENTS = [
   'rain-curtain', 'residual-serpent', 'thunder-blast', 'charge-lamps',
 ] as const;
 
-function makeCtx(overrides: Partial<CgStageContext> = {}): CgStageContext {
-  return {
-    root: new THREE.Group(),
-    origin: new THREE.Vector3(0, 0, 0),
-    color: new THREE.Color('#5B7CFF'),
-    energy: 1.5,
-    direction: new THREE.Vector2(0, -1),
-    width: 1920,
-    height: 1080,
-    quality: 'cinematic',
-    params: {},
-    now: 0,
-    ...overrides,
-  };
-}
-
-/** 摊平整棵场景树：状态变化都在子节点上，只看顶层会漏。 */
-function nodes(root: THREE.Object3D): THREE.Object3D[] {
-  const out: THREE.Object3D[] = [];
-  root.traverse((o) => out.push(o));
-  return out;
-}
-
-function names(root: THREE.Object3D): string {
-  return nodes(root).map((o) => o.name).filter(Boolean).join('|');
-}
-
-function node(root: THREE.Object3D, name: string): THREE.Object3D {
-  const hit = nodes(root).find((o) => o.name === name);
-  if (!hit) throw new Error(`节点缺失: ${name}`);
-  return hit;
-}
-
-function opacity(o: THREE.Object3D): number {
-  const material = (o as THREE.Mesh).material;
-  if (!material || Array.isArray(material)) return 0;
-  return (material as THREE.Material).opacity;
-}
-
-/** 雨丝亮度走 uBright uniform：「被闪电照白」要同时抬色温，单靠 alpha 表达不了。 */
-function brightOf(o: THREE.Object3D): number {
-  const material = (o as THREE.Mesh).material as THREE.ShaderMaterial;
-  return Number(material.uniforms.uBright.value);
-}
-
-function box(o: THREE.Object3D): THREE.Box3 {
-  o.updateMatrixWorld(true);
-  return new THREE.Box3().setFromObject(o);
-}
+/** 雨丝亮度走 uBright：「被闪电照白」要同时抬色温，单靠 alpha 表达不了。 */
+const brightOf = (o: THREE.Object3D): number => uniformOf(o, 'uBright');
 
 const scene = resolveScene('lightning');
 
@@ -122,16 +75,7 @@ describe('场景 03 lightning', () => {
     const stage = scene!.create(ctx);
     const snapshot = (t: number) => {
       stage.update(t, t * DURATION, 'cinematic');
-      const rows: unknown[] = [];
-      ctx.root.traverse((o) => {
-        rows.push([
-          o.name,
-          o.position.toArray().map((n) => Number(n.toFixed(2))),
-          o.scale.toArray().map((n) => Number(n.toFixed(3))),
-          Number(opacity(o).toFixed(3)),
-        ]);
-      });
-      return JSON.stringify(rows);
+      return visualSnapshot(ctx.root);
     };
     // 0–240 云压蓄能 / 240–780 三相劈落 / 780–1200 余电散场
     const act1 = snapshot(0.12);
@@ -230,6 +174,27 @@ describe('场景 03 lightning', () => {
     stage.dispose();
   });
 
+  it('互动·落雷点溅起雨滴，且火花/斜雨走 quarks 粒子层', () => {
+    const ctx = makeCtx();
+    const stage = scene!.create(ctx);
+    const splash = node(ctx.root, 'rain-splash-0');
+
+    // 规格元素②「quarks 火花节点」、⑤「quarks 斜雨」：几何层的电弧与
+    // 雨幕条带表达不了飞散颗粒，必须真有 quarks 粒子系统在场。
+    expect(nodes(ctx.root).find((o) => o.type === 'BatchedRenderer'), '缺 quarks 粒子层').toBeDefined();
+
+    // 蓄能幕还没落雷，雨滴不该溅。
+    stage.update(0.1, 120, 'cinematic');
+    expect(opacity(splash)).toBeLessThan(0.05);
+
+    // 主弧落地那一刻，涟漪与雨滴一起起来。
+    const peak = LIGHTNING_ACT1_END + PHASE * 0.78;
+    stage.update(peak, peak * DURATION, 'cinematic');
+    expect(uniformOf(node(ctx.root, 'strike-pool-0'), 'uRipple')).toBeGreaterThan(0.2);
+    expect(opacity(splash)).toBeGreaterThan(0.1);
+    stage.dispose();
+  });
+
   it('余电游走属于第三幕', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
@@ -268,20 +233,15 @@ describe('场景 03 lightning', () => {
     b.dispose();
   });
 
-  it('dispose 清空根节点且幂等', () => {
+  it('dispose 清空根节点、幂等，且之后 update 静默失效', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
     expect(ctx.root.children.length).toBeGreaterThan(0);
     stage.dispose();
     expect(ctx.root.children).toHaveLength(0);
+    // 幂等 + 悬空调用都不许抛：覆盖层可能在动画中途被关掉。
     expect(() => stage.dispose()).not.toThrow();
-    expect(ctx.root.children).toHaveLength(0);
-  });
-
-  it('dispose 后 update 静默失效，不抛错', () => {
-    const ctx = makeCtx();
-    const stage = scene!.create(ctx);
-    stage.dispose();
     expect(() => stage.update(0.5, 600, 'cinematic')).not.toThrow();
+    expect(ctx.root.children).toHaveLength(0);
   });
 });

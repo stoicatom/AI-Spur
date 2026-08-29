@@ -19,7 +19,8 @@ import * as THREE from 'three';
 import { registerScene } from '../cg-scene-registry';
 import type { CgStage, CgStageContext } from '../cg-scene';
 import type { EffectQuality } from '../../shared/config';
-import { acts } from '../cg-scene-kit';
+import { acts, frameDelta } from '../cg-scene-kit';
+import { createParticleHub } from '../cg-particle-kit';
 import { buildLightningParts } from './lightning-parts';
 
 /** 第一幕结束点（240/1200）。 */
@@ -76,6 +77,33 @@ function createLightningStage(ctx: CgStageContext): CgStage {
   const { res, cloud, darkFlash, bolts, rain, serpents, blast, lamps } = parts;
   const { width, height } = ctx;
 
+  // 粒子层（规格元素②火花节点 + ⑤斜雨）：几何条带只能表达「一片雨」，
+  // 飞散的颗粒必须交给 quarks，档位与释放由工具层统一管。
+  const hub = createParticleHub(res.group, ctx.quality);
+  hub.emit({
+    count: 64,
+    lifetime: [0.25, 0.7],
+    speed: [height * 0.25, height * 0.75],
+    size: [2, 5.5],
+    color: new THREE.Color('#EAF0FF'),
+    shape: 'cone',
+    spread: 0.42,
+    position: new THREE.Vector3(bolts[0].strikeX, -height * 0.42, 0),
+  });
+  hub.emit({
+    count: 80,
+    lifetime: [0.6, 1.2],
+    speed: [height * 0.5, height * 0.9],
+    size: [1.5, 3],
+    color: new THREE.Color('#8FA8D8'),
+    shape: 'sphere',
+    spread: width * 0.5,
+    looping: true,
+    rate: 60,
+  });
+
+  let lastNow = ctx.now;
+
   // 电荷游灯的静态排布：沿云底一线，运行期只改亮度与轻微浮动。
   const lampMatrix = new THREE.Matrix4();
   const lampBase: { x: number; y: number; phase: number }[] = [];
@@ -90,6 +118,9 @@ function createLightningStage(ctx: CgStageContext): CgStage {
   return {
     update(t: number, now: number, _quality: EffectQuality): void {
       if (res.disposed) return;
+      hub.update(frameDelta(now, lastNow));
+      lastNow = now;
+
       const seconds = now / 1000;
       const [act1, act2, act3] = acts(t, LIGHTNING_ACT1_END, LIGHTNING_ACT2_END);
       const { index, p } = phaseAt(act2);
@@ -127,6 +158,11 @@ function createLightningStage(ctx: CgStageContext): CgStage {
         const poolAlpha = Math.pow(boltAlpha, 1.3) * 0.95;
         bolt.pool.material.uniforms.uAlpha.value = poolAlpha;
         bolt.pool.material.uniforms.uRipple.value = mine ? Math.min(1, p * 1.6) : 0;
+
+        // 互动③ 落点溅雨：跟着光池一起起，但外推得更快、收得更早，
+        // 看上去才像被砸起的水花而不是第二层光圈。
+        bolt.splash.material.opacity = Math.pow(boltAlpha, 1.6) * 0.8;
+        bolt.splash.scale.setScalar(0.4 + boltAlpha * 1.5);
       }
 
       // 互动① 雨幕：整幕有雨，正对当前落点的条带被照白。
