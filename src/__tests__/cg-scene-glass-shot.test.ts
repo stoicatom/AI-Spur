@@ -55,6 +55,17 @@ function collect(root: THREE.Object3D, prefix: string): THREE.Object3D[] {
   return out;
 }
 
+/**
+ * 只取 ⑥ 碎片刚体本体（shard-<i>）。
+ *
+ * 不能用 collect('shard-')：⑦ 反光片名为 shard-glint-<i>，同前缀会被一起收进来。
+ * 反光片的位置是每帧从碎片抄来的，不参与 cannon 积分——混进来会让
+ * 「重力加速」「外圈先落」这两条断言测到非物理体，看着过实则没测到刚体。
+ */
+function collectShards(root: THREE.Object3D): THREE.Object3D[] {
+  return collect(root, 'shard-').filter((o) => /^shard-\d+$/.test(o.name));
+}
+
 function opacityOf(node: THREE.Object3D): number {
   const material = (node as THREE.Mesh).material;
   if (!material || Array.isArray(material)) return 0;
@@ -126,6 +137,27 @@ describe('场景 35 glass-shot', () => {
     stage.dispose();
   });
 
+  it('第三幕边界：900ms 前无地面碎渣，越界即开始铺开', () => {
+    const ctx = makeCtx();
+    const stage = scene!.create(ctx);
+    const gritSum = () => collect(ctx.root, 'grit-').reduce((sum, n) => sum + opacityOf(n), 0);
+
+    // 幕二末尾碎片还在空中：地面不该有一粒渣。
+    stage.update(ACT2_END - 0.01, (ACT2_END - 0.01) * TOTAL_MS, 'cinematic');
+    const before = gritSum();
+    stage.update(ACT2_END + 0.005, (ACT2_END + 0.005) * TOTAL_MS, 'cinematic');
+    const after = gritSum();
+    stage.update(0.99, 0.99 * TOTAL_MS, 'cinematic');
+    const settled = gritSum();
+
+    // 规格三幕：900–1550ms 才是「碎片落地+渣停」，碎渣是这一幕的专属信号。
+    expect(before).toBe(0);
+    expect(after).toBeGreaterThan(0);
+    // 渣是越铺越多直到停住，不是闪一下。
+    expect(settled).toBeGreaterThan(after);
+    stage.dispose();
+  });
+
   it('时序因果：命中前子弹在飞行且裂纹不可见', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
@@ -149,7 +181,7 @@ describe('场景 35 glass-shot', () => {
   it('时序因果：命中后裂纹出现且碎片开始掉落', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
-    const shards = collect(ctx.root, 'shard-');
+    const shards = collectShards(ctx.root);
     expect(shards.length).toBeGreaterThan(3);
 
     step(stage, 0, 0.12);
@@ -183,7 +215,7 @@ describe('场景 35 glass-shot', () => {
   it('碎片受重力：下落逐帧加速而非匀速', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
-    const shards = collect(ctx.root, 'shard-');
+    const shards = collectShards(ctx.root);
 
     step(stage, 0, 0.42);
     const a = shards.map((s) => s.position.y);
@@ -202,7 +234,7 @@ describe('场景 35 glass-shot', () => {
   it('互动①：裂纹抵板缘时外圈碎片先脱落', () => {
     const ctx = makeCtx();
     const stage = scene!.create(ctx);
-    const shards = collect(ctx.root, 'shard-');
+    const shards = collectShards(ctx.root);
     step(stage, 0, 0.12);
     const rest = shards.map((s) => s.position.clone());
     const radius = rest.map((p) => Math.hypot(p.x, p.y));
@@ -265,9 +297,9 @@ describe('场景 35 glass-shot', () => {
       expect(namedNodes(lo.root), `low 档缺 ${element}`).toContain(element);
     }
     // 碎片数按档位缩减但绝不归零。
-    const loShards = collect(lo.root, 'shard-').length;
+    const loShards = collectShards(lo.root).length;
     expect(loShards).toBeGreaterThan(0);
-    expect(loShards).toBeLessThan(collect(hi.root, 'shard-').length);
+    expect(loShards).toBeLessThan(collectShards(hi.root).length);
     // 16 条主裂纹是形态定义，任何档位都不许裁。
     expect(collect(lo.root, 'crack-radial-')).toHaveLength(16);
     a.dispose();
