@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">
   <title>木制战鼓</title>
   <defs>
     <linearGradient id="drum-shell" x1="9" y1="19" x2="39" y2="43" gradientUnits="userSpaceOnUse">
