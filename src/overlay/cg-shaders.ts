@@ -137,6 +137,43 @@ void main() {
   gl_FragColor = vec4(col, a);
 }`;
 
+/**
+ * 雨幕单条：斜雨用带 uBright 的 shader，
+ * 「被电弧照白」要同时抬亮度与色温，单靠 material.opacity 表达不了。
+ */
+export const RAIN_FRAGMENT = `
+varying vec2 vUv;
+uniform vec3 uColor;
+uniform float uBright;
+uniform float uAlpha;
+void main() {
+  // 沿条带纵向做雨丝断续，横向羽化边缘。
+  float streak = smoothstep(0.0, 0.12, vUv.x) * smoothstep(1.0, 0.88, vUv.x);
+  float fall = fract(vUv.y * 6.0);
+  float drop = smoothstep(0.0, 0.35, fall) * smoothstep(1.0, 0.6, fall);
+  vec3 lit = mix(uColor, vec3(1.0), clamp(uBright, 0.0, 1.0) * 0.85);
+  float a = streak * drop * uAlpha * (0.35 + uBright * 0.9);
+  if (a < 0.004) discard;
+  gl_FragColor = vec4(lit, a);
+}`;
+
+/** 落雷光池：中心亮、边缘衰减的地面光斑。 */
+export const POOL_FRAGMENT = `
+varying vec2 vUv;
+uniform vec3 uColor;
+uniform float uAlpha;
+uniform float uRipple;
+void main() {
+  vec2 p = (vUv - 0.5) * 2.0;
+  float r = length(p);
+  float core = pow(max(0.0, 1.0 - r), 2.2);
+  // 涟漪：一圈随进度外扩的环，叠在光池上。
+  float ring = smoothstep(0.06, 0.0, abs(r - uRipple)) * (1.0 - uRipple);
+  float a = (core * 0.9 + ring * 0.7) * uAlpha;
+  if (a < 0.004) discard;
+  gl_FragColor = vec4(uColor, a);
+}`;
+
 type MaterialOptions = {
   uniforms: Record<string, { value: unknown }>;
   fragmentShader: string;
