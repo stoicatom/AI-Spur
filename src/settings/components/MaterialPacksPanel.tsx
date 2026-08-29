@@ -145,7 +145,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
         </button>
       </div>
 
-      {load.status === 'loading' && <p className="field-hint">正在读取素材包…</p>}
+      {load.status === 'loading' && <p className="field-hint">正在读取素材库…</p>}
       {load.status === 'error' && <div className="callout callout--error" role="alert"><p className="callout__text font-mono">{load.message}</p></div>}
 
       {load.status === 'ready' && (
