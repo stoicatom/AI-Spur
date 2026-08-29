@@ -177,7 +177,7 @@ export function MaterialPacksPanel({ config, onPatch }: PanelProps) {
           {filtered.length === 0 ? (
             <div className="pack-empty" role="status"><strong>未找到匹配素材</strong><p>调整系列或搜索词后重试</p></div>
           ) : (
-            <div className="pack-grid" role="radiogroup" aria-label="素材包">
+            <div className="pack-grid" role="radiogroup" aria-label="素材库">
               {filtered.map((pack, index) => {
                 const isActive = pack.id === config.activePackId;
                 const packFamily = familyForPack(pack);

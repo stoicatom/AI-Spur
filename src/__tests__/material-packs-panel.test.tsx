@@ -78,7 +78,7 @@ function renderPanel(activePackId = 'rocket', onPatch = vi.fn()) {
 }
 
 async function packGrid() {
-  return screen.findByRole('radiogroup', { name: '素材包' });
+  return screen.findByRole('radiogroup', { name: '素材库' });
 }
 
 beforeEach(() => {
@@ -323,7 +323,7 @@ describe('MaterialPacksPanel 自定义素材优先', () => {
 
     await user.click(mine);
 
-    expect(screen.queryByRole('radiogroup', { name: '素材包' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: '素材库' })).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('未找到匹配素材');
   });
 
@@ -345,7 +345,7 @@ describe('MaterialPacksPanel 自定义素材优先', () => {
     expect(onPatch).toHaveBeenCalledWith({ activePackId: 'my-hammer-q7z1' });
 
     await waitFor(() => {
-      const names = within(screen.getByRole('radiogroup', { name: '素材包' }))
+      const names = within(screen.getByRole('radiogroup', { name: '素材库' }))
         .getAllByRole('radio')
         .map((node) => node.querySelector('.pack-card__name')?.textContent);
       expect(names[0]).toBe('我的铁锤');
