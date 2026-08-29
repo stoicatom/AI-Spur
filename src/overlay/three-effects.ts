@@ -20,6 +20,8 @@ import { materialIdentityFor } from './material-identity';
 import type { ImageHeroLayers } from './three-image-hero';
 import { createImageSpriteStack } from './three-image-sprite-stack';
 import { createParticleStage } from './three-particle-stage';
+import { createCgStage } from './cg-stage';
+import type { CgStage } from './cg-scene';
 type SpriteRequest = { texture: THREE.Texture | null };
 export type ThreeEffectSpec = {
   packId: string;
@@ -45,6 +47,7 @@ export class ThreeEffectRenderer {
   private states: ParticleState[] = [];
   private light: THREE.PointLight | null = null;
   private layers: CinematicLayers | null = null;
+  private cgStage: CgStage | null = null;
   private started = 0;
   private duration = DEFAULT_EFFECT_DURATION_MS;
   private alive = false;
@@ -66,7 +69,7 @@ export class ThreeEffectRenderer {
   private lastUpdate = 0;
   private runId = 0;
   private disposed = false;
-  constructor(canvas: HTMLCanvasElement, quality: EffectQuality = 'auto') {
+  constructor(canvas: HTMLCanvasElement, private readonly quality: EffectQuality = 'auto') {
     this.budget = budgetFor(quality);
     this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
     this.renderer.setClearColor(0x000000, 0);
@@ -135,6 +138,13 @@ export class ThreeEffectRenderer {
       this.root, this.origin, color, energy, this.profile, this.direction,
       this.width, this.height, spec.params, spec.packId, this.physics,
     );
+    // 素材专属 CG 场景与 legacy 程序化层互斥：命中即接管视觉主体，
+    // 未命中（低档 / 自定义包 / 构造失败）继续走 CinematicLayers。
+    this.cgStage = createCgStage(spec.packId, {
+      root: this.root, origin: this.origin, color, energy,
+      direction: this.direction, width: this.width, height: this.height,
+      quality: this.quality, params: spec.params, now,
+    });
     if (contract.genericParticles) this.addParticles(color, spec.vel);
     this.started = now;
     this.lastUpdate = now;
@@ -150,6 +160,7 @@ export class ThreeEffectRenderer {
     const p = this.profile;
     const eased = 1 - Math.pow(1 - Math.max(0, (t - 0.08) / 0.92), 3);
     this.layers?.update(t, now, p);
+    this.cgStage?.update(t, now, this.quality);
     if (this.sprite) {
       updateThreeImageSpriteFrame(
         this.sprite, this.hero, this.effect, t, this.vel, this.params,
@@ -247,6 +258,8 @@ export class ThreeEffectRenderer {
     else this.texture = request.texture;
   }
   private clearScene(): void {
+    this.cgStage?.dispose();
+    this.cgStage = null;
     disposeSceneResources(this.root, this.texture, this.disposedTextures);
     this.root.clear();
     this.sprite = null; this.hero = null; this.particles = null; this.states = []; this.light = null; this.layers = null;

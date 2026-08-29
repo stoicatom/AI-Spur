@@ -1,4 +1,5 @@
 import type { ThreeEffectRenderer, ThreeEffectSpec } from './three-effects';
+import type { EffectQuality } from '../shared/config';
 
 /** Isolates optional WebGL loading and failure recovery from the overlay loop. */
 export class ThreeEffectHost {
@@ -11,6 +12,8 @@ export class ThreeEffectHost {
   private recoveryGeneration = 0;
   private width = 1;
   private height = 1;
+  /** undefined = 沿用 renderer 自身默认档位，不覆盖。 */
+  private quality: EffectQuality | undefined;
 
   constructor(private readonly canvas: HTMLCanvasElement | null) {
     canvas?.addEventListener('webglcontextlost', this.onContextLost);
@@ -26,7 +29,7 @@ export class ThreeEffectHost {
     this.initialization = import('./three-effects')
       .then(({ ThreeEffectRenderer: Renderer }) => {
         if (this.disposed || this.contextLost || generation !== this.initializationGeneration) return;
-        const renderer = new Renderer(canvas);
+        const renderer = new Renderer(canvas, this.quality);
         try {
           if (this.disposed || this.contextLost || generation !== this.initializationGeneration) {
             renderer.dispose();
@@ -44,6 +47,20 @@ export class ThreeEffectHost {
       .finally(() => {
         if (generation === this.initializationGeneration) this.initialization = null;
       });
+  }
+
+  /**
+   * 切换特效画质档位。
+   *
+   * 后处理 pass 列表与 pixelRatio 上限在 renderer 构造期确定，因此档位变化
+   * 必须重建 renderer 才能生效。重建只在档位真正改变时发生，避免 GPU 抖动。
+   */
+  setQuality(quality: EffectQuality): void {
+    if (this.disposed || this.quality === quality) return;
+    this.quality = quality;
+    if (!this.renderer) return;
+    this.releaseRenderer();
+    this.ensure();
   }
 
   resize(width: number, height: number): void {
