@@ -7,6 +7,9 @@ import { DEFAULT_VEL, type WhipVel } from './particles';
 import { profileFor, type PhysicalProfile } from './three-effect-profiles';
 import { CinematicLayers } from './three-effect-layers';
 import { pixelRatioFor, resolveMaterialPhysics, type MaterialPhysics } from './three-effect-physics';
+import { budgetFor, type EffectBudget } from './effect-quality-budget';
+import { clampPixelRatioToBudget } from './effect-quality-wiring';
+import type { EffectQuality } from '../shared/config';
 import { stepParticle, type ParticleState } from './three-particle-motion';
 import { updateThreeImageSpriteFrame } from './three-sprite-frame';
 import { disposeSceneResources, disposeTextureOnce } from './three-effect-resources';
@@ -31,6 +34,7 @@ export type ThreeEffectSpec = {
 /** Owns every GPU resource for one overlay window and releases it on dispose. */
 export class ThreeEffectRenderer {
   private readonly renderer: THREE.WebGLRenderer;
+  private readonly budget: EffectBudget;
   private readonly pipeline: CinematicRenderPipeline;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
@@ -62,7 +66,8 @@ export class ThreeEffectRenderer {
   private lastUpdate = 0;
   private runId = 0;
   private disposed = false;
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, quality: EffectQuality = 'auto') {
+    this.budget = budgetFor(quality);
     this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setClearAlpha(0);
@@ -78,7 +83,7 @@ export class ThreeEffectRenderer {
     const rim = new THREE.DirectionalLight(0xffffff, 2.8);
     rim.position.set(80, -260, -180);
     this.scene.add(key, fill, rim);
-    this.pipeline = new CinematicRenderPipeline(this.renderer, this.scene, this.camera);
+    this.pipeline = new CinematicRenderPipeline(this.renderer, this.scene, this.camera, this.budget);
     this.resize();
   }
   get isAlive(): boolean { return this.alive; }
@@ -93,7 +98,10 @@ export class ThreeEffectRenderer {
     this.camera.position.set(0, 0, 500);
     this.camera.lookAt(0, 0, 0);
     this.camera.updateProjectionMatrix();
-    const pixelRatio = pixelRatioFor(this.width, this.height, window.devicePixelRatio || 1);
+    const pixelRatio = clampPixelRatioToBudget(
+      pixelRatioFor(this.width, this.height, window.devicePixelRatio || 1),
+      this.budget,
+    );
     this.renderer.setPixelRatio(pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.pipeline.resize(this.width, this.height, pixelRatio);

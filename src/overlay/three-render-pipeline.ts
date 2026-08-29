@@ -5,6 +5,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { disposeSceneResources } from './three-effect-resources';
+import { budgetFor, type EffectBudget } from './effect-quality-budget';
 
 /** Owns the cinematic post stack and image-based lighting resources. */
 export class CinematicRenderPipeline {
@@ -15,19 +16,36 @@ export class CinematicRenderPipeline {
   private readonly disposedTextures = new WeakSet<THREE.Texture>();
   private disposed = false;
 
+  private readonly passList: string[] = [];
+
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
     private readonly scene: THREE.Scene,
     camera: THREE.Camera,
+    budget: EffectBudget = budgetFor('cinematic'),
   ) {
     this.setupEnvironmentLighting();
+    this.composer = new EffectComposer(renderer);
+
     const renderPass = new RenderPass(scene, camera);
     renderPass.clearAlpha = 0;
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.72, 0.55, 0.78);
-    this.composer = new EffectComposer(renderer);
-    this.composer.addPass(renderPass);
-    this.composer.addPass(bloomPass);
-    this.composer.addPass(new OutputPass());
+    this.addPass('render', renderPass);
+
+    if (budget.bloom) {
+      this.addPass('bloom', new UnrealBloomPass(new THREE.Vector2(1, 1), 0.72, 0.55, 0.78));
+    }
+
+    this.addPass('output', new OutputPass());
+  }
+
+  private addPass(name: string, pass: Parameters<EffectComposer['addPass']>[0]): void {
+    this.composer.addPass(pass);
+    this.passList.push(name);
+  }
+
+  /** 已装配的 pass 名列表，供档位测试与开发日志核对。 */
+  passNames(): readonly string[] {
+    return this.passList;
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
