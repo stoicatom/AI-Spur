@@ -85,10 +85,10 @@ describe('settings App', () => {
     render(<App />);
     await waitFor(() => expect(screen.getByRole('tabpanel')).toBeInTheDocument());
 
-    await user.click(screen.getByRole('tab', { name: /素材包/ }));
+    await user.click(screen.getByRole('tab', { name: /素材库/ }));
 
     await waitFor(() => {
-      expect(screen.getByRole('tab', { name: /素材包/ })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: /素材库/ })).toHaveAttribute('aria-selected', 'true');
     });
     expect(screen.getByRole('tab', { name: /触发/ })).toHaveAttribute('aria-selected', 'false');
 
