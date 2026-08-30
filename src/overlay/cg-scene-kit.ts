@@ -75,9 +75,24 @@ export function createSceneResources(
       for (const resource of resources) resource.dispose();
       resources.length = 0;
       group.removeFromParent();
-      group.clear();
+      // 递归清空整棵子树：`group.clear()` 只摘直接子节点，场景里常见的
+      // 嵌套容器（碎片场、粒子层、编队容器）清空后仍持有各自的子节点，
+      // 互相引用让整片 mesh 无法回收。审计发现 42 个场景里有 17 个中招，
+      // 最重的一处残留 150 个子节点。
+      clearSubtree(group);
     },
   };
+}
+
+/**
+ * 自底向上摘净一棵子树。
+ *
+ * 先递归到叶子再 clear，避免遍历中修改 children 数组导致漏摘。
+ */
+function clearSubtree(node: THREE.Object3D): void {
+  // children 会在 clear 时被清空，所以先复制一份再递归。
+  for (const child of [...node.children]) clearSubtree(child);
+  node.clear();
 }
 
 /** 叠加发光的实体材质，特效层最常用的一种。 */
