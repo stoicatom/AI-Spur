@@ -161,6 +161,12 @@ export function createParticleHub(root: THREE.Group, quality: EffectQuality): Pa
       // BatchedRenderer 自身无 dispose：它的 GPU 资源随各 ParticleSystem
       // 的 dispose 释放，节点摘除后即可被回收。
       batchedRenderer.removeFromParent();
+      // 但它内部按材质分组生成的 SpriteBatch 子节点不随 deleteSystem 摘除，
+      // 摘掉 renderer 后这些 batch 仍挂在它下面互相持有引用，整批粒子
+      // 网格无法回收。与 cg-scene-kit 的嵌套容器泄漏同源——那次是场景
+      // group 只清一层，这次是 renderer 只摘自己。30 个场景用 quarks，
+      // 在此清一处即全部覆盖。
+      batchedRenderer.clear();
       texture.dispose();
     },
   };

@@ -62,9 +62,14 @@ describe('CG 场景资源容器', () => {
       stage.update(0.5, 600, 'cinematic');
 
       // dispose 前登记所有容器（含嵌套）。
+      //
+      // 按「有子节点」收集，**不按 type === 'Group' 过滤**：粒子层的
+      // BatchedRenderer 不是 Group，早先按类型过滤的写法把 30 个用 quarks
+      // 的场景的 SpriteBatch 泄漏整个跳过了——一条自称全库的审计只审到
+      // 一类节点。flame 场景的 dispose 断言撞出了这个漏洞。
       const groups: THREE.Object3D[] = [];
       ctx.root.traverse((o) => {
-        if (o.type === 'Group' && o !== ctx.root) groups.push(o);
+        if (o !== ctx.root && o.children.length > 0) groups.push(o);
       });
       stage.dispose();
 
